@@ -88,7 +88,7 @@ serve(async (req) => {
   }
 }
 
-Return only the JSON output with no additional text or commentary.
+Return only the JSON output with no additional text or commentary. Ensure all arrays are properly initialized, even if empty. Never return undefined or null values for any array fields.
 `
             },
             {
@@ -104,13 +104,13 @@ Return only the JSON output with no additional text or commentary.
         temperature: 1,
         max_output_tokens: 65536
       },
-      model: "gemini-1.5-pro"
+      model: "gemini-2.5-pro-exp-03-25"
     };
     
     // Send request to Gemini API
     console.log('Sending request to Gemini API...');
     const response = await fetch(
-      `${API_URL}/models/gemini-1.5-pro:generateContent?key=${API_KEY}`,
+      `${API_URL}/models/gemini-2.5-pro-exp-03-25:generateContent?key=${API_KEY}`,
       {
         method: 'POST',
         headers: {
@@ -139,7 +139,16 @@ Return only the JSON output with no additional text or commentary.
     try {
       const jsonMatch = textResponse.match(/\{[\s\S]*\}/);
       const jsonStr = jsonMatch ? jsonMatch[0] : textResponse;
-      const diagnosisResult = JSON.parse(jsonStr);
+      let diagnosisResult = JSON.parse(jsonStr);
+      
+      // Ensure all array fields are initialized to avoid "undefined.map()" errors
+      if (!diagnosisResult.causes) diagnosisResult.causes = [];
+      if (!diagnosisResult.treatment) diagnosisResult.treatment = { steps: [], prevention: [] };
+      if (!diagnosisResult.treatment.steps) diagnosisResult.treatment.steps = [];
+      if (!diagnosisResult.treatment.prevention) diagnosisResult.treatment.prevention = [];
+      if (!diagnosisResult.care_recommendations) diagnosisResult.care_recommendations = [];
+      if (!diagnosisResult.about_plant) diagnosisResult.about_plant = { description: "", origin: "", common_uses: [], growing_conditions: "" };
+      if (!diagnosisResult.about_plant.common_uses) diagnosisResult.about_plant.common_uses = [];
       
       return new Response(
         JSON.stringify(diagnosisResult),
@@ -148,14 +157,32 @@ Return only the JSON output with no additional text or commentary.
     } catch (parseError) {
       console.error('Error parsing JSON response:', parseError);
       return new Response(
-        JSON.stringify({ error: 'Failed to parse API response' }),
+        JSON.stringify({ 
+          error: 'Failed to parse API response',
+          plant: "Unknown",
+          disease: { name: "Unknown", confidence: 0, severity: "Low" },
+          causes: [],
+          treatment: { steps: [], prevention: [] },
+          fertilizer_recommendation: { type: "", application: "" },
+          care_recommendations: [],
+          about_plant: { description: "", origin: "", common_uses: [], growing_conditions: "" }
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
       );
     }
   } catch (error) {
     console.error('Error in edge function:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ 
+        error: 'Internal server error',
+        plant: "Unknown",
+        disease: { name: "Unknown", confidence: 0, severity: "Low" },
+        causes: [],
+        treatment: { steps: [], prevention: [] },
+        fertilizer_recommendation: { type: "", application: "" },
+        care_recommendations: [],
+        about_plant: { description: "", origin: "", common_uses: [], growing_conditions: "" }
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }
