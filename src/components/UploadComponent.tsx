@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { Camera, X, Upload } from 'lucide-react';
+import { Camera, X, Upload, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
@@ -89,19 +89,21 @@ const UploadComponent: React.FC<UploadComponentProps> = ({ onImageSelect }) => {
 
       {!previewUrl ? (
         <div 
-          className={`border-2 border-dashed rounded-lg p-10 text-center transition-colors
-            ${dragActive ? 'border-plantDoc-primary bg-plantDoc-light' : 'border-gray-300 hover:border-plantDoc-primary'}`}
+          className={`glass-card transition-all duration-300 border-dashed rounded-xl p-10 text-center overflow-hidden
+            ${dragActive ? 'border-plantDoc-primary bg-plantDoc-primary/10 scale-[1.02]' : 'hover:border-plantDoc-primary/50 hover-scale'}`}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
           onDrop={handleDrop}
           onClick={triggerFileInput}
         >
-          <div className="flex flex-col items-center justify-center gap-4 cursor-pointer">
-            <Upload className="h-12 w-12 text-gray-400" />
+          <div className="flex flex-col items-center justify-center gap-4 cursor-pointer animate-enter">
+            <div className="w-16 h-16 rounded-full bg-plantDoc-primary/20 flex items-center justify-center">
+              <ImageIcon className="h-8 w-8 text-plantDoc-primary" />
+            </div>
             <div>
-              <p className="font-medium text-gray-700">Drag and drop an image here, or click to select</p>
-              <p className="text-sm text-gray-500 mt-1">PNG, JPG up to 10MB</p>
+              <p className="font-medium">Drag and drop an image here, or click to select</p>
+              <p className="text-sm text-foreground/60 mt-1">PNG, JPG up to 10MB</p>
             </div>
             <Button 
               type="button" 
@@ -117,20 +119,22 @@ const UploadComponent: React.FC<UploadComponentProps> = ({ onImageSelect }) => {
           </div>
         </div>
       ) : (
-        <div className="relative rounded-lg overflow-hidden">
-          <img 
-            src={previewUrl} 
-            alt="Preview" 
-            className="w-full h-full object-contain max-h-[400px]" 
-          />
-          <Button 
-            variant="destructive"
-            onClick={removeImage}
-            className="absolute top-2 right-2"
-            size="icon"
-          >
-            <X className="h-4 w-4" />
-          </Button>
+        <div className="glass-card rounded-xl overflow-hidden animate-fade-in">
+          <div className="relative">
+            <img 
+              src={previewUrl} 
+              alt="Preview" 
+              className="w-full h-full object-contain max-h-[400px]" 
+            />
+            <Button 
+              variant="destructive"
+              onClick={removeImage}
+              className="absolute top-3 right-3 rounded-full shadow-lg"
+              size="icon"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       )}
     </div>

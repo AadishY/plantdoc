@@ -33,7 +33,7 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 142 70% 49%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
   }
 
   .dark {
@@ -75,4 +75,26 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@layer utilities {
+  .glass-card {
+    @apply bg-black/30 backdrop-blur-xl border border-white/10 shadow-lg;
+  }
+  
+  .glass-nav {
+    @apply bg-black/50 backdrop-blur-lg border-b border-white/10;
+  }
+  
+  .hover-scale {
+    @apply transition-transform duration-200 hover:scale-105;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
 }

@@ -1,19 +1,28 @@
 
 import React from 'react';
-import { Leaf } from 'lucide-react';
+import { Leaf, Github } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const Footer: React.FC = () => {
   return (
-    <footer className="bg-white border-t mt-auto">
+    <footer className="glass-nav border-t mt-auto">
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="flex items-center gap-2 mb-4 md:mb-0">
             <Leaf className="h-5 w-5 text-plantDoc-primary" />
-            <span className="font-bold text-plantDoc-dark">Plant Doc</span>
+            <span className="font-bold">Plant Doc</span>
           </div>
           
-          <div className="text-sm text-gray-500">
-            © {new Date().getFullYear()} Plant Doc. All rights reserved.
+          <div className="flex items-center gap-4">
+            <a href="https://github.com/AadishY/PlantDoc" target="_blank" rel="noopener noreferrer" 
+              className="text-foreground/70 hover:text-plantDoc-primary transition-colors flex items-center gap-2">
+              <Github className="h-4 w-4" />
+              <span className="text-sm">GitHub</span>
+            </a>
+            
+            <span className="text-sm text-foreground/50">
+              © {new Date().getFullYear()} Plant Doc by Aadish Kumar Yadav
+            </span>
           </div>
         </div>
       </div>
