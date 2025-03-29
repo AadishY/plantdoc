@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Leaf, ArrowUp, Droplet, Thermometer, Github, User } from 'lucide-react';
@@ -144,7 +143,7 @@ const Index = () => {
         </section>
       </main>
       
-      {/* Sticky Diagnose Button */}
+      {/* Sticky Diagnose Button - Only shown on homepage */}
       <div className="fixed bottom-8 right-8 z-50">
         <Link to="/diagnose">
           <Button className="bg-gradient-to-r from-plantDoc-primary to-plantDoc-secondary text-white font-bold px-6 py-6 rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 animate-pulse group">

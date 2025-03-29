@@ -1,12 +1,10 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Leaf, Github, Moon, Sun, Sprout } from 'lucide-react';
+import { Leaf, Github, Sprout } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useTheme } from '@/components/ThemeProvider';
 
 const Header: React.FC = () => {
-  const { theme, setTheme } = useTheme();
   const location = useLocation();
   
   return (
@@ -57,20 +55,6 @@ const Header: React.FC = () => {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            aria-label="Toggle theme"
-            className="hover:bg-black/30 transition-colors duration-300"
-          >
-            {theme === "dark" ? (
-              <Sun className="h-5 w-5" />
-            ) : (
-              <Moon className="h-5 w-5" />
-            )}
-          </Button>
-          
           <a href="https://github.com/AadishY/PlantDoc" target="_blank" rel="noopener noreferrer">
             <Button 
               variant="ghost" 
