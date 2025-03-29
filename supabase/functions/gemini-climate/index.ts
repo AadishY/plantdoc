@@ -48,6 +48,9 @@ serve(async (req) => {
       );
     }
 
+    console.log('Using API key:', API_KEY.substring(0, 3) + '...');
+    console.log('Preparing request to Gemini API for climate data...');
+
     // Prepare the request payload for Gemini
     const payload = {
       contents: [
@@ -80,7 +83,7 @@ serve(async (req) => {
         temperature: 0.2,
         max_output_tokens: 1024
       },
-      model: "gemini-2.0-flash-lite"
+      model: "gemini-1.5-pro"
     };
     
     // Send request to Gemini API

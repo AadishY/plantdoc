@@ -48,6 +48,9 @@ serve(async (req) => {
       );
     }
 
+    console.log('Using API key:', API_KEY.substring(0, 3) + '...');
+    console.log('Preparing request to Gemini API...');
+
     // Prepare the request payload for Gemini
     const payload = {
       contents: [
@@ -101,7 +104,7 @@ Return only the JSON output with no additional text or commentary.
         temperature: 1,
         max_output_tokens: 65536
       },
-      model: "gemini-2.5-pro-exp-03-25"
+      model: "gemini-1.5-pro"
     };
     
     // Send request to Gemini API
