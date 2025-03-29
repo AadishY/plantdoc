@@ -8,8 +8,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import Index from "./pages/Index";
 import DiagnosePage from "./pages/DiagnosePage";
+import RecommendPage from "./pages/RecommendPage";
 import NotFound from "./pages/NotFound";
-import AboutPage from "./pages/AboutPage";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -25,7 +25,7 @@ const App: React.FC = () => {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/diagnose" element={<DiagnosePage />} />
-              <Route path="/about" element={<AboutPage />} />
+              <Route path="/recommend" element={<RecommendPage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

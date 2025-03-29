@@ -89,6 +89,26 @@
   .hover-scale {
     @apply transition-transform duration-200 hover:scale-105;
   }
+  
+  .glass-input {
+    @apply bg-black/20 border-white/10 focus:border-plantDoc-primary/50 focus:ring-plantDoc-primary/20;
+  }
+  
+  .animate-pulse {
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4);
+    }
+    70% {
+      box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+    }
+  }
 }
 
 html {
