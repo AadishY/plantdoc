@@ -20,7 +20,7 @@ const Footer: React.FC = () => {
               <span className="text-sm">GitHub</span>
             </a>
             
-            <a href="https://instagram.com/aadish_yadav" target="_blank" rel="noopener noreferrer" 
+            <a href="https://instagram.com/yo.akatsuki" target="_blank" rel="noopener noreferrer" 
               className="text-foreground/70 hover:text-plantDoc-primary transition-colors flex items-center gap-2">
               <Instagram className="h-4 w-4" />
               <span className="text-sm">Instagram</span>
