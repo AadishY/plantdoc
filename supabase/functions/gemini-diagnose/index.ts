@@ -51,75 +51,45 @@ serve(async (req) => {
     console.log('Using API key:', API_KEY.substring(0, 3) + '...');
     console.log('Preparing request to Gemini API...');
 
-    // Enhanced prompt with more detailed instructions for better plant analysis
-    const enhancedPrompt = `You are an expert botanist and plant pathologist with extensive knowledge of plant species, plant diseases, and plant care. Analyze the provided plant image thoroughly to identify any diseases or issues affecting the plant.
-
-First, carefully observe all visual details of the plant:
-1. Leaf appearance (color, spots, curling, wilting)
-2. Stem condition
-3. Overall plant structure and health
-4. Any visible pests or signs of pest damage
-5. Growing conditions that can be inferred from the image
-
-Be methodical and precise in your analysis. Consider all possible causes for the observed symptoms, including diseases, nutrient deficiencies, pests, environmental stress, and inadequate care.
-
-Your response must follow this exact JSON structure:
-
-{
-  "plant": {
-    "name": "Scientific and common name of the plant species",
-    "identification_confidence": <confidence percentage as a number between 0-100>,
-    "description": "Detailed description of the plant species with key identifying features"
-  },
-  "disease": {
-    "name": "Scientific and common name of the disease or condition",
-    "confidence": <confidence percentage as a number between 0-100>,
-    "severity": "Low" | "Medium" | "High",
-    "symptoms": ["Observed symptom 1", "Observed symptom 2", ...],
-    "progression": "Description of how the disease typically progresses if left untreated"
-  },
-  "causes": {
-    "primary": ["Most likely primary cause 1", "Most likely primary cause 2", ...],
-    "secondary": ["Possible secondary factor 1", "Possible secondary factor 2", ...],
-    "environmental_factors": ["Environmental factor 1", "Environmental factor 2", ...]
-  },
-  "treatment": {
-    "immediate_actions": ["Urgent step 1", "Urgent step 2", ...],
-    "long_term_steps": ["Long-term step 1", "Long-term step 2", ...],
-    "chemical_treatments": {
-      "organic": ["Organic treatment 1", "Organic treatment 2", ...],
-      "synthetic": ["Synthetic treatment 1", "Synthetic treatment 2", ...]
-    },
-    "prevention": ["Prevention tip 1", "Prevention tip 2", ...]
-  },
-  "fertilizer_recommendation": {
-    "type": "Recommended fertilizer type with specific NPK ratio if applicable",
-    "application": "Detailed application instructions including timing and amount",
-    "frequency": "How often to apply"
-  },
-  "care_recommendations": {
-    "watering": "Specific watering instructions",
-    "light": "Light requirements",
-    "soil": "Soil recommendations",
-    "pruning": "Pruning guidelines if applicable",
-    "additional_tips": ["Care tip 1", "Care tip 2", ...]
-  },
-  "prognosis": "Assessment of recovery chances and expected timeline",
-  "similar_conditions": ["Similar condition 1 to consider", "Similar condition 2 to consider", ...],
-  "references": ["Scientific or authoritative reference 1", "Reference 2", ...]
-}
-
-If you cannot identify the plant or disease with confidence, indicate this clearly in your response with appropriate confidence levels. If certain fields cannot be determined from the image, include them but note the limitations.
-
-Return only the JSON output with no additional text or commentary.`;
-
     // Prepare the request payload for Gemini
     const payload = {
       contents: [
         {
           parts: [
             {
-              text: enhancedPrompt
+              text: `Analyze the provided plant image thoroughly to identify any diseases or issues affecting the plant. Ensure your analysis is comprehensive, taking into account visual symptoms, possible causes, and appropriate treatment options. Follow the JSON schema exactly as specified below for your output.
+
+{
+  "plant": "Plant species name",
+  "disease": {
+    "name": "Disease name",
+    "confidence": <confidence percentage as a number>,
+    "severity": "Low" | "Medium" | "High"
+  },
+  "causes": ["Likely cause 1", "Likely cause 2", ...],
+  "treatment": {
+    "steps": ["Proper detailed Treatment step 1", "Proper detailed Treatment step 2", "Proper detailed Treatment step 3", ...],
+    "prevention": ["Proper detailed Prevention tip 1", "Proper detailed Prevention tip 2", ...]
+  },
+  "fertilizer_recommendation": {
+    "type": "Recommended fertilizer type, its name or it composition",
+    "application": "Application instructions"
+  },
+  "care_recommendations": [
+    "Care tip 1",
+    "Care tip 2",
+    ...
+  ],
+  "about_plant": {
+    "description": "Brief description of the plant species by identifying from the image only, do not need to give random answer if you dont know simply can't indentified",
+    "origin": "Geographic origin of the plant",
+    "common_uses": ["Use 1", "Use 2", ...],
+    "growing_conditions": "Preferred growing conditions"
+  }
+}
+
+Return only the JSON output with no additional text or commentary.
+`
             },
             {
               inline_data: {
@@ -131,7 +101,7 @@ Return only the JSON output with no additional text or commentary.`;
         }
       ],
       generation_config: {
-        temperature: 0.4,
+        temperature: 1,
         max_output_tokens: 65536
       },
       model: "gemini-1.5-pro"
