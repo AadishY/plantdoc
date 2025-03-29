@@ -49,11 +49,11 @@ export const diagnosePlant = async (imageFile: File): Promise<DiagnosisResult> =
   },
   "causes": ["Likely cause 1", "Likely cause 2", ...],
   "treatment": {
-    "steps": ["Treatment step 1", "Treatment step 2", "Treatment step 3", ...],
-    "prevention": ["Prevention tip 1", "Prevention tip 2", ...]
+    "steps": ["Proper detailed Treatment step 1", "Proper detailed Treatment step 2", "Proper detailed Treatment step 3", ...],
+    "prevention": ["Proper detailed Prevention tip 1", "Proper detailed Prevention tip 2", ...]
   },
   "fertilizer_recommendation": {
-    "type": "Recommended fertilizer type",
+    "type": "Recommended fertilizer type, its name or it composition",
     "application": "Application instructions"
   },
   "care_recommendations": [
@@ -62,7 +62,7 @@ export const diagnosePlant = async (imageFile: File): Promise<DiagnosisResult> =
     ...
   ],
   "about_plant": {
-    "description": "Brief description of the plant species by identifying from the image only",
+    "description": "Brief description of the plant species by identifying from the image only, do not need to give random answer if you dont know simply can't indentified",
     "origin": "Geographic origin of the plant",
     "common_uses": ["Use 1", "Use 2", ...],
     "growing_conditions": "Preferred growing conditions"
