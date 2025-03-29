@@ -38,36 +38,39 @@ export const diagnosePlant = async (imageFile: File): Promise<DiagnosisResult> =
         {
           parts: [
             {
-              text: `Analyze this plant image and diagnose any diseases or issues. 
-                     Return your analysis in JSON format with the following structure:
-                     {
-                       "plant": "Plant species name",
-                       "disease": {
-                         "name": "Disease name",
-                         "confidence": confidence percentage (number),
-                         "severity": "Low/Medium/High"
-                       },
-                       "causes": ["Likely cause 1", "Likely cause 2"],
-                       "treatment": {
-                         "steps": ["Treatment step 1", "Treatment step 2", "Treatment step 3"],
-                         "prevention": ["Prevention tip 1", "Prevention tip 2"]
-                       },
-                       "fertilizer_recommendation": {
-                         "type": "Recommended fertilizer type",
-                         "application": "Application instructions"
-                       },
-                       "care_recommendations": [
-                         "Care tip 1",
-                         "Care tip 2"
-                       ],
-                       "about_plant": {
-                         "description": "Brief description of the plant species",
-                         "origin": "Geographic origin of the plant",
-                         "common_uses": ["Use 1", "Use 2"],
-                         "growing_conditions": "Preferred growing conditions"
-                       }
-                     }
-                     Only provide the JSON, no other text.`
+              text: `Analyze the provided plant image thoroughly to identify any diseases or issues affecting the plant. Ensure your analysis is comprehensive, taking into account visual symptoms, possible causes, and appropriate treatment options. Follow the JSON schema exactly as specified below for your output.
+
+{
+  "plant": "Plant species name",
+  "disease": {
+    "name": "Disease name",
+    "confidence": <confidence percentage as a number>,
+    "severity": "Low" | "Medium" | "High"
+  },
+  "causes": ["Likely cause 1", "Likely cause 2", ...],
+  "treatment": {
+    "steps": ["Treatment step 1", "Treatment step 2", "Treatment step 3", ...],
+    "prevention": ["Prevention tip 1", "Prevention tip 2", ...]
+  },
+  "fertilizer_recommendation": {
+    "type": "Recommended fertilizer type",
+    "application": "Application instructions"
+  },
+  "care_recommendations": [
+    "Care tip 1",
+    "Care tip 2",
+    ...
+  ],
+  "about_plant": {
+    "description": "Brief description of the plant species by identifying from the image only",
+    "origin": "Geographic origin of the plant",
+    "common_uses": ["Use 1", "Use 2", ...],
+    "growing_conditions": "Preferred growing conditions"
+  }
+}
+
+Return only the JSON output with no additional text or commentary.
+`
             },
             {
               inline_data: {
@@ -79,10 +82,10 @@ export const diagnosePlant = async (imageFile: File): Promise<DiagnosisResult> =
         }
       ],
       generation_config: {
-        temperature: 0.4,
-        max_output_tokens: 2048
+        temperature: 1,
+        max_output_tokens: 65536
       },
-      model: "gemini-1.5-pro"
+      model: "gemini-2.5-pro-exp-03-25"
     };
     
     // Send request to Gemini API
@@ -206,7 +209,7 @@ export const getClimateDatabByLocation = async (country: string, state: string, 
         temperature: 0.2,
         max_output_tokens: 1024
       },
-      model: "gemini-1.5-pro"
+      model: "gemini-2.0-flash-lite"
     };
     
     // Send request to Gemini API
@@ -298,7 +301,7 @@ export const getPlantRecommendations = async (conditions: GrowingConditions): Pr
         temperature: 0.4,
         max_output_tokens: 2048
       },
-      model: "gemini-1.5-pro"
+      model: "gemini-2.5-pro-exp-03-25"
     };
     
     // Send request to Gemini API
