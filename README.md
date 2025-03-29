@@ -161,7 +161,8 @@ The demand for AI-driven agricultural technology is growing rapidly, fueled by i
 ## Contact & Links
 
 - **Website:** [https://plantdoc.lovable.app/](https://plantdoc.lovable.app/)
-- **GitHub:** [https://github.com/AadishY/PlantDoc](https://github.com/AadishY/PlantDoc)
+- **Gmail:** [aadish14146yadav@gmail.com](aadish14146yadav@gmail.com)
+- **Instagram:** [Click](https://www.instagram.com/yo.akatsuki/)
 - **Author:** Aadish
 
 ---
