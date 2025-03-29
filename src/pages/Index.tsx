@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Leaf, ArrowUp, Droplet, Thermometer, Github, User } from 'lucide-react';
+import { Leaf, ArrowUp, Droplet, Thermometer, Github, User, Instagram } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -109,7 +109,7 @@ const Index = () => {
                   <p className="text-foreground/70 text-center">Student at Red Rose Public School</p>
                   <p className="text-foreground/70 text-center">Class 11, Lucknow, India</p>
                   <p className="text-foreground/70 text-center">Age: 17</p>
-                  <div className="mt-4">
+                  <div className="mt-4 flex flex-wrap gap-3 justify-center">
                     <a 
                       href="https://github.com/AadishY/PlantDoc" 
                       target="_blank" 
@@ -117,7 +117,16 @@ const Index = () => {
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-black/30 hover:bg-black/50 transition-all duration-300"
                     >
                       <Github className="h-5 w-5" />
-                      <span>GitHub Repository</span>
+                      <span>GitHub</span>
+                    </a>
+                    <a 
+                      href="https://instagram.com/aadish_yadav" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-black/30 hover:bg-black/50 transition-all duration-300"
+                    >
+                      <Instagram className="h-5 w-5" />
+                      <span>Instagram</span>
                     </a>
                   </div>
                 </div>
