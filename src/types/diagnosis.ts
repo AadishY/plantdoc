@@ -6,7 +6,7 @@ export interface DiagnosisResult {
     confidence: number;
     severity: string;
   };
-  causes?: string[];
+  causes: string[];
   treatment: {
     steps: string[];
     prevention: string[];
@@ -16,4 +16,10 @@ export interface DiagnosisResult {
     application: string;
   };
   care_recommendations: string[];
+  about_plant: {
+    description: string;
+    origin: string;
+    common_uses: string[];
+    growing_conditions: string;
+  };
 }
