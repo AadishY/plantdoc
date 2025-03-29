@@ -1,20 +1,44 @@
 
 import React, { useState, useRef } from 'react';
-import { Camera, X, Upload, Image as ImageIcon } from 'lucide-react';
+import { Camera, X, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
 interface UploadComponentProps {
-  onImageSelect: (file: File) => void;
+  onImageSelect?: (file: File) => void;
+  onImageChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onDrop?: (acceptedFiles: File[]) => void;
+  previewUrl?: string | null;
+  isLoading?: boolean;
+  fileInputRef?: React.RefObject<HTMLInputElement>;
+  className?: string;
 }
 
-const UploadComponent: React.FC<UploadComponentProps> = ({ onImageSelect }) => {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+const UploadComponent: React.FC<UploadComponentProps> = ({ 
+  onImageSelect, 
+  onImageChange, 
+  onDrop,
+  previewUrl: externalPreviewUrl,
+  isLoading = false,
+  fileInputRef: externalFileInputRef,
+  className = ""
+}) => {
+  const [internalPreviewUrl, setInternalPreviewUrl] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const internalFileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  
+  // Use either the external previewUrl passed as prop or the internal state
+  const previewUrl = externalPreviewUrl !== undefined ? externalPreviewUrl : internalPreviewUrl;
+  // Use either the external fileInputRef passed as prop or the internal ref
+  const fileInputRef = externalFileInputRef || internalFileInputRef;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (onImageChange) {
+      onImageChange(e);
+      return;
+    }
+    
     const file = e.target.files?.[0];
     handleFile(file);
   };
@@ -42,8 +66,14 @@ const UploadComponent: React.FC<UploadComponentProps> = ({ onImageSelect }) => {
       return;
     }
 
-    setPreviewUrl(URL.createObjectURL(file));
-    onImageSelect(file);
+    // Only set internal preview URL if not using external one
+    if (externalPreviewUrl === undefined) {
+      setInternalPreviewUrl(URL.createObjectURL(file));
+    }
+    
+    if (onImageSelect) {
+      onImageSelect(file);
+    }
   };
 
   const handleDrag = (e: React.DragEvent) => {
@@ -63,11 +93,20 @@ const UploadComponent: React.FC<UploadComponentProps> = ({ onImageSelect }) => {
     setDragActive(false);
     
     const file = e.dataTransfer.files?.[0];
+    
+    if (onDrop && e.dataTransfer.files) {
+      const filesArray = Array.from(e.dataTransfer.files);
+      onDrop(filesArray);
+      return;
+    }
+    
     handleFile(file);
   };
 
   const removeImage = () => {
-    setPreviewUrl(null);
+    if (externalPreviewUrl === undefined) {
+      setInternalPreviewUrl(null);
+    }
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -78,7 +117,7 @@ const UploadComponent: React.FC<UploadComponentProps> = ({ onImageSelect }) => {
   };
 
   return (
-    <div className="w-full">
+    <div className={`w-full ${className}`}>
       <input
         type="file"
         className="hidden"
@@ -112,9 +151,19 @@ const UploadComponent: React.FC<UploadComponentProps> = ({ onImageSelect }) => {
                 e.stopPropagation();
                 triggerFileInput();
               }}
+              disabled={isLoading}
             >
-              <Camera className="mr-2 h-4 w-4" />
-              Upload Plant Image
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Camera className="mr-2 h-4 w-4" />
+                  Upload Plant Image
+                </>
+              )}
             </Button>
           </div>
         </div>
@@ -131,6 +180,7 @@ const UploadComponent: React.FC<UploadComponentProps> = ({ onImageSelect }) => {
               onClick={removeImage}
               className="absolute top-3 right-3 rounded-full shadow-lg"
               size="icon"
+              disabled={isLoading}
             >
               <X className="h-4 w-4" />
             </Button>
