@@ -96,13 +96,13 @@ serve(async (req) => {
         temperature: 0.4,
         max_output_tokens: 2048
       },
-      model: "gemini-1.5-pro"
+      model: "gemini-2.5-pro-exp-03-25"
     };
     
     // Send request to Gemini API
     console.log('Sending request to Gemini API for plant recommendations...');
     const response = await fetch(
-      `${API_URL}/models/gemini-1.5-pro:generateContent?key=${API_KEY}`,
+      `${API_URL}/models/gemini-2.5-pro-exp-03-25:generateContent?key=${API_KEY}`,
       {
         method: 'POST',
         headers: {
