@@ -66,28 +66,47 @@ Be methodical and precise in your analysis. Consider all possible causes for the
 Your response must follow this exact JSON structure:
 
 {
-  "plant": "Scientific and common name of the plant species",
+  "plant": {
+    "name": "Scientific and common name of the plant species",
+    "identification_confidence": <confidence percentage as a number between 0-100>,
+    "description": "Detailed description of the plant species with key identifying features"
+  },
   "disease": {
     "name": "Scientific and common name of the disease or condition",
     "confidence": <confidence percentage as a number between 0-100>,
-    "severity": "Low" | "Medium" | "High"
+    "severity": "Low" | "Medium" | "High",
+    "symptoms": ["Observed symptom 1", "Observed symptom 2", ...],
+    "progression": "Description of how the disease typically progresses if left untreated"
   },
-  "causes": ["Most likely cause 1", "Most likely cause 2", ...],
+  "causes": {
+    "primary": ["Most likely primary cause 1", "Most likely primary cause 2", ...],
+    "secondary": ["Possible secondary factor 1", "Possible secondary factor 2", ...],
+    "environmental_factors": ["Environmental factor 1", "Environmental factor 2", ...]
+  },
   "treatment": {
-    "steps": ["Treatment step 1", "Treatment step 2", ...],
+    "immediate_actions": ["Urgent step 1", "Urgent step 2", ...],
+    "long_term_steps": ["Long-term step 1", "Long-term step 2", ...],
+    "chemical_treatments": {
+      "organic": ["Organic treatment 1", "Organic treatment 2", ...],
+      "synthetic": ["Synthetic treatment 1", "Synthetic treatment 2", ...]
+    },
     "prevention": ["Prevention tip 1", "Prevention tip 2", ...]
   },
   "fertilizer_recommendation": {
     "type": "Recommended fertilizer type with specific NPK ratio if applicable",
-    "application": "Detailed application instructions including timing and amount"
+    "application": "Detailed application instructions including timing and amount",
+    "frequency": "How often to apply"
   },
-  "care_recommendations": ["Care tip 1", "Care tip 2", ...],
-  "about_plant": {
-    "description": "Detailed description of the plant species with key identifying features",
-    "origin": "Geographic origin of the plant",
-    "common_uses": ["Use 1", "Use 2", ...],
-    "growing_conditions": "Ideal growing conditions for this plant"
-  }
+  "care_recommendations": {
+    "watering": "Specific watering instructions",
+    "light": "Light requirements",
+    "soil": "Soil recommendations",
+    "pruning": "Pruning guidelines if applicable",
+    "additional_tips": ["Care tip 1", "Care tip 2", ...]
+  },
+  "prognosis": "Assessment of recovery chances and expected timeline",
+  "similar_conditions": ["Similar condition 1 to consider", "Similar condition 2 to consider", ...],
+  "references": ["Scientific or authoritative reference 1", "Reference 2", ...]
 }
 
 If you cannot identify the plant or disease with confidence, indicate this clearly in your response with appropriate confidence levels. If certain fields cannot be determined from the image, include them but note the limitations.
@@ -150,28 +169,7 @@ Return only the JSON output with no additional text or commentary.`;
     try {
       const jsonMatch = textResponse.match(/\{[\s\S]*\}/);
       const jsonStr = jsonMatch ? jsonMatch[0] : textResponse;
-      const parsedResponse = JSON.parse(jsonStr);
-      
-      // Ensure the response matches our expected format
-      const diagnosisResult = {
-        plant: parsedResponse.plant || "Unknown plant",
-        disease: {
-          name: parsedResponse.disease?.name || "Unknown condition",
-          confidence: parsedResponse.disease?.confidence || 0,
-          severity: parsedResponse.disease?.severity || "Low"
-        },
-        causes: parsedResponse.causes || [],
-        treatment: {
-          steps: parsedResponse.treatment?.steps || [],
-          prevention: parsedResponse.treatment?.prevention || []
-        },
-        fertilizer_recommendation: {
-          type: parsedResponse.fertilizer_recommendation?.type || "No specific recommendation",
-          application: parsedResponse.fertilizer_recommendation?.application || "No application instructions"
-        },
-        care_recommendations: parsedResponse.care_recommendations || [],
-        about_plant: parsedResponse.about_plant || null
-      };
+      const diagnosisResult = JSON.parse(jsonStr);
       
       return new Response(
         JSON.stringify(diagnosisResult),

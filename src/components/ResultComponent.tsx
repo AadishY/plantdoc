@@ -31,12 +31,6 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ result }) => {
     return Math.round(confidence);
   };
 
-  // Add null checks throughout the component to prevent "map of undefined" errors
-  const causes = result.causes || [];
-  const treatmentSteps = result.treatment?.steps || [];
-  const preventionTips = result.treatment?.prevention || [];
-  const careRecommendations = result.care_recommendations || [];
-
   return (
     <div className="space-y-6 animate-enter">
       {/* Disease Diagnosis Card */}
@@ -92,50 +86,38 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ result }) => {
             <div className="p-6">
               <TabsContent value="treatment" className="mt-0 animate-enter">
                 <ul className="space-y-2 list-none">
-                  {treatmentSteps.length > 0 ? (
-                    treatmentSteps.map((step, index) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <div className="w-5 h-5 rounded-full bg-plantDoc-primary/20 flex-shrink-0 flex items-center justify-center mt-0.5">
-                          <span className="text-xs font-medium">{index+1}</span>
-                        </div>
-                        <span>{step}</span>
-                      </li>
-                    ))
-                  ) : (
-                    <li className="text-foreground/70">No specific treatment steps provided.</li>
-                  )}
+                  {result.treatment.steps.map((step, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <div className="w-5 h-5 rounded-full bg-plantDoc-primary/20 flex-shrink-0 flex items-center justify-center mt-0.5">
+                        <span className="text-xs font-medium">{index+1}</span>
+                      </div>
+                      <span>{step}</span>
+                    </li>
+                  ))}
                 </ul>
               </TabsContent>
               <TabsContent value="causes" className="mt-0 animate-enter">
                 <ul className="space-y-2 list-none">
-                  {causes.length > 0 ? (
-                    causes.map((cause, index) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <div className="w-5 h-5 rounded-full bg-plantDoc-primary/20 flex-shrink-0 flex items-center justify-center mt-0.5">
-                          <Shield className="h-3 w-3 text-plantDoc-primary" />
-                        </div>
-                        <span>{cause}</span>
-                      </li>
-                    ))
-                  ) : (
-                    <li className="text-foreground/70">No specific causes listed.</li>
-                  )}
+                  {result.causes?.map((cause, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <div className="w-5 h-5 rounded-full bg-plantDoc-primary/20 flex-shrink-0 flex items-center justify-center mt-0.5">
+                        <Shield className="h-3 w-3 text-plantDoc-primary" />
+                      </div>
+                      <span>{cause}</span>
+                    </li>
+                  )) || <p>No specific causes listed.</p>}
                 </ul>
               </TabsContent>
               <TabsContent value="prevention" className="mt-0 animate-enter">
                 <ul className="space-y-2 list-none">
-                  {preventionTips.length > 0 ? (
-                    preventionTips.map((tip, index) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <div className="w-5 h-5 rounded-full bg-plantDoc-primary/20 flex-shrink-0 flex items-center justify-center mt-0.5">
-                          <Shield className="h-3 w-3 text-plantDoc-primary" />
-                        </div>
-                        <span>{tip}</span>
-                      </li>
-                    ))
-                  ) : (
-                    <li className="text-foreground/70">No prevention tips available.</li>
-                  )}
+                  {result.treatment.prevention.map((tip, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <div className="w-5 h-5 rounded-full bg-plantDoc-primary/20 flex-shrink-0 flex items-center justify-center mt-0.5">
+                        <Shield className="h-3 w-3 text-plantDoc-primary" />
+                      </div>
+                      <span>{tip}</span>
+                    </li>
+                  ))}
                 </ul>
               </TabsContent>
             </div>
@@ -159,7 +141,7 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ result }) => {
                 <div className="w-2 h-2 rounded-full bg-plantDoc-primary"></div>
                 <h3 className="font-medium">Recommended:</h3>
               </div>
-              <p className="text-foreground/80 pl-4">{result.fertilizer_recommendation?.type || "No specific recommendation available."}</p>
+              <p className="text-foreground/80 pl-4">{result.fertilizer_recommendation.type}</p>
               
               <Separator className="my-3 bg-foreground/10" />
               
@@ -167,7 +149,7 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ result }) => {
                 <div className="w-2 h-2 rounded-full bg-plantDoc-primary"></div>
                 <h3 className="font-medium">Application:</h3>
               </div>
-              <p className="text-foreground/80 pl-4">{result.fertilizer_recommendation?.application || "No application instructions available."}</p>
+              <p className="text-foreground/80 pl-4">{result.fertilizer_recommendation.application}</p>
             </div>
           </CardContent>
         </Card>
@@ -181,20 +163,16 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ result }) => {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
-            {careRecommendations.length > 0 ? (
-              <ul className="space-y-2 list-none">
-                {careRecommendations.map((tip, index) => (
-                  <li key={index} className="flex items-start gap-2">
-                    <div className="w-5 h-5 rounded-full bg-plantDoc-primary/20 flex-shrink-0 flex items-center justify-center mt-0.5">
-                      <Leaf className="h-3 w-3 text-plantDoc-primary" />
-                    </div>
-                    <span>{tip}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-foreground/70">No care recommendations available.</p>
-            )}
+            <ul className="space-y-2 list-none">
+              {result.care_recommendations.map((tip, index) => (
+                <li key={index} className="flex items-start gap-2">
+                  <div className="w-5 h-5 rounded-full bg-plantDoc-primary/20 flex-shrink-0 flex items-center justify-center mt-0.5">
+                    <Leaf className="h-3 w-3 text-plantDoc-primary" />
+                  </div>
+                  <span>{tip}</span>
+                </li>
+              ))}
+            </ul>
           </CardContent>
         </Card>
       </div>
