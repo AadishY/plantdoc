@@ -1,11 +1,7 @@
+
 import { DiagnosisResult } from '@/types/diagnosis';
 import { PlantRecommendation, GrowingConditions } from '@/types/recommendation';
-
-// Base URL for Google Gemini API
-const API_URL = 'https://generativelanguage.googleapis.com/v1beta';
-
-// Get API key from env variable
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "";
+import { supabase } from "@/integrations/supabase/client";
 
 // Function to prepare image for API
 const prepareImageForAPI = async (imageFile: File): Promise<string> => {
@@ -30,94 +26,17 @@ export const diagnosePlant = async (imageFile: File): Promise<DiagnosisResult> =
   try {
     const imageBase64 = await prepareImageForAPI(imageFile);
     
-    // Prepare the request payload for Gemini
-    const payload = {
-      contents: [
-        {
-          parts: [
-            {
-              text: `Analyze the provided plant image thoroughly to identify any diseases or issues affecting the plant. Ensure your analysis is comprehensive, taking into account visual symptoms, possible causes, and appropriate treatment options. Follow the JSON schema exactly as specified below for your output.
-
-{
-  "plant": "Plant species name",
-  "disease": {
-    "name": "Disease name",
-    "confidence": <confidence percentage as a number>,
-    "severity": "Low" | "Medium" | "High"
-  },
-  "causes": ["Likely cause 1", "Likely cause 2", ...],
-  "treatment": {
-    "steps": ["Proper detailed Treatment step 1", "Proper detailed Treatment step 2", "Proper detailed Treatment step 3", ...],
-    "prevention": ["Proper detailed Prevention tip 1", "Proper detailed Prevention tip 2", ...]
-  },
-  "fertilizer_recommendation": {
-    "type": "Recommended fertilizer type, its name or it composition",
-    "application": "Application instructions"
-  },
-  "care_recommendations": [
-    "Care tip 1",
-    "Care tip 2",
-    ...
-  ],
-  "about_plant": {
-    "description": "Brief description of the plant species by identifying from the image only, do not need to give random answer if you dont know simply can't indentified",
-    "origin": "Geographic origin of the plant",
-    "common_uses": ["Use 1", "Use 2", ...],
-    "growing_conditions": "Preferred growing conditions"
-  }
-}
-
-Return only the JSON output with no additional text or commentary.
-`
-            },
-            {
-              inline_data: {
-                mime_type: "image/jpeg",
-                data: imageBase64
-              }
-            }
-          ]
-        }
-      ],
-      generation_config: {
-        temperature: 1,
-        max_output_tokens: 65536
-      },
-      model: "gemini-2.5-pro-exp-03-25"
-    };
+    // Call the Supabase Edge Function for plant diagnosis
+    const { data, error } = await supabase.functions.invoke('gemini-diagnose', {
+      body: { image: imageBase64 }
+    });
     
-    // Send request to Gemini API
-    const response = await fetch(
-      `${API_URL}/models/gemini-1.5-pro:generateContent?key=${API_KEY}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      }
-    );
-    
-    if (!response.ok) {
-      throw new Error(`API request failed with status: ${response.status}`);
+    if (error) {
+      console.error('Error calling edge function:', error);
+      throw new Error(error.message);
     }
     
-    const data = await response.json();
-    
-    // Extract the JSON string from Gemini's response
-    const textResponse = data.candidates[0].content.parts[0].text;
-    
-    // Parse the JSON string to get the diagnosis result
-    try {
-      // Try to extract JSON from the response if it contains extra text
-      const jsonMatch = textResponse.match(/\{[\s\S]*\}/);
-      const jsonStr = jsonMatch ? jsonMatch[0] : textResponse;
-      const diagnosisResult = JSON.parse(jsonStr) as DiagnosisResult;
-      return diagnosisResult;
-    } catch (parseError) {
-      console.error('Error parsing JSON response:', parseError);
-      throw new Error('Failed to parse API response');
-    }
+    return data as DiagnosisResult;
   } catch (error) {
     console.error('Error in diagnosePlant:', error);
     throw error;
@@ -127,74 +46,17 @@ Return only the JSON output with no additional text or commentary.
 // Function to get climate data based on location
 export const getClimateDatabByLocation = async (country: string, state: string, city?: string): Promise<{ temperature: number, rainfall: number, humidity: number }> => {
   try {
-    // Prepare the request payload for Gemini
-    const payload = {
-      contents: [
-        {
-          parts: [
-            {
-              text: `Given the location information:
-                     Country: ${country}
-                     State/Province: ${state}
-                     City: ${city || 'Not specified'}
-                     
-                     Provide me with the following climate data as an accurate estimate:
-                     1. Average annual temperature in Celsius
-                     2. Average annual rainfall in millimeters
-                     3. Average humidity percentage
-                     
-                     Return only a JSON object with the following structure:
-                     {
-                       "temperature": number,
-                       "rainfall": number,
-                       "humidity": number
-                     }
-                     
-                     Only provide the JSON object, no other text.`
-            }
-          ]
-        }
-      ],
-      generation_config: {
-        temperature: 0.2,
-        max_output_tokens: 1024
-      },
-      model: "gemini-2.0-flash-lite"
-    };
+    // Call the Supabase Edge Function for climate data
+    const { data, error } = await supabase.functions.invoke('gemini-climate', {
+      body: { country, state, city }
+    });
     
-    // Send request to Gemini API
-    const response = await fetch(
-      `${API_URL}/models/gemini-1.5-pro:generateContent?key=${API_KEY}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      }
-    );
-    
-    if (!response.ok) {
-      throw new Error(`API request failed with status: ${response.status}`);
+    if (error) {
+      console.error('Error calling edge function:', error);
+      throw new Error(error.message);
     }
     
-    const data = await response.json();
-    
-    // Extract the JSON string from Gemini's response
-    const textResponse = data.candidates[0].content.parts[0].text;
-    
-    // Parse the JSON string
-    try {
-      // Try to extract JSON from the response if it contains extra text
-      const jsonMatch = textResponse.match(/\{[\s\S]*\}/);
-      const jsonStr = jsonMatch ? jsonMatch[0] : textResponse;
-      const climateData = JSON.parse(jsonStr);
-      return climateData;
-    } catch (parseError) {
-      console.error('Error parsing climate data:', parseError);
-      // Return default values if parsing fails
-      return { temperature: 25, rainfall: 150, humidity: 60 };
-    }
+    return data as { temperature: number, rainfall: number, humidity: number };
   } catch (error) {
     console.error('Error getting climate data:', error);
     // Return default values on error
@@ -205,88 +67,17 @@ export const getClimateDatabByLocation = async (country: string, state: string, 
 // Plant recommendation function
 export const getPlantRecommendations = async (conditions: GrowingConditions): Promise<PlantRecommendation[]> => {
   try {
-    // Prepare the request payload for Gemini
-    const payload = {
-      contents: [
-        {
-          parts: [
-            {
-              text: `Given the following growing conditions, recommend 6 plants that would thrive in this environment.
-                     Return your recommendations in JSON format as an array with the following structure for each plant:
-                     [
-                       {
-                         "name": "Common plant name",
-                         "scientificName": "Latin name",
-                         "growthTime": "Fast/Medium/Slow growth",
-                         "waterNeeds": "Low/Medium/High",
-                         "sunlight": "Full sun/Partial sun/Shade",
-                         "description": "Brief description of the plant and why it's suitable for these conditions",
-                         "careInstructions": ["Care instruction 1", "Care instruction 2", "Care instruction 3"],
-                         "bestSeason": "Spring/Summer/Fall/Winter"
-                       },
-                       // more plants...
-                     ]
-                     
-                     Growing Conditions:
-                     - Country: ${conditions.country || 'Not specified'}
-                     - State/Region: ${conditions.state || 'Not specified'}
-                     - City: ${conditions.city || 'Not specified'}
-                     - Temperature: ${conditions.temperature}°C
-                     - Humidity: ${conditions.humidity}%
-                     - Rainfall: ${conditions.rainfall}mm annually
-                     - Soil pH: ${conditions.ph}
-                     - Soil Type: ${conditions.soilType}
-                     - Sunlight: ${conditions.sunlight}
-                     - Nitrogen level: ${conditions.nitrogen}%
-                     - Phosphorus level: ${conditions.phosphorus}%
-                     - Potassium level: ${conditions.potassium}%
-                     
-                     Only provide the JSON array, no other text.`
-            }
-          ]
-        }
-      ],
-      generation_config: {
-        temperature: 0.4,
-        max_output_tokens: 2048
-      },
-      model: "gemini-2.5-pro-exp-03-25"
-    };
+    // Call the Supabase Edge Function for plant recommendations
+    const { data, error } = await supabase.functions.invoke('gemini-recommend', {
+      body: conditions
+    });
     
-    // Send request to Gemini API
-    const response = await fetch(
-      `${API_URL}/models/gemini-1.5-pro:generateContent?key=${API_KEY}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      }
-    );
-    
-    if (!response.ok) {
-      throw new Error(`API request failed with status: ${response.status}`);
+    if (error) {
+      console.error('Error calling edge function:', error);
+      throw new Error(error.message);
     }
     
-    const data = await response.json();
-    
-    // Extract the JSON string from Gemini's response
-    const textResponse = data.candidates[0].content.parts[0].text;
-    
-    // Parse the JSON string to get the recommendations
-    try {
-      // Try to extract JSON from the response if it contains extra text
-      const jsonMatch = textResponse.match(/\[[\s\S]*\]/);
-      const jsonStr = jsonMatch ? jsonMatch[0] : textResponse;
-      const recommendations = JSON.parse(jsonStr) as PlantRecommendation[];
-      
-      // We're removing image generation as requested
-      return recommendations;
-    } catch (parseError) {
-      console.error('Error parsing JSON response:', parseError);
-      throw new Error('Failed to parse API response for plant recommendations');
-    }
+    return data as PlantRecommendation[];
   } catch (error) {
     console.error('Error in getPlantRecommendations:', error);
     throw error;
