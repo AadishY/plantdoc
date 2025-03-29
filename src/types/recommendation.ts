@@ -2,8 +2,6 @@
 export interface PlantRecommendation {
   name: string;
   scientificName: string;
-  imageUrl?: string;
-  generatedImageUrl?: string;
   growthTime: string;
   waterNeeds: string;
   sunlight: string;
