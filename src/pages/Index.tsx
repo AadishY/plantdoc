@@ -111,7 +111,7 @@ const Index = () => {
                   <p className="text-foreground/70 text-center">Age: 17</p>
                   <div className="mt-4 flex flex-wrap gap-3 justify-center">
                     <a 
-                      href="https://github.com/AadishY/PlantDoc" 
+                      href="https://github.com/AadishY" 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-black/30 hover:bg-black/50 transition-all duration-300"
@@ -120,7 +120,7 @@ const Index = () => {
                       <span>GitHub</span>
                     </a>
                     <a 
-                      href="https://instagram.com/aadish_yadav" 
+                      href="https://instagram.com/yo.akatsuki" 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-black/30 hover:bg-black/50 transition-all duration-300"
