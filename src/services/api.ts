@@ -1,13 +1,11 @@
-
 import { DiagnosisResult } from '@/types/diagnosis';
 import { PlantRecommendation, GrowingConditions } from '@/types/recommendation';
 
 // Base URL for Google Gemini API
 const API_URL = 'https://generativelanguage.googleapis.com/v1beta';
 
-// Get API key from env variable or use a default (for development only)
-// In production, this should be securely stored and accessed
-const API_KEY = "AIzaSyAkydbLKfcTBmG3qFC928oYIipZpV5AXqk";
+// Get API key from env variable
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "";
 
 // Function to prepare image for API
 const prepareImageForAPI = async (imageFile: File): Promise<string> => {
@@ -126,55 +124,7 @@ Return only the JSON output with no additional text or commentary.
   }
 };
 
-// Function to generate plant image
-export const generatePlantImage = async (plantName: string): Promise<string> => {
-  try {
-    // Prepare the request payload for Gemini
-    const payload = {
-      prompt: {
-        text: `A realistic, detailed image of a ${plantName} plant. Show the plant in a natural setting with good light to showcase its features.`
-      },
-      model: "gemini-2.0-flash-exp-image-generation"
-    };
-    
-    // Send request to Gemini API
-    const response = await fetch(
-      `${API_URL}/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${API_KEY}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      }
-    );
-    
-    if (!response.ok) {
-      console.error('Image generation failed:', await response.text());
-      return ''; // Return empty string if generation fails
-    }
-    
-    const data = await response.json();
-    
-    // Extract the image data from response
-    if (data.candidates && 
-        data.candidates[0] && 
-        data.candidates[0].content && 
-        data.candidates[0].content.parts && 
-        data.candidates[0].content.parts[0] &&
-        data.candidates[0].content.parts[0].inline_data &&
-        data.candidates[0].content.parts[0].inline_data.data) {
-      return `data:image/jpeg;base64,${data.candidates[0].content.parts[0].inline_data.data}`;
-    }
-    
-    return ''; // Return empty string if image data isn't found
-  } catch (error) {
-    console.error('Error in generatePlantImage:', error);
-    return ''; // Return empty string on error
-  }
-};
-
-// Get climate data based on location
+// Function to get climate data based on location
 export const getClimateDatabByLocation = async (country: string, state: string, city?: string): Promise<{ temperature: number, rainfall: number, humidity: number }> => {
   try {
     // Prepare the request payload for Gemini
@@ -267,7 +217,6 @@ export const getPlantRecommendations = async (conditions: GrowingConditions): Pr
                        {
                          "name": "Common plant name",
                          "scientificName": "Latin name",
-                         "imageUrl": "Leave this empty, I'll use a placeholder",
                          "growthTime": "Fast/Medium/Slow growth",
                          "waterNeeds": "Low/Medium/High",
                          "sunlight": "Full sun/Partial sun/Shade",
@@ -332,23 +281,8 @@ export const getPlantRecommendations = async (conditions: GrowingConditions): Pr
       const jsonStr = jsonMatch ? jsonMatch[0] : textResponse;
       const recommendations = JSON.parse(jsonStr) as PlantRecommendation[];
       
-      // Generate images for each plant (in parallel)
-      const recommendationsWithImages = await Promise.all(
-        recommendations.map(async plant => {
-          try {
-            const imageUrl = await generatePlantImage(plant.name);
-            return {
-              ...plant,
-              generatedImageUrl: imageUrl
-            };
-          } catch (error) {
-            console.error(`Error generating image for ${plant.name}:`, error);
-            return plant;
-          }
-        })
-      );
-      
-      return recommendationsWithImages;
+      // We're removing image generation as requested
+      return recommendations;
     } catch (parseError) {
       console.error('Error parsing JSON response:', parseError);
       throw new Error('Failed to parse API response for plant recommendations');

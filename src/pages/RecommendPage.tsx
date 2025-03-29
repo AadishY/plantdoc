@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Leaf, Loader2, Cloud, Droplets, Thermometer, MapPin, Globe, Sprout } from 'lucide-react';
@@ -19,7 +18,6 @@ const RecommendPage = () => {
   const [isLocationLoading, setIsLocationLoading] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [recommendations, setRecommendations] = useState<PlantRecommendation[] | null>(null);
-  const [imagesLoading, setImagesLoading] = useState<boolean>(false);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -89,7 +87,6 @@ const RecommendPage = () => {
     }
   };
 
-  // Effect to automatically fetch climate data when location is entered
   useEffect(() => {
     if (formData.country && formData.state) {
       const debounceTimer = setTimeout(() => {
@@ -126,7 +123,6 @@ const RecommendPage = () => {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Location Information */}
                   <div className="space-y-4">
                     <div>
                       <Label htmlFor="country" className="flex items-center gap-2">
@@ -207,7 +203,6 @@ const RecommendPage = () => {
                     </div>
                   </div>
                   
-                  {/* Climate Data (Auto-filled but editable) */}
                   <div className="space-y-4">
                     <div className="p-3 border border-plantDoc-primary/20 rounded-lg bg-plantDoc-primary/5">
                       <p className="text-sm mb-2 text-plantDoc-primary">
@@ -301,7 +296,6 @@ const RecommendPage = () => {
                   </div>
                 </div>
                 
-                {/* Advanced Options */}
                 {showAdvanced && (
                   <div className="space-y-4 pt-4 border-t border-white/10 animate-fade-in">
                     <h3 className="text-lg font-medium">Advanced Soil Composition</h3>
@@ -377,31 +371,15 @@ const RecommendPage = () => {
             </CardContent>
           </Card>
           
-          {/* Results Section */}
           {recommendations && (
             <div className="space-y-6 animate-fade-in">
               <h2 className="text-2xl font-bold text-center">Recommended Plants</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {recommendations.map((plant, index) => (
                   <Card key={index} className="glass-card overflow-hidden border-none hover:shadow-plantDoc-primary/20 hover:shadow-lg transition-all duration-300 hover:translate-y-[-5px] group">
-                    <div className="h-44 overflow-hidden relative">
-                      {imagesLoading ? (
-                        <div className="w-full h-full flex items-center justify-center bg-plantDoc-primary/5">
-                          <Loader2 className="h-8 w-8 text-plantDoc-primary animate-spin" />
-                        </div>
-                      ) : (
-                        <img 
-                          src={plant.generatedImageUrl || plant.imageUrl || "https://images.unsplash.com/photo-1520412099551-62b6bafeb5bb?auto=format&fit=crop&w=600"} 
-                          alt={plant.name} 
-                          className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
-                        />
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3">
-                        <p className="text-white font-medium">{plant.scientificName}</p>
-                      </div>
-                    </div>
                     <CardHeader className="pb-2">
                       <CardTitle className="group-hover:text-plantDoc-primary transition-colors">{plant.name}</CardTitle>
+                      <CardDescription>{plant.scientificName}</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-2 text-sm">

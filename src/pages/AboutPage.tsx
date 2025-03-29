@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Github, Mail, Leaf, User, School, MapPin } from 'lucide-react';
+import { Github, Mail, Leaf, User, School, MapPin, Instagram } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -40,6 +40,11 @@ const AboutPage = () => {
                       <Github className="h-4 w-4" />
                     </Button>
                   </a>
+                  <a href="https://instagram.com/yo.akatsuki" target="_blank" rel="noopener noreferrer">
+                    <Button variant="outline" size="icon" className="rounded-full">
+                      <Instagram className="h-4 w-4" />
+                    </Button>
+                  </a>
                 </div>
               </div>
               
@@ -63,6 +68,16 @@ const AboutPage = () => {
                   <div className="flex items-center gap-3">
                     <MapPin className="h-5 w-5 text-plantDoc-primary" />
                     <p>Lucknow, India</p>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <Instagram className="h-5 w-5 text-plantDoc-primary" />
+                    <p>
+                      <a href="https://instagram.com/yo.akatsuki" target="_blank" rel="noopener noreferrer" 
+                         className="text-foreground/80 hover:text-plantDoc-primary transition-colors">
+                        @yo.akatsuki
+                      </a>
+                    </p>
                   </div>
                 </div>
                 
