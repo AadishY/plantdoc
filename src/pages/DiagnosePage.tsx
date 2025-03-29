@@ -114,7 +114,7 @@ const DiagnosePage = () => {
               <Button
                 onClick={handleDiagnose}
                 disabled={!selectedImage || isLoading}
-                className="bg-gradient-to-r from-plantDoc-primary to-plantDoc-secondary hover:shadow-lg transition-shadow text-white px-8 py-3 text-lg rounded-lg hover:scale-105 transition-transform fixed bottom-6 right-6 z-10"
+                className="bg-gradient-to-r from-plantDoc-primary to-plantDoc-secondary hover:shadow-lg transition-shadow text-white px-8 py-3 text-lg rounded-lg hover:scale-105 transition-transform"
               >
                 {isLoading ? (
                   <>
@@ -136,7 +136,7 @@ const DiagnosePage = () => {
                   className="border-plantDoc-primary/50 hover:bg-plantDoc-primary/10 transition-colors"
                 >
                   <Upload className="h-5 w-5 mr-2" />
-                  Upload New Image
+                  New Upload
                 </Button>
               )}
             </div>
