@@ -1,419 +1,383 @@
-import React, { useState, useEffect } from 'react';
-import { toast } from 'sonner';
-import { Leaf, Loader2, Cloud, Droplets, Thermometer, MapPin, Globe, Sprout } from 'lucide-react';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { PlantRecommendation } from '@/types/recommendation';
+
+import React, { useState } from 'react';
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { toast } from "@/hooks/use-toast";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { getPlantRecommendations, getClimateDatabByLocation } from '@/services/api';
+import { Loader2, Leaf } from 'lucide-react';
+import { PlantRecommendation, GrowingConditions } from '@/types/recommendation';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+
+const soilTypes = ["Clay", "Sandy", "Loamy", "Chalky", "Peaty", "Silty"];
+const sunlightOptions = ["Full Sun", "Partial Sun", "Shade"];
 
 const RecommendPage = () => {
+  const [recommendations, setRecommendations] = useState<PlantRecommendation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isLocationLoading, setIsLocationLoading] = useState(false);
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [recommendations, setRecommendations] = useState<PlantRecommendation[] | null>(null);
-  
-  // Form state
-  const [formData, setFormData] = useState({
-    nitrogen: 50,
-    phosphorus: 50,
-    potassium: 50,
-    ph: 7,
-    rainfall: 150,
-    temperature: 25,
-    humidity: 60,
-    country: '',
-    state: '',
-    city: '',
-    soilType: 'loamy',
-    sunlight: 'full'
-  });
+  const [country, setCountry] = useState('');
+  const [state, setState] = useState('');
+  const [city, setCity] = useState('');
+  const [temperature, setTemperature] = useState(25);
+  const [rainfall, setRainfall] = useState(150);
+  const [humidity, setHumidity] = useState(60);
+  const [ph, setPh] = useState(7);
+  const [soilType, setSoilType] = useState(soilTypes[2]); // Default to Loamy
+  const [sunlight, setSunlight] = useState(sunlightOptions[0]); // Default to Full Sun
+  const [nitrogen, setNitrogen] = useState(50);
+  const [phosphorus, setPhosphorus] = useState(50);
+  const [potassium, setPotassium] = useState(50);
 
-  const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const fetchClimateData = async () => {
-    if (!formData.country || !formData.state) {
-      toast.error('Please enter your country and state/province');
+  const handleLocationSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!country || !state) {
+      toast({
+        title: "Missing information",
+        description: "Please provide at least country and state/region",
+        variant: "destructive",
+      });
       return;
     }
 
-    setIsLocationLoading(true);
+    setIsLoading(true);
     try {
-      const climateData = await getClimateDatabByLocation(
-        formData.country,
-        formData.state,
-        formData.city
-      );
+      const climateData = await getClimateDatabByLocation(country, state, city);
+      setTemperature(climateData.temperature);
+      setRainfall(climateData.rainfall);
+      setHumidity(climateData.humidity);
       
-      setFormData(prev => ({
-        ...prev,
-        temperature: climateData.temperature,
-        rainfall: climateData.rainfall,
-        humidity: climateData.humidity
-      }));
-      
-      toast.success('Climate data updated based on your location!');
+      toast({
+        title: "Climate data retrieved",
+        description: `Average temperature: ${climateData.temperature}°C, Rainfall: ${climateData.rainfall}mm, Humidity: ${climateData.humidity}%`,
+      });
     } catch (error) {
-      console.error('Failed to get climate data:', error);
-      toast.error('Failed to retrieve climate data. Using default values.');
+      console.error('Error fetching climate data:', error);
+      toast({
+        title: "Failed to get climate data",
+        description: "Using default values instead",
+        variant: "destructive",
+      });
     } finally {
-      setIsLocationLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleGetRecommendations = async () => {
     setIsLoading(true);
     
     try {
-      setImagesLoading(true);
-      const result = await getPlantRecommendations(formData);
-      setRecommendations(result);
-      toast.success('Plant recommendations generated!');
+      const conditions: GrowingConditions = {
+        country,
+        state,
+        city,
+        temperature,
+        rainfall,
+        humidity,
+        ph,
+        soilType,
+        sunlight,
+        nitrogen: nitrogen / 100, // Convert to decimal
+        phosphorus: phosphorus / 100,
+        potassium: potassium / 100
+      };
+      
+      const plantRecommendations = await getPlantRecommendations(conditions);
+      setRecommendations(plantRecommendations);
+      
+      toast({
+        title: "Recommendations ready",
+        description: `Found ${plantRecommendations.length} plants that match your conditions`,
+      });
     } catch (error) {
-      console.error('Recommendation error:', error);
-      toast.error('Failed to generate recommendations. Please try again.');
+      console.error('Error getting recommendations:', error);
+      toast({
+        title: "Error",
+        description: "Failed to get plant recommendations. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
-      setImagesLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (formData.country && formData.state) {
-      const debounceTimer = setTimeout(() => {
-        fetchClimateData();
-      }, 1500); // Debounce to avoid multiple calls
-      
-      return () => clearTimeout(debounceTimer);
-    }
-  }, [formData.country, formData.state]);
-
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-muted/50">
+    <div className="flex flex-col min-h-screen">
       <Header />
       
-      <main className="flex-1 py-8 md:py-12 container mx-auto px-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8 animate-enter">
-            <div className="inline-flex items-center justify-center p-2 bg-plantDoc-primary/20 rounded-full mb-4">
-              <Sprout className="h-6 w-6 text-plantDoc-primary" />
-            </div>
-            <h1 className="text-3xl md:text-4xl font-bold mb-2">Plant Recommendations</h1>
-            <p className="text-foreground/70 max-w-md mx-auto">
-              Get personalized plant suggestions based on your growing conditions
-            </p>
-          </div>
+      <main className="flex-grow container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold mb-6 text-center">Find the Perfect Plants for Your Garden</h1>
+        <p className="text-center mb-8 max-w-3xl mx-auto">
+          Tell us about your growing conditions, and we'll recommend plants that will thrive in your environment.
+        </p>
+        
+        <Tabs defaultValue="location" className="max-w-4xl mx-auto">
+          <TabsList className="grid grid-cols-2 mb-8">
+            <TabsTrigger value="location">Location</TabsTrigger>
+            <TabsTrigger value="conditions">Growing Conditions</TabsTrigger>
+          </TabsList>
           
-          <Card className="glass-card shadow-xl border-none mb-8 hover:border-plantDoc-primary/30 transition-all duration-300">
-            <CardHeader>
-              <CardTitle>Growing Conditions</CardTitle>
-              <CardDescription>
-                Provide information about your location and growing environment
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="country" className="flex items-center gap-2">
-                        <Globe className="h-4 w-4 text-plantDoc-primary" />
-                        Country
-                      </Label>
+          <TabsContent value="location" className="space-y-6">
+            <Card>
+              <CardContent className="pt-6">
+                <form onSubmit={handleLocationSubmit} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="country">Country*</Label>
                       <Input 
                         id="country" 
-                        placeholder="Enter your country" 
-                        value={formData.country}
-                        onChange={(e) => handleInputChange('country', e.target.value)}
-                        className="glass-input focus:border-plantDoc-primary/50"
+                        value={country} 
+                        onChange={(e) => setCountry(e.target.value)}
+                        placeholder="e.g. United States" 
+                        required
                       />
                     </div>
-                    
-                    <div>
-                      <Label htmlFor="state" className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-plantDoc-primary" />
-                        State/Province
-                      </Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="state">State/Region*</Label>
                       <Input 
                         id="state" 
-                        placeholder="Enter your state" 
-                        value={formData.state}
-                        onChange={(e) => handleInputChange('state', e.target.value)}
-                        className="glass-input focus:border-plantDoc-primary/50"
+                        value={state} 
+                        onChange={(e) => setState(e.target.value)}
+                        placeholder="e.g. California" 
+                        required
                       />
                     </div>
-                    
-                    <div>
-                      <Label htmlFor="city" className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-plantDoc-primary" />
-                        City (Optional)
-                      </Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="city">City (Optional)</Label>
                       <Input 
                         id="city" 
-                        placeholder="Enter your city" 
-                        value={formData.city}
-                        onChange={(e) => handleInputChange('city', e.target.value)}
-                        className="glass-input focus:border-plantDoc-primary/50"
+                        value={city} 
+                        onChange={(e) => setCity(e.target.value)}
+                        placeholder="e.g. San Francisco" 
                       />
                     </div>
-                    
-                    <div>
-                      <Label htmlFor="soilType">Soil Type</Label>
-                      <Select 
-                        value={formData.soilType} 
-                        onValueChange={(value) => handleInputChange('soilType', value)}
-                      >
-                        <SelectTrigger className="glass-input">
+                  </div>
+                  
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Retrieving climate data...
+                      </>
+                    ) : "Get Climate Data For This Location"}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+            
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold">Climate Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="temperature">Average Temperature (°C)</Label>
+                  <Input 
+                    id="temperature" 
+                    type="number" 
+                    value={temperature}
+                    onChange={(e) => setTemperature(Number(e.target.value))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="rainfall">Annual Rainfall (mm)</Label>
+                  <Input 
+                    id="rainfall" 
+                    type="number" 
+                    value={rainfall}
+                    onChange={(e) => setRainfall(Number(e.target.value))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="humidity">Average Humidity (%)</Label>
+                  <Input 
+                    id="humidity" 
+                    type="number" 
+                    value={humidity}
+                    onChange={(e) => setHumidity(Number(e.target.value))}
+                    min="0"
+                    max="100"
+                  />
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="conditions" className="space-y-6">
+            <Card>
+              <CardContent className="pt-6 space-y-6">
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="soil-type">Soil Type</Label>
+                      <Select value={soilType} onValueChange={setSoilType}>
+                        <SelectTrigger>
                           <SelectValue placeholder="Select soil type" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="sandy">Sandy</SelectItem>
-                          <SelectItem value="loamy">Loamy</SelectItem>
-                          <SelectItem value="clay">Clay</SelectItem>
-                          <SelectItem value="silt">Silty</SelectItem>
-                          <SelectItem value="peaty">Peaty</SelectItem>
+                          {soilTypes.map((type) => (
+                            <SelectItem key={type} value={type}>{type}</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
-                    
-                    <div>
-                      <Label htmlFor="sunlight">Sunlight Exposure</Label>
-                      <Select 
-                        value={formData.sunlight} 
-                        onValueChange={(value) => handleInputChange('sunlight', value)}
-                      >
-                        <SelectTrigger className="glass-input">
-                          <SelectValue placeholder="Select sunlight exposure" />
+                    <div className="space-y-2">
+                      <Label htmlFor="sunlight">Sunlight</Label>
+                      <Select value={sunlight} onValueChange={setSunlight}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select sunlight level" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="full">Full Sun</SelectItem>
-                          <SelectItem value="partial">Partial Sun</SelectItem>
-                          <SelectItem value="shade">Shade</SelectItem>
+                          {sunlightOptions.map((option) => (
+                            <SelectItem key={option} value={option}>{option}</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
                   
-                  <div className="space-y-4">
-                    <div className="p-3 border border-plantDoc-primary/20 rounded-lg bg-plantDoc-primary/5">
-                      <p className="text-sm mb-2 text-plantDoc-primary">
-                        {isLocationLoading ? 'Fetching climate data...' : 'Climate data is automatically estimated based on your location'}
-                      </p>
-                      
-                      <div>
-                        <Label htmlFor="temperature" className="flex items-center gap-2">
-                          <Thermometer className="text-plantDoc-primary h-4 w-4" />
-                          Average Temperature (°C)
-                        </Label>
-                        <div className="flex items-center space-x-2">
-                          <Slider
-                            id="temperature"
-                            min={0}
-                            max={40}
-                            step={1}
-                            value={[formData.temperature]}
-                            onValueChange={(value) => handleInputChange('temperature', value[0])}
-                            className="flex-1"
-                          />
-                          <span className="w-8 text-center">{formData.temperature}</span>
-                        </div>
-                      </div>
-                      
-                      <div className="mt-4">
-                        <Label htmlFor="rainfall" className="flex items-center gap-2">
-                          <Droplets className="text-plantDoc-primary h-4 w-4" />
-                          Annual Rainfall (mm)
-                        </Label>
-                        <div className="flex items-center space-x-2">
-                          <Slider
-                            id="rainfall"
-                            min={0}
-                            max={3000}
-                            step={10}
-                            value={[formData.rainfall]}
-                            onValueChange={(value) => handleInputChange('rainfall', value[0])}
-                            className="flex-1"
-                          />
-                          <span className="w-14 text-center">{formData.rainfall}</span>
-                        </div>
-                      </div>
-                      
-                      <div className="mt-4">
-                        <Label htmlFor="humidity" className="flex items-center gap-2">
-                          <Cloud className="text-plantDoc-primary h-4 w-4" />
-                          Humidity (%)
-                        </Label>
-                        <div className="flex items-center space-x-2">
-                          <Slider
-                            id="humidity"
-                            min={0}
-                            max={100}
-                            step={1}
-                            value={[formData.humidity]}
-                            onValueChange={(value) => handleInputChange('humidity', value[0])}
-                            className="flex-1"
-                          />
-                          <span className="w-8 text-center">{formData.humidity}</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
                       <Label htmlFor="ph">Soil pH</Label>
-                      <div className="flex items-center space-x-2">
-                        <Slider
-                          id="ph"
-                          min={3}
-                          max={10}
-                          step={0.1}
-                          value={[formData.ph]}
-                          onValueChange={(value) => handleInputChange('ph', value[0])}
-                          className="flex-1"
-                        />
-                        <span className="w-8 text-center">{formData.ph}</span>
+                      <span>{ph}</span>
+                    </div>
+                    <Slider
+                      id="ph"
+                      min={3.5}
+                      max={9}
+                      step={0.1}
+                      value={[ph]}
+                      onValueChange={(value) => setPh(value[0])}
+                    />
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>Acidic (3.5)</span>
+                      <span>Neutral (7)</span>
+                      <span>Alkaline (9)</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Soil Nutrient Levels (%)</h3>
+                  
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <Label htmlFor="nitrogen">Nitrogen (N)</Label>
+                        <span>{nitrogen}%</span>
                       </div>
+                      <Slider
+                        id="nitrogen"
+                        min={0}
+                        max={100}
+                        step={1}
+                        value={[nitrogen]}
+                        onValueChange={(value) => setNitrogen(value[0])}
+                      />
                     </div>
                     
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="advanced" className="cursor-pointer">Show Advanced Options</Label>
-                        <Switch
-                          id="advanced"
-                          checked={showAdvanced}
-                          onCheckedChange={setShowAdvanced}
-                        />
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <Label htmlFor="phosphorus">Phosphorus (P)</Label>
+                        <span>{phosphorus}%</span>
                       </div>
+                      <Slider
+                        id="phosphorus"
+                        min={0}
+                        max={100}
+                        step={1}
+                        value={[phosphorus]}
+                        onValueChange={(value) => setPhosphorus(value[0])}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <Label htmlFor="potassium">Potassium (K)</Label>
+                        <span>{potassium}%</span>
+                      </div>
+                      <Slider
+                        id="potassium"
+                        min={0}
+                        max={100}
+                        step={1}
+                        value={[potassium]}
+                        onValueChange={(value) => setPotassium(value[0])}
+                      />
                     </div>
                   </div>
                 </div>
-                
-                {showAdvanced && (
-                  <div className="space-y-4 pt-4 border-t border-white/10 animate-fade-in">
-                    <h3 className="text-lg font-medium">Advanced Soil Composition</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              </CardContent>
+            </Card>
+            
+            <Button 
+              onClick={handleGetRecommendations} 
+              className="w-full" 
+              size="lg"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Finding plants...
+                </>
+              ) : (
+                <>
+                  <Leaf className="mr-2 h-5 w-5" />
+                  Get Plant Recommendations
+                </>
+              )}
+            </Button>
+          </TabsContent>
+        </Tabs>
+        
+        {recommendations.length > 0 && (
+          <div className="mt-12">
+            <h2 className="text-2xl font-bold mb-6 text-center">Recommended Plants</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {recommendations.map((plant, index) => (
+                <Card key={index} className="overflow-hidden h-full flex flex-col">
+                  <CardContent className="pt-6 flex-grow">
+                    <h3 className="font-bold text-xl mb-2">{plant.name}</h3>
+                    <p className="text-sm text-muted-foreground italic mb-3">{plant.scientificName}</p>
+                    
+                    <div className="space-y-4">
                       <div>
-                        <Label htmlFor="nitrogen">Nitrogen (N) %</Label>
-                        <div className="flex items-center space-x-2">
-                          <Slider
-                            id="nitrogen"
-                            min={0}
-                            max={100}
-                            step={1}
-                            value={[formData.nitrogen]}
-                            onValueChange={(value) => handleInputChange('nitrogen', value[0])}
-                            className="flex-1"
-                          />
-                          <span className="w-8 text-center">{formData.nitrogen}</span>
+                        <p className="text-sm">{plant.description}</p>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div>
+                          <span className="font-medium">Growth:</span> {plant.growthTime}
+                        </div>
+                        <div>
+                          <span className="font-medium">Water:</span> {plant.waterNeeds}
+                        </div>
+                        <div>
+                          <span className="font-medium">Sunlight:</span> {plant.sunlight}
+                        </div>
+                        <div>
+                          <span className="font-medium">Season:</span> {plant.bestSeason}
                         </div>
                       </div>
                       
                       <div>
-                        <Label htmlFor="phosphorus">Phosphorus (P) %</Label>
-                        <div className="flex items-center space-x-2">
-                          <Slider
-                            id="phosphorus"
-                            min={0}
-                            max={100}
-                            step={1}
-                            value={[formData.phosphorus]}
-                            onValueChange={(value) => handleInputChange('phosphorus', value[0])}
-                            className="flex-1"
-                          />
-                          <span className="w-8 text-center">{formData.phosphorus}</span>
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor="potassium">Potassium (K) %</Label>
-                        <div className="flex items-center space-x-2">
-                          <Slider
-                            id="potassium"
-                            min={0}
-                            max={100}
-                            step={1}
-                            value={[formData.potassium]}
-                            onValueChange={(value) => handleInputChange('potassium', value[0])}
-                            className="flex-1"
-                          />
-                          <span className="w-8 text-center">{formData.potassium}</span>
-                        </div>
+                        <h4 className="font-medium mb-1">Care Instructions:</h4>
+                        <ul className="list-disc pl-5 text-sm space-y-1">
+                          {plant.careInstructions.map((instruction, idx) => (
+                            <li key={idx}>{instruction}</li>
+                          ))}
+                        </ul>
                       </div>
                     </div>
-                  </div>
-                )}
-                
-                <div className="flex justify-center pt-4">
-                  <Button 
-                    type="submit" 
-                    className="bg-gradient-to-r from-plantDoc-primary to-plantDoc-secondary hover:shadow-lg transition-shadow text-white px-8 py-3 text-lg rounded-lg hover:scale-105 transition-transform"
-                    disabled={isLoading || !formData.country || !formData.state}
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                        Generating Recommendations...
-                      </>
-                    ) : (
-                      'Get Plant Recommendations'
-                    )}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-          
-          {recommendations && (
-            <div className="space-y-6 animate-fade-in">
-              <h2 className="text-2xl font-bold text-center">Recommended Plants</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {recommendations.map((plant, index) => (
-                  <Card key={index} className="glass-card overflow-hidden border-none hover:shadow-plantDoc-primary/20 hover:shadow-lg transition-all duration-300 hover:translate-y-[-5px] group">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="group-hover:text-plantDoc-primary transition-colors">{plant.name}</CardTitle>
-                      <CardDescription>{plant.scientificName}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex flex-wrap gap-2 mb-2">
-                          <span className="px-2 py-1 rounded-full bg-plantDoc-primary/10 text-xs">
-                            {plant.waterNeeds} water
-                          </span>
-                          <span className="px-2 py-1 rounded-full bg-plantDoc-primary/10 text-xs">
-                            {plant.sunlight}
-                          </span>
-                          <span className="px-2 py-1 rounded-full bg-plantDoc-primary/10 text-xs">
-                            {plant.growthTime} growth
-                          </span>
-                        </div>
-                        <p className="line-clamp-3 text-foreground/80">{plant.description}</p>
-                        
-                        {plant.careInstructions && plant.careInstructions.length > 0 && (
-                          <div className="pt-2 mt-2 border-t border-white/10">
-                            <p className="font-medium mb-1">Care Tips:</p>
-                            <ul className="list-disc pl-5 text-foreground/80 text-xs">
-                              {plant.careInstructions.slice(0, 2).map((tip, i) => (
-                                <li key={i}>{tip}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </main>
       
       <Footer />

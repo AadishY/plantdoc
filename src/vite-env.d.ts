@@ -2,7 +2,7 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  readonly VITE_GEMINI_API_KEY: string;
+  // No API keys here anymore as we're using Supabase for secret management
 }
 
 interface ImportMeta {
