@@ -1,69 +1,169 @@
-# Welcome to your Lovable project
+# Plant Doc 🌿
 
-## Project info
+[Visit Site](https://plantdoc.lovable.app/)
 
-**URL**: https://lovable.dev/projects/4abdc408-da56-43a5-83a7-6ba62e6bf53b
+Plant Doc is an AI-powered web application designed to help plant enthusiasts diagnose and treat plant diseases efficiently. Using state-of-the-art image recognition and the advanced capabilities of Google Gemini AI, Plant Doc analyzes plant images to provide accurate diagnoses and tailored treatment recommendations.
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## Table of Contents
 
-**Use Lovable**
+- [Overview](#overview)
+- [Features](#features)
+- [Technologies Used](#technologies-used)
+- [Target Audience](#target-audience)
+- [Project Overview](#project-overview)
+- [Integrations & Sponsor Technologies](#integrations--sponsor-technologies)
+- [Team & Contributions](#team--contributions)
+- [Market Opportunity](#market-opportunity)
+- [Business Model](#business-model)
+- [Contact & Links](#contact--links)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/4abdc408-da56-43a5-83a7-6ba62e6bf53b) and start prompting.
+---
 
-Changes made via Lovable will be committed automatically to this repo.
+## Overview
 
-**Use your preferred IDE**
+Plant Doc empowers home gardeners, small-scale farmers, and plant care enthusiasts by using advanced machine learning and AI technology to diagnose plant diseases from photos. With a clean, user-friendly interface, users can quickly upload an image of their plant, receive a detailed diagnosis, and access actionable care and treatment recommendations—all in one place.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+---
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## Features
 
-Follow these steps:
+- **Simple and Intuitive UI:**  
+  A seamless landing page with an "About" section and a primary focus on image upload for fast, efficient diagnosis.
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+- **AI-Driven Diagnostics:**  
+  Utilizes Google Gemini for image analysis and disease detection with high accuracy.
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+- **Comprehensive Results:**  
+  Detailed diagnostic cards provide:
+  - Disease identification and confidence metrics
+  - Severity indicators
+  - Treatment steps, prevention tips, and causes
+  - Fertilizer recommendations and care tips
+  - In-depth plant information including description, origin, common uses, and growing conditions
 
-# Step 3: Install the necessary dependencies.
-npm i
+- **Real-Time Integrations:**  
+  Supports environmental data integration and user feedback for continuous model improvement.
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+---
 
-**Edit a file directly in GitHub**
+## Technologies Used
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- **Google Gemini:**  
+  For AI-powered image recognition and plant disease identification.
+  
+- **Supabase:**  
+  Provides backend services including authentication, database management, and real-time data synchronization.
+  
+- **Lovable:**  
+  The platform used for developing and hosting the website.
+  
+- **Vite:**  
+  A fast build tool for a streamlined development process.
+  
+- **TypeScript:**  
+  Ensures robust type-checking and enhances code maintainability.
+  
+- **React:**  
+  Powers the dynamic, component-based user interface.
+  
+- **shadcn-ui:**  
+  Offers pre-built UI components to accelerate design and development.
+  
+- **Tailwind CSS:**  
+  Enables rapid styling and ensures a modern, responsive design.
 
-**Use GitHub Codespaces**
+---
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Target Audience
 
-## What technologies are used for this project?
+- **Home Gardeners & Hobbyists:**  
+  Individuals seeking an easy-to-use tool for plant disease diagnosis.
+  
+- **Small-Scale Farmers:**  
+  Agricultural practitioners aiming to enhance crop yields by timely disease management.
+  
+- **Environmental Enthusiasts:**  
+  Those interested in sustainable gardening and plant care practices.
+  
+- **Educational & Research Institutions:**  
+  Organizations looking for innovative tools that integrate AI with environmental science.
 
-This project is built with .
+---
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Project Overview
 
-## How can I deploy this project?
+**Problem Statement:**  
+Plant enthusiasts often face challenges diagnosing and treating plant diseases, leading to crop loss and ineffective care practices.
 
-Simply open [Lovable](https://lovable.dev/projects/4abdc408-da56-43a5-83a7-6ba62e6bf53b) and click on Share -> Publish.
+**Solution:**  
+Plant Doc leverages cutting-edge AI and image recognition technology to analyze plant images, diagnose diseases, and provide actionable treatment and care recommendations—making plant care accessible and efficient.
 
-## I want to use a custom domain - is that possible?
+---
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+## Integrations & Sponsor Technologies
+
+- **Google Gemini AI:**  
+  Core to our diagnosis engine, offering reliable and accurate disease detection.
+
+- **Supabase:**  
+  Manages data storage, authentication, and real-time updates seamlessly.
+
+- **Lovable:**  
+  Provides the foundation for our website's development and ongoing support.
+
+- **Additional Tools:**  
+  Vite, TypeScript, React, shadcn-ui, and Tailwind CSS ensure a robust and modern user experience.
+
+---
+
+## Team & Contributions
+
+- **Project Lead:**  
+  Oversees project vision and strategic decisions.
+  
+- **AI/ML Engineer:**  
+  Develops and refines the diagnostic algorithms using Google Gemini AI.
+  
+- **Frontend Developer:**  
+  Implements the UI/UX using React and modern design frameworks.
+  
+- **Backend Developer:**  
+  Manages API integrations and data synchronization with Supabase.
+  
+- **UX/UI Designer:**  
+  Crafts a clean, accessible, and engaging interface.
+
+Contributions and feedback are always welcome—please check our [GitHub repository](https://github.com/AadishY/PlantDoc) for more details.
+
+---
+
+## Market Opportunity
+
+The demand for AI-driven agricultural technology is growing rapidly, fueled by increasing interest in sustainable practices and smart gardening solutions. Plant Doc is positioned to capture a diverse user base—from home gardeners to commercial farmers—by addressing a critical need in plant disease diagnosis and care.
+
+---
+
+## Business Model
+
+- **Freemium Model:**  
+  Free basic diagnostic services with premium features (detailed reports, historical tracking, personalized care plans) available via subscription.
+  
+- **In-App Purchases:**  
+  Monetizing treatment recommendations, fertilizer suggestions, and other plant care products.
+  
+- **B2B Partnerships:**  
+  Collaborations with agricultural centers, garden supply retailers, and research institutions.
+
+---
+
+## Contact & Links
+
+- **Website:** [https://plantdoc.lovable.app/](https://plantdoc.lovable.app/)
+- **GitHub:** [https://github.com/AadishY/PlantDoc](https://github.com/AadishY/PlantDoc)
+- **Author:** Aadish
+
+---
+
+*Happy Planting & Healthy Growth!*
