@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { Leaf, Loader2, Cloud, Droplets, Thermometer } from 'lucide-react';
@@ -11,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PlantRecommendation } from '@/types/recommendation';
 import { getPlantRecommendations } from '@/services/api';
 
@@ -323,14 +323,6 @@ const RecommendPage = () => {
                         <p><span className="font-medium">Water Needs:</span> {plant.waterNeeds}</p>
                         <p><span className="font-medium">Sunlight:</span> {plant.sunlight}</p>
                         <p className="line-clamp-3"><span className="font-medium">Description:</span> {plant.description}</p>
-                      </div>
-                      <div className="mt-4 flex justify-between items-center">
-                        <span className="text-xs bg-plantDoc-primary/20 text-plantDoc-primary px-2 py-1 rounded-full">
-                          {plant.difficulty || "Beginner"}
-                        </span>
-                        <Button variant="ghost" size="sm" className="text-plantDoc-primary hover:text-plantDoc-primary/80">
-                          View Details
-                        </Button>
                       </div>
                     </CardContent>
                   </Card>
