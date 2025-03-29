@@ -3,11 +3,11 @@ export interface PlantRecommendation {
   name: string;
   scientificName: string;
   imageUrl?: string;
+  generatedImageUrl?: string;
   growthTime: string;
   waterNeeds: string;
   sunlight: string;
   description: string;
-  difficulty?: string;
   careInstructions?: string[];
   bestSeason?: string;
   idealTemperature?: {
@@ -24,6 +24,7 @@ export interface GrowingConditions {
   rainfall: number;
   temperature: number;
   humidity: number;
+  country: string;
   state: string;
   city?: string;
   soilType: string;
