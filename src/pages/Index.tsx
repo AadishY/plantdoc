@@ -39,7 +39,7 @@ const Index = () => {
                   <div className="absolute inset-0 bg-plantDoc-primary/30 rounded-full opacity-30 blur-3xl"></div>
                   <div className="glass-card absolute inset-2 rounded-full overflow-hidden border-none shadow-2xl transition-all duration-300 hover:shadow-plantDoc-primary/30 hover:shadow-2xl">
                     <img
-                      src="https://cdn.jsdelivr.net/gh/AadishY/plantdoc@main/public/Bg.gif"
+                      src="https://cdn.jsdelivr.net/gh/AadishY/plantdoc@main/public/live.gif"
                       alt="Healthy plant"
                       className="object-cover w-full h-full"
                     />
