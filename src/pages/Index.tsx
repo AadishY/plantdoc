@@ -142,8 +142,8 @@ const Index = () => {
                     to everyone and help people maintain healthier plants.
                   </p>
                   <p className="text-foreground/80">
-                    Plant Doc uses state-of-the-art image recognition technology to analyze plant images and the powerful Gemini AI 
-                    to generate accurate diagnoses and treatment plans tailored to your specific plant's needs.
+                    At its core, Plant Doc harnesses the power of Google Gemini AI for all aspects of its analysis, ensuring reliable
+                    diagnoses and tailored treatment plans that address your plant’s specific needs.
                   </p>
                 </div>
               </div>
