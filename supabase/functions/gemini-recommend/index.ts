@@ -1,6 +1,4 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.48.0";
 import { corsHeaders, getWorkingApiKey, tryRequestWithKey, GEMINI_MODEL } from "../_shared/config.ts";
 
 serve(async (req) => {
@@ -10,17 +8,6 @@ serve(async (req) => {
   }
 
   try {
-    // Create a Supabase client with the Auth context of the function
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
-        },
-      }
-    );
-
     // Get the request body
     const conditions = await req.json();
 
@@ -180,15 +167,18 @@ serve(async (req) => {
       }
       
       // Ensure all plants have the required properties
-      recommendations.name = recommendations.name || "Unknown",
-      recommendations.scientificName = recommendations.scientificName || "Unknown",
-      recommendations.growthTime = recommendations.growthTime || "Medium",
-      recommendations.waterNeeds = recommendations.waterNeeds || "Medium",
-      recommendations.sunlight = recommendations.sunlight || "Partial sun",
-      recommendations.description = recommendations.description || "No description available",
-      recommendations.careInstructions = recommendations.careInstructions : ["General care information not available"],
-      recommendations.bestSeason = recommendations.bestSeason || "Year-round"
-      }));
+      if (Array.isArray(recommendations)) {
+        recommendations.forEach(plant => {
+          plant.name = plant.name || "Unknown";
+          plant.scientificName = plant.scientificName || "Unknown";
+          plant.growthTime = plant.growthTime || "Medium";
+          plant.waterNeeds = plant.waterNeeds || "Medium";
+          plant.sunlight = plant.sunlight || "Partial sun";
+          plant.description = plant.description || "No description available";
+          plant.careInstructions = plant.careInstructions || ["General care information not available"];
+          plant.bestSeason = plant.bestSeason || "Year-round";
+        });
+      }
       
       return new Response(
         JSON.stringify(recommendations),
