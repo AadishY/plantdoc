@@ -21,6 +21,10 @@ Plant Doc is an AI-powered web application designed to help plant enthusiasts di
 
 ---
 
+[![Demo Video](path/to/screenshot.png)](public/demo.mp4)
+
+---
+
 ## Overview
 
 Plant Doc empowers home gardeners, small-scale farmers, and plant care enthusiasts by using advanced machine learning and AI technology to diagnose plant diseases from photos. With a clean, user-friendly interface, users can quickly upload an image of their plant, receive a detailed diagnosis, and access actionable care and treatment recommendations—all in one place.
