@@ -104,13 +104,13 @@ Return only the JSON output with no additional text or commentary.
         temperature: 1,
         max_output_tokens: 65536
       },
-      model: "gemini-2.5-pro-exp-03-25"
+      model: "gemini-2.0-flash"
     };
     
     // Send request to Gemini API
     console.log('Sending request to Gemini API...');
     const response = await fetch(
-      `${API_URL}/models/gemini-2.5-pro-exp-03-25:generateContent?key=${API_KEY}`,
+      `${API_URL}/models/gemini-2.0-flash:generateContent?key=${API_KEY}`,
       {
         method: 'POST',
         headers: {
