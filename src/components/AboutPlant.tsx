@@ -17,7 +17,7 @@ const AboutPlant = ({ plantData }: AboutPlantProps) => {
   return (
     <Card className="glass-card shadow-xl border-none overflow-hidden hover:shadow-plantDoc-primary/20 transition-all duration-300">
       <CardHeader className="bg-gradient-to-r from-plantDoc-primary/20 to-plantDoc-secondary/20 border-b border-white/10">
-        <CardTitle className="text-xl text-center">About This Plant</CardTitle>
+        <CardTitle className="text-xl text-center">About This Plant (Not 100% correct)</CardTitle>
       </CardHeader>
       <CardContent className="p-5 space-y-4">
         <div>
