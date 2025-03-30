@@ -8,7 +8,7 @@ const Footer = () => {
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="flex items-center">
-            <span className="text-foreground/80">© 2024 PlantDoc. All rights reserved.</span>
+            <span className="text-foreground/80">© 2025 PlantDoc. All rights reserved.</span>
           </div>
           
           <div className="flex items-center mt-4 md:mt-0 space-x-6">
