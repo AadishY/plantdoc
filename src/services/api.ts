@@ -2,6 +2,7 @@
 import { DiagnosisResult } from '@/types/diagnosis';
 import { PlantRecommendation, GrowingConditions } from '@/types/recommendation';
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 // Function to prepare image for API
 const prepareImageForAPI = async (imageFile: File): Promise<string> => {
@@ -27,13 +28,26 @@ export const diagnosePlant = async (imageFile: File): Promise<DiagnosisResult> =
     const imageBase64 = await prepareImageForAPI(imageFile);
     
     // Call the Supabase Edge Function for plant diagnosis
-    const { data, error } = await supabase.functions.invoke('gemini-diagnose', {
+    const { data, error, status } = await supabase.functions.invoke('gemini-diagnose', {
       body: { image: imageBase64 }
     });
     
     if (error) {
       console.error('Error calling edge function:', error);
+      
+      // Check if it's a rate limit error
+      if (status === 429) {
+        toast.error("API quota exceeded. Please try again later.");
+        throw new Error("API quota exceeded. The service is currently experiencing high demand. Please try again in a few minutes.");
+      }
+      
       throw new Error(error.message);
+    }
+    
+    // Check if data contains an error message
+    if (data && 'error' in data) {
+      console.error('Error in response data:', data.error);
+      throw new Error(data.error);
     }
     
     return data as DiagnosisResult;
@@ -47,13 +61,25 @@ export const diagnosePlant = async (imageFile: File): Promise<DiagnosisResult> =
 export const getClimateDatabByLocation = async (country: string, state: string, city?: string): Promise<{ temperature: number, rainfall: number, humidity: number }> => {
   try {
     // Call the Supabase Edge Function for climate data
-    const { data, error } = await supabase.functions.invoke('gemini-climate', {
+    const { data, error, status } = await supabase.functions.invoke('gemini-climate', {
       body: { country, state, city }
     });
     
     if (error) {
       console.error('Error calling edge function:', error);
+      
+      // Check if it's a rate limit error
+      if (status === 429) {
+        toast.error("API quota exceeded. Using default climate values.");
+      }
+      
       throw new Error(error.message);
+    }
+    
+    // Check if data contains an error message
+    if (data && 'error' in data) {
+      console.error('Error in response data:', data.error);
+      throw new Error(data.error);
     }
     
     return data as { temperature: number, rainfall: number, humidity: number };
@@ -68,13 +94,26 @@ export const getClimateDatabByLocation = async (country: string, state: string, 
 export const getPlantRecommendations = async (conditions: GrowingConditions): Promise<PlantRecommendation[]> => {
   try {
     // Call the Supabase Edge Function for plant recommendations
-    const { data, error } = await supabase.functions.invoke('gemini-recommend', {
+    const { data, error, status } = await supabase.functions.invoke('gemini-recommend', {
       body: conditions
     });
     
     if (error) {
       console.error('Error calling edge function:', error);
+      
+      // Check if it's a rate limit error
+      if (status === 429) {
+        toast.error("API quota exceeded. Please try again later.");
+        throw new Error("API quota exceeded. The service is currently experiencing high demand. Please try again in a few minutes.");
+      }
+      
       throw new Error(error.message);
+    }
+    
+    // Check if data contains an error message
+    if (data && 'error' in data) {
+      console.error('Error in response data:', data.error);
+      throw new Error(data.error);
     }
     
     return data as PlantRecommendation[];
