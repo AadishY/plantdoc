@@ -180,15 +180,14 @@ serve(async (req) => {
       }
       
       // Ensure all plants have the required properties
-      recommendations = recommendations.map(plant => ({
-        name: plant.name || "Unknown",
-        scientificName: plant.scientificName || "Unknown",
-        growthTime: plant.growthTime || "Medium",
-        waterNeeds: plant.waterNeeds || "Medium",
-        sunlight: plant.sunlight || "Partial sun",
-        description: plant.description || "No description available",
-        careInstructions: Array.isArray(plant.careInstructions) ? plant.careInstructions : ["General care information not available"],
-        bestSeason: plant.bestSeason || "Year-round"
+      recommendations.name = recommendations.name || "Unknown",
+      recommendations.scientificName = recommendations.scientificName || "Unknown",
+      recommendations.growthTime = recommendations.growthTime || "Medium",
+      recommendations.waterNeeds = recommendations.waterNeeds || "Medium",
+      recommendations.sunlight = recommendations.sunlight || "Partial sun",
+      recommendations.description = recommendations.description || "No description available",
+      recommendations.careInstructions = recommendations.careInstructions : ["General care information not available"],
+      recommendations.bestSeason = recommendations.bestSeason || "Year-round"
       }));
       
       return new Response(
