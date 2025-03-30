@@ -1,34 +1,32 @@
 
 import React from 'react';
-import { Leaf, Github, Instagram } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Github, HeartPulse } from 'lucide-react';
 
-const Footer: React.FC = () => {
+const Footer = () => {
   return (
-    <footer className="glass-nav border-t mt-auto">
-      <div className="container mx-auto px-4 py-8">
+    <footer className="bg-gradient-to-t from-muted/30 to-transparent py-6 border-t border-border/30">
+      <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between items-center">
-          <div className="flex items-center gap-2 mb-4 md:mb-0">
-            <Leaf className="h-5 w-5 text-plantDoc-primary" />
-            <span className="font-bold">Plant Doc</span>
+          <div className="flex items-center">
+            <span className="text-foreground/80">© 2024 PlantDoc. All rights reserved.</span>
           </div>
           
-          <div className="flex items-center gap-4 flex-wrap justify-center">
-            <a href="https://github.com/AadishY/PlantDoc" target="_blank" rel="noopener noreferrer" 
-              className="text-foreground/70 hover:text-plantDoc-primary transition-colors flex items-center gap-2">
-              <Github className="h-4 w-4" />
-              <span className="text-sm">GitHub</span>
-            </a>
+          <div className="flex items-center mt-4 md:mt-0 space-x-6">
+            <div className="text-foreground/80 flex items-center group">
+              <span className="mr-2">Made with</span>
+              <HeartPulse className="h-5 w-5 text-red-500 group-hover:animate-ping transition-all duration-300" />
+              <span className="ml-2 bg-gradient-to-r from-plantDoc-primary to-plantDoc-secondary bg-clip-text text-transparent font-semibold">in India</span>
+            </div>
             
-            <a href="https://instagram.com/yo.akatsuki/" target="_blank" rel="noopener noreferrer" 
-              className="text-foreground/70 hover:text-plantDoc-primary transition-colors flex items-center gap-2">
-              <Instagram className="h-4 w-4" />
-              <span className="text-sm">Instagram</span>
+            <a 
+              href="https://github.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-foreground/80 hover:text-plantDoc-primary transition-colors duration-200 flex items-center"
+            >
+              <Github className="h-5 w-5 mr-2" />
+              <span>GitHub</span>
             </a>
-            
-            <span className="text-sm text-foreground/50">
-              © {new Date().getFullYear()} Plant Doc by Aadish Kumar Yadav
-            </span>
           </div>
         </div>
       </div>

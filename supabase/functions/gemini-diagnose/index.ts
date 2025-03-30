@@ -104,13 +104,13 @@ Return only the JSON output with no additional text or commentary.
         temperature: 1,
         max_output_tokens: 65536
       },
-      model: "gemini-2.0-flash"
+      model: "gemini-2.5-pro-exp-03-25"
     };
     
     // Send request to Gemini API
     console.log('Sending request to Gemini API...');
     const response = await fetch(
-      `${API_URL}/models/gemini-2.0-flash:generateContent?key=${API_KEY}`,
+      `${API_URL}/models/gemini-2.5-pro-exp-03-25:generateContent?key=${API_KEY}`,
       {
         method: 'POST',
         headers: {
@@ -123,6 +123,18 @@ Return only the JSON output with no additional text or commentary.
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`API request failed with status: ${response.status}`, errorText);
+      
+      // Check if it's a rate limit error
+      if (response.status === 429) {
+        return new Response(
+          JSON.stringify({ 
+            error: 'The API is currently experiencing high demand. Please try again in a few minutes.',
+            details: 'Rate limit exceeded'
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 429 }
+        );
+      }
+      
       return new Response(
         JSON.stringify({ error: `API request failed with status: ${response.status}` }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
@@ -132,6 +144,18 @@ Return only the JSON output with no additional text or commentary.
     const data = await response.json();
     console.log('Received response from Gemini API');
     
+    // Check if we have a valid response structure
+    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
+      console.error('Invalid response structure:', JSON.stringify(data));
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid response from AI service',
+          details: 'The response from the AI service was not in the expected format'
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      );
+    }
+    
     // Extract the JSON string from Gemini's response
     const textResponse = data.candidates[0].content.parts[0].text;
     
@@ -139,7 +163,50 @@ Return only the JSON output with no additional text or commentary.
     try {
       const jsonMatch = textResponse.match(/\{[\s\S]*\}/);
       const jsonStr = jsonMatch ? jsonMatch[0] : textResponse;
-      const diagnosisResult = JSON.parse(jsonStr);
+      let diagnosisResult;
+      
+      try {
+        diagnosisResult = JSON.parse(jsonStr);
+      } catch (jsonError) {
+        console.error('Failed to parse Gemini response as JSON:', jsonError);
+        // Create a fallback diagnosis result
+        diagnosisResult = {
+          plant: "Unknown",
+          disease: {
+            name: "Unable to identify",
+            confidence: 0,
+            severity: "Unknown"
+          },
+          causes: ["Could not determine causes from the image"],
+          treatment: {
+            steps: ["Please try again with a clearer image"],
+            prevention: ["Ensure proper lighting when taking photos"]
+          },
+          fertilizer_recommendation: {
+            type: "Not available",
+            application: "Not available"
+          },
+          care_recommendations: ["Try uploading a clearer image of the plant"],
+          about_plant: {
+            description: "Could not identify the plant from the provided image",
+            origin: "Unknown",
+            common_uses: ["Unknown"],
+            growing_conditions: "Unknown"
+          }
+        };
+      }
+      
+      // Ensure all required properties exist in the result
+      diagnosisResult.plant = diagnosisResult.plant || "Unknown";
+      diagnosisResult.disease = diagnosisResult.disease || { name: "Unable to identify", confidence: 0, severity: "Unknown" };
+      diagnosisResult.causes = diagnosisResult.causes || ["Could not determine causes"];
+      diagnosisResult.treatment = diagnosisResult.treatment || { steps: [], prevention: [] };
+      diagnosisResult.treatment.steps = diagnosisResult.treatment.steps || [];
+      diagnosisResult.treatment.prevention = diagnosisResult.treatment.prevention || [];
+      diagnosisResult.fertilizer_recommendation = diagnosisResult.fertilizer_recommendation || { type: "Not available", application: "Not available" };
+      diagnosisResult.care_recommendations = diagnosisResult.care_recommendations || [];
+      diagnosisResult.about_plant = diagnosisResult.about_plant || { description: "No information available", origin: "Unknown", common_uses: [], growing_conditions: "Unknown" };
+      diagnosisResult.about_plant.common_uses = diagnosisResult.about_plant.common_uses || [];
       
       return new Response(
         JSON.stringify(diagnosisResult),
@@ -155,7 +222,7 @@ Return only the JSON output with no additional text or commentary.
   } catch (error) {
     console.error('Error in edge function:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ error: 'Internal server error', details: error.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }

@@ -115,6 +115,18 @@ serve(async (req) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`API request failed with status: ${response.status}`, errorText);
+      
+      // Check if it's a rate limit error
+      if (response.status === 429) {
+        return new Response(
+          JSON.stringify({ 
+            error: 'The API is currently experiencing high demand. Please try again in a few minutes.',
+            details: 'Rate limit exceeded'
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 429 }
+        );
+      }
+      
       return new Response(
         JSON.stringify({ error: `API request failed with status: ${response.status}` }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
@@ -124,6 +136,18 @@ serve(async (req) => {
     const data = await response.json();
     console.log('Received response from Gemini API for plant recommendations');
     
+    // Check if we have a valid response structure
+    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
+      console.error('Invalid response structure:', JSON.stringify(data));
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid response from AI service',
+          details: 'The response from the AI service was not in the expected format'
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      );
+    }
+    
     // Extract the JSON string from Gemini's response
     const textResponse = data.candidates[0].content.parts[0].text;
     
@@ -131,7 +155,64 @@ serve(async (req) => {
     try {
       const jsonMatch = textResponse.match(/\[[\s\S]*\]/);
       const jsonStr = jsonMatch ? jsonMatch[0] : textResponse;
-      const recommendations = JSON.parse(jsonStr);
+      let recommendations = [];
+      
+      try {
+        recommendations = JSON.parse(jsonStr);
+      } catch (jsonError) {
+        console.error('Failed to parse Gemini response as JSON:', jsonError);
+        // Create fallback recommendations
+        recommendations = [
+          {
+            name: "Snake Plant",
+            scientificName: "Sansevieria trifasciata",
+            growthTime: "Slow",
+            waterNeeds: "Low",
+            sunlight: "Partial sun",
+            description: "A hardy plant that thrives in most conditions. Great for beginners.",
+            careInstructions: ["Water sparingly", "Tolerates low light", "Prefers warm temperatures"],
+            bestSeason: "Year-round"
+          },
+          {
+            name: "Pothos",
+            scientificName: "Epipremnum aureum",
+            growthTime: "Fast",
+            waterNeeds: "Medium",
+            sunlight: "Partial sun",
+            description: "Very adaptable vine that can thrive in various conditions.",
+            careInstructions: ["Allow soil to dry between waterings", "Prune regularly", "Can grow in water or soil"],
+            bestSeason: "Year-round"
+          }
+        ];
+      }
+      
+      // Ensure all plants have the required properties
+      recommendations = recommendations.map(plant => ({
+        name: plant.name || "Unknown",
+        scientificName: plant.scientificName || "Unknown",
+        growthTime: plant.growthTime || "Medium",
+        waterNeeds: plant.waterNeeds || "Medium",
+        sunlight: plant.sunlight || "Partial sun",
+        description: plant.description || "No description available",
+        careInstructions: Array.isArray(plant.careInstructions) ? plant.careInstructions : ["General care information not available"],
+        bestSeason: plant.bestSeason || "Year-round"
+      }));
+      
+      // Ensure we always return at least one recommendation
+      if (recommendations.length === 0) {
+        recommendations = [
+          {
+            name: "Jade Plant",
+            scientificName: "Crassula ovata",
+            growthTime: "Slow",
+            waterNeeds: "Low",
+            sunlight: "Full sun",
+            description: "A resilient succulent that adapts to many environments.",
+            careInstructions: ["Water when soil is dry", "Needs good drainage", "Prefers bright light"],
+            bestSeason: "Year-round"
+          }
+        ];
+      }
       
       return new Response(
         JSON.stringify(recommendations),
@@ -147,7 +228,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in edge function:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ error: 'Internal server error', details: error.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }
