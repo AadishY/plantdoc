@@ -7,6 +7,44 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// API key rotation mechanism - returns a working API key or throws if all fail
+async function getWorkingApiKey(): Promise<string> {
+  // Primary and fallback API keys
+  const primaryKey = Deno.env.get('GEMINI_API_KEY');
+  const fallbackKey = Deno.env.get('GEMINI_API_KEY_FALLBACK');
+  
+  if (!primaryKey && !fallbackKey) {
+    throw new Error('No API keys configured');
+  }
+  
+  const keys = [primaryKey, fallbackKey].filter(Boolean) as string[];
+  
+  // Try the primary key first
+  if (keys.length > 0) {
+    return keys[0];
+  }
+  
+  throw new Error('All API keys have failed');
+}
+
+// Function to try a request with a specific API key
+async function tryRequestWithKey(apiKey: string, payload: any): Promise<Response> {
+  const API_URL = 'https://generativelanguage.googleapis.com/v1beta';
+  
+  const response = await fetch(
+    `${API_URL}/models/gemini-2.5-pro-exp-03-25:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    }
+  );
+  
+  return response;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -34,22 +72,6 @@ serve(async (req) => {
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       );
     }
-
-    // Base URL for Google Gemini API
-    const API_URL = 'https://generativelanguage.googleapis.com/v1beta';
-    // Get API key from environment variables (stored in Supabase secrets)
-    const API_KEY = Deno.env.get('GEMINI_API_KEY');
-
-    if (!API_KEY) {
-      console.error('Missing GEMINI_API_KEY in environment variables');
-      return new Response(
-        JSON.stringify({ error: 'API key configuration error' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-      );
-    }
-
-    console.log('Using API key:', API_KEY.substring(0, 3) + '...');
-    console.log('Preparing request to Gemini API for plant recommendations...');
 
     // Prepare the request payload for Gemini
     const payload = {
@@ -99,25 +121,49 @@ serve(async (req) => {
       model: "gemini-2.5-pro-exp-03-25"
     };
     
-    // Send request to Gemini API
-    console.log('Sending request to Gemini API for plant recommendations...');
-    const response = await fetch(
-      `${API_URL}/models/gemini-2.5-pro-exp-03-25:generateContent?key=${API_KEY}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      }
-    );
+    // Attempt API request with key rotation
+    let response: Response | null = null;
+    let errorMessage = '';
     
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`API request failed with status: ${response.status}`, errorText);
+    try {
+      // Get a working API key
+      const apiKey = await getWorkingApiKey();
+      console.log('Using API key:', apiKey.substring(0, 3) + '...');
+      
+      // Try the request with the selected key
+      console.log('Sending request to Gemini API for plant recommendations...');
+      response = await tryRequestWithKey(apiKey, payload);
+      
+      // If we hit rate limits, try the fallback key if available
+      if (response.status === 429) {
+        const fallbackKey = Deno.env.get('GEMINI_API_KEY_FALLBACK');
+        if (fallbackKey) {
+          console.log('Primary key rate limited, trying fallback key');
+          response = await tryRequestWithKey(fallbackKey, payload);
+        }
+      }
+    } catch (keyError) {
+      console.error('API key error:', keyError);
+      errorMessage = 'Could not obtain a working API key.';
+    }
+    
+    // Handle API response
+    if (!response || !response.ok) {
+      let statusCode = response ? response.status : 500;
+      let errorDetail = errorMessage;
+      
+      if (response) {
+        try {
+          const errorText = await response.text();
+          console.error(`API request failed with status: ${response.status}`, errorText);
+          errorDetail = errorText;
+        } catch (e) {
+          console.error('Failed to parse error response', e);
+        }
+      }
       
       // Check if it's a rate limit error
-      if (response.status === 429) {
+      if (statusCode === 429) {
         return new Response(
           JSON.stringify({ 
             error: 'The API is currently experiencing high demand. Please try again in a few minutes.',
@@ -128,8 +174,8 @@ serve(async (req) => {
       }
       
       return new Response(
-        JSON.stringify({ error: `API request failed with status: ${response.status}` }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+        JSON.stringify({ error: `API request failed with status: ${statusCode}`, details: errorDetail }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: statusCode }
       );
     }
     
