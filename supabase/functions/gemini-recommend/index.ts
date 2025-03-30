@@ -50,7 +50,7 @@ serve(async (req) => {
                          "careInstructions": ["Care instruction 1", "Care instruction 2", "Care instruction 3"],
                          "bestSeason": "Spring/Summer/Fall/Winter"
                        },
-                       // more plants...
+                       // 5 more plants...
                      ]
                      
                      Growing Conditions:
@@ -67,13 +67,13 @@ serve(async (req) => {
                      - Phosphorus level: ${conditions.phosphorus}%
                      - Potassium level: ${conditions.potassium}%
                      
-                     Only provide the JSON array, no other text.`
+                     Only provide the JSON array, no other text. and be sure to give total 6 plants`
             }
           ]
         }
       ],
       generation_config: {
-        temperature: 0.8,
+        temperature: 1,
         max_output_tokens: 8000
       },
       model: GEMINI_MODEL
