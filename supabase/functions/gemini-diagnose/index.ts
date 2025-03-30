@@ -1,49 +1,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.48.0";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-// API key rotation mechanism - returns a working API key or throws if all fail
-async function getWorkingApiKey(): Promise<string> {
-  // Primary and fallback API keys
-  const primaryKey = Deno.env.get('GEMINI_API_KEY');
-  const fallbackKey = Deno.env.get('GEMINI_API_KEY_FALLBACK');
-  
-  if (!primaryKey && !fallbackKey) {
-    throw new Error('No API keys configured');
-  }
-  
-  const keys = [primaryKey, fallbackKey].filter(Boolean) as string[];
-  
-  // Try the primary key first
-  if (keys.length > 0) {
-    return keys[0];
-  }
-  
-  throw new Error('All API keys have failed');
-}
-
-// Function to try a request with a specific API key
-async function tryRequestWithKey(apiKey: string, payload: any): Promise<Response> {
-  const API_URL = 'https://generativelanguage.googleapis.com/v1beta';
-  
-  const response = await fetch(
-    `${API_URL}/models/gemini-2.5-pro-exp-03-25:generateContent?key=${apiKey}`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    }
-  );
-  
-  return response;
-}
+import { corsHeaders, getWorkingApiKey, tryRequestWithKey, GEMINI_MODEL } from "../_shared/config.ts";
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -126,7 +84,7 @@ Return only the JSON output with no additional text or commentary.
         temperature: 1,
         max_output_tokens: 65536
       },
-      model: "gemini-2.5-pro-exp-03-25"
+      model: GEMINI_MODEL
     };
     
     // Attempt API request with key rotation
