@@ -89,7 +89,6 @@ serve(async (req) => {
       console.log('Using API key:', apiKey.substring(0, 3) + '...');
       
       // Try the request with the selected key
-      console.log('Sending request to Gemini API for plant recommendations...');
       response = await tryRequestWithKey(apiKey, payload);
       
       // If we hit rate limits, try the fallback key if available
@@ -168,24 +167,14 @@ serve(async (req) => {
         // Create fallback recommendations
         recommendations = [
           {
-            name: "Snake Plant",
-            scientificName: "Sansevieria trifasciata",
-            growthTime: "Slow",
-            waterNeeds: "Low",
-            sunlight: "Partial sun",
-            description: "A hardy plant that thrives in most conditions. Great for beginners.",
-            careInstructions: ["Water sparingly", "Tolerates low light", "Prefers warm temperatures"],
-            bestSeason: "Year-round"
-          },
-          {
-            name: "Pothos",
-            scientificName: "Epipremnum aureum",
-            growthTime: "Fast",
-            waterNeeds: "Medium",
-            sunlight: "Partial sun",
-            description: "Very adaptable vine that can thrive in various conditions.",
-            careInstructions: ["Allow soil to dry between waterings", "Prune regularly", "Can grow in water or soil"],
-            bestSeason: "Year-round"
+            name: "Unknown",
+            scientificName: "Unknown",
+            growthTime: "Unknown",
+            waterNeeds: "Unknown",
+            sunlight: "Unknown",
+            description: "Unknown",
+            careInstructions: ["Unknown"],
+            bestSeason: "Unknown"
           }
         ];
       }
@@ -201,22 +190,6 @@ serve(async (req) => {
         careInstructions: Array.isArray(plant.careInstructions) ? plant.careInstructions : ["General care information not available"],
         bestSeason: plant.bestSeason || "Year-round"
       }));
-      
-      // Ensure we always return at least one recommendation
-      if (recommendations.length === 0) {
-        recommendations = [
-          {
-            name: "Jade Plant",
-            scientificName: "Crassula ovata",
-            growthTime: "Slow",
-            waterNeeds: "Low",
-            sunlight: "Full sun",
-            description: "A resilient succulent that adapts to many environments.",
-            careInstructions: ["Water when soil is dry", "Needs good drainage", "Prefers bright light"],
-            bestSeason: "Year-round"
-          }
-        ];
-      }
       
       return new Response(
         JSON.stringify(recommendations),
