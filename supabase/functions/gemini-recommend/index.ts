@@ -73,8 +73,8 @@ serve(async (req) => {
         }
       ],
       generation_config: {
-        temperature: 0.4,
-        max_output_tokens: 2048
+        temperature: 0.8,
+        max_output_tokens: 8000
       },
       model: GEMINI_MODEL
     };
