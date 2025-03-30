@@ -3,7 +3,7 @@
 
 // The model to use for all Gemini API requests
 // This can be modified to use different versions of Gemini
-export const GEMINI_MODEL = "gemini-2.5-pro-exp-03-25";
+export const GEMINI_MODEL = "gemini-2.0-flash";
 
 // CORS headers used by all edge functions
 export const corsHeaders = {
