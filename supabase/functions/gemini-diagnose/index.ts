@@ -81,7 +81,7 @@ serve(async (req) => {
     ...
   ],
   "about_plant": {
-    "description": "Brief description of the plant species by identifying from the image only, do not need to give random answer if you dont know simply say can't indentified",
+    "description": "IMPORTANT IF YOU ARE NOT SURE THEN DO NO GIVE RESPONSE. Brief description of the plant species by identifying from the image only, do not need to give random answer if you dont know simply say can't indentified",
     "origin": "Geographic origin of the plant",
     "common_uses": ["Use 1", "Use 2", ...],
     "growing_conditions": "Preferred growing conditions"
