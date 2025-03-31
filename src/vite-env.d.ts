@@ -2,7 +2,7 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  // No API keys here anymore as we're using Supabase for secret management
+  // Add any environment variables if needed
 }
 
 interface ImportMeta {
