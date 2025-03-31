@@ -1,35 +1,71 @@
 
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Github, Leaf } from "lucide-react";
+import { Menu, X, Github, Leaf, ExternalLink } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { motion } from "framer-motion";
 
 const Header = () => {
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const isScrolled = window.scrollY > 10;
+      if (isScrolled !== scrolled) {
+        setScrolled(isScrolled);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [scrolled]);
+
+  const isActive = (path: string) => location.pathname === path;
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header 
+      className={`sticky top-0 z-50 w-full backdrop-blur-xl transition-all duration-300 ${
+        scrolled 
+          ? "bg-black/60 border-b border-white/10 shadow-lg" 
+          : "bg-transparent"
+      }`}
+    >
       <div className="container flex h-16 items-center">
         <div className="mr-4 hidden md:flex">
-          <Link to="/" className="mr-6 flex items-center space-x-2">
-            <Leaf className="h-6 w-6 text-plantDoc-primary" />
-            <span className="hidden font-bold text-xl sm:inline-block bg-gradient-to-r from-plantDoc-primary to-plantDoc-secondary bg-clip-text text-transparent">PlantDoc</span>
+          <Link to="/" className="mr-6 flex items-center space-x-2 group">
+            <span className="relative flex h-8 w-8 items-center justify-center">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-plantDoc-primary/20 animate-ping opacity-75 group-hover:opacity-100"></span>
+              <Leaf className="h-6 w-6 text-plantDoc-primary relative transform transition-transform duration-300 group-hover:rotate-12" />
+            </span>
+            <span className="hidden font-bold text-xl sm:inline-block text-gradient group-hover:opacity-80 transition-opacity">
+              PlantDoc
+            </span>
           </Link>
           <nav className="flex items-center space-x-8 text-sm font-medium">
             <Link
               to="/diagnose"
-              className="transition-colors hover:text-plantDoc-primary text-foreground relative group"
+              className={`transition-all hover:text-plantDoc-primary text-foreground relative group ${
+                isActive('/diagnose') ? 'text-plantDoc-primary' : ''
+              }`}
             >
-              <span>Diagnose</span>
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-plantDoc-primary transition-all duration-300 group-hover:w-full"></span>
+              <span className="py-1">Diagnose</span>
+              <span className={`absolute -bottom-1 left-0 h-0.5 bg-plantDoc-primary transition-all duration-300 ${
+                isActive('/diagnose') ? 'w-full' : 'w-0 group-hover:w-full'
+              }`}></span>
             </Link>
             <Link
               to="/recommend"
-              className="transition-colors hover:text-plantDoc-primary text-foreground relative group"
+              className={`transition-all hover:text-plantDoc-primary text-foreground relative group ${
+                isActive('/recommend') ? 'text-plantDoc-primary' : ''
+              }`}
             >
-              <span>Plant Recommendations</span>
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-plantDoc-primary transition-all duration-300 group-hover:w-full"></span>
+              <span className="py-1">Plant Recommendations</span>
+              <span className={`absolute -bottom-1 left-0 h-0.5 bg-plantDoc-primary transition-all duration-300 ${
+                isActive('/recommend') ? 'w-full' : 'w-0 group-hover:w-full'
+              }`}></span>
             </Link>
           </nav>
         </div>
@@ -38,32 +74,39 @@ const Header = () => {
         <div className="md:hidden flex items-center">
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-              <Button variant="outline" size="icon" className="mr-2">
+              <Button variant="outline" size="icon" className="mr-2 backdrop-blur-lg bg-black/20 border-white/10 hover:bg-black/40">
                 <Menu className="h-5 w-5" />
                 <span className="sr-only">Toggle menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-[240px] sm:w-[300px]">
+            <SheetContent side="left" className="glass-card border-r border-white/10 w-[240px] sm:w-[300px]">
               <div className="flex flex-col gap-6 mt-6">
                 <Link 
                   to="/" 
-                  className="text-lg font-bold flex items-center"
+                  className="text-lg font-bold flex items-center hover-scale"
                   onClick={() => setOpen(false)}
                 >
-                  <Leaf className="h-5 w-5 text-plantDoc-primary mr-2" />
-                  <span className="bg-gradient-to-r from-plantDoc-primary to-plantDoc-secondary bg-clip-text text-transparent">PlantDoc</span>
+                  <span className="relative flex h-8 w-8 items-center justify-center mr-2">
+                    <span className="absolute inline-flex h-full w-full rounded-full bg-plantDoc-primary/20 animate-ping opacity-75"></span>
+                    <Leaf className="h-5 w-5 text-plantDoc-primary relative" />
+                  </span>
+                  <span className="text-gradient">PlantDoc</span>
                 </Link>
                 <nav className="flex flex-col gap-4">
                   <Link
                     to="/diagnose"
-                    className="text-foreground hover:text-plantDoc-primary transition-colors flex items-center p-2 hover:bg-black/10 rounded-md"
+                    className={`text-foreground hover:text-plantDoc-primary transition-all flex items-center p-3 hover:bg-black/40 rounded-md ${
+                      isActive('/diagnose') ? 'bg-black/30 text-plantDoc-primary' : ''
+                    }`}
                     onClick={() => setOpen(false)}
                   >
                     <span>Diagnose</span>
                   </Link>
                   <Link
                     to="/recommend"
-                    className="text-foreground hover:text-plantDoc-primary transition-colors flex items-center p-2 hover:bg-black/10 rounded-md"
+                    className={`text-foreground hover:text-plantDoc-primary transition-all flex items-center p-3 hover:bg-black/40 rounded-md ${
+                      isActive('/recommend') ? 'bg-black/30 text-plantDoc-primary' : ''
+                    }`}
                     onClick={() => setOpen(false)}
                   >
                     <span>Plant Recommendations</span>
@@ -73,9 +116,12 @@ const Header = () => {
             </SheetContent>
           </Sheet>
           
-          <Link to="/" className="flex items-center space-x-2">
-            <Leaf className="h-5 w-5 text-plantDoc-primary" />
-            <span className="font-bold bg-gradient-to-r from-plantDoc-primary to-plantDoc-secondary bg-clip-text text-transparent">PlantDoc</span>
+          <Link to="/" className="flex items-center space-x-2 group">
+            <span className="relative flex h-7 w-7 items-center justify-center">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-plantDoc-primary/20 animate-ping opacity-75 group-hover:opacity-100"></span>
+              <Leaf className="h-5 w-5 text-plantDoc-primary relative" />
+            </span>
+            <span className="font-bold text-gradient">PlantDoc</span>
           </Link>
         </div>
         
@@ -87,10 +133,11 @@ const Header = () => {
             href="https://github.com/AadishY/plantdoc" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="text-foreground hover:text-plantDoc-primary transition-colors duration-200 flex items-center"
+            className="group text-foreground hover:text-plantDoc-primary transition-all duration-200 flex items-center glass-card p-2 rounded-full hover:scale-105"
           >
-            <Github className="h-5 w-5" />
-            <span className="ml-2 hidden md:inline">GitHub</span>
+            <Github className="h-5 w-5 group-hover:rotate-12 transition-transform duration-300" />
+            <span className="ml-2 hidden md:inline group-hover:underline">GitHub</span>
+            <ExternalLink className="ml-1 h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
           </a>
         </div>
       </div>
