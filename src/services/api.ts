@@ -1,4 +1,3 @@
-
 import { DiagnosisResult } from '@/types/diagnosis';
 import { PlantRecommendation, GrowingConditions } from '@/types/recommendation';
 import { toast } from "sonner";
@@ -90,12 +89,12 @@ Return only the JSON output with no additional text or commentary.
         temperature: 1,
         max_output_tokens: 65536
       },
-      model: API_CONFIG.GEMINI_MODEL
+      model: API_CONFIG.DIAGNOSIS_MODEL
     };
 
     // Direct request to Gemini API
     const response = await fetch(
-      `${API_CONFIG.BASE_URL}/models/${API_CONFIG.GEMINI_MODEL}:generateContent?key=${API_CONFIG.GEMINI_API_KEY}`,
+      `${API_CONFIG.BASE_URL}/models/${API_CONFIG.DIAGNOSIS_MODEL}:generateContent?key=${API_CONFIG.GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: {
@@ -224,12 +223,12 @@ export const getClimateDatabByLocation = async (country: string, state: string, 
         temperature: 0.2,
         max_output_tokens: 1024
       },
-      model: API_CONFIG.GEMINI_MODEL
+      model: API_CONFIG.CLIMATE_MODEL
     };
 
     // Direct request to Gemini API
     const response = await fetch(
-      `${API_CONFIG.BASE_URL}/models/${API_CONFIG.GEMINI_MODEL}:generateContent?key=${API_CONFIG.GEMINI_API_KEY}`,
+      `${API_CONFIG.BASE_URL}/models/${API_CONFIG.CLIMATE_MODEL}:generateContent?key=${API_CONFIG.GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: {
@@ -328,12 +327,12 @@ export const getPlantRecommendations = async (conditions: GrowingConditions): Pr
         temperature: 1,
         max_output_tokens: 8000
       },
-      model: API_CONFIG.GEMINI_MODEL
+      model: API_CONFIG.RECOMMENDATION_MODEL
     };
 
     // Direct request to Gemini API
     const response = await fetch(
-      `${API_CONFIG.BASE_URL}/models/${API_CONFIG.GEMINI_MODEL}:generateContent?key=${API_CONFIG.GEMINI_API_KEY}`,
+      `${API_CONFIG.BASE_URL}/models/${API_CONFIG.RECOMMENDATION_MODEL}:generateContent?key=${API_CONFIG.GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: {
