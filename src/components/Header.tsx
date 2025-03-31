@@ -1,113 +1,85 @@
 
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Leaf, Github, Sprout, Menu, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { ModeToggle } from "@/components/ui/mode-toggle";
+import { Button } from "@/components/ui/button";
+import { Menu, X } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
-const Header: React.FC = () => {
-  const location = useLocation();
-  const isMobile = useIsMobile();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  
+const Header = () => {
+  const [open, setOpen] = useState(false);
+
   return (
-    <header className="glass-nav sticky top-0 z-10">
-      <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-        <Link to="/" className="flex items-center gap-2 group">
-          <Leaf className="h-6 w-6 text-plantDoc-primary group-hover:rotate-12 transition-transform duration-300" />
-          <span className="font-bold text-xl">Plant Doc</span>
-        </Link>
-        
-        {!isMobile ? (
-          <nav className="flex items-center gap-6">
-            <Link 
-              to="/" 
-              className={`relative text-foreground/80 hover:text-plantDoc-primary transition-colors duration-300 
-                ${location.pathname === '/' ? 'text-plantDoc-primary' : ''}
-                after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 
-                after:bg-plantDoc-primary after:origin-bottom-right after:transition-transform after:duration-300 
-                hover:after:scale-x-100 hover:after:origin-bottom-left
-                ${location.pathname === '/' ? 'after:scale-x-100' : ''}`}
-            >
-              Home
-            </Link>
-            <Link 
-              to="/diagnose" 
-              className={`relative text-foreground/80 hover:text-plantDoc-primary transition-colors duration-300 
-                ${location.pathname === '/diagnose' ? 'text-plantDoc-primary' : ''}
-                after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 
-                after:bg-plantDoc-primary after:origin-bottom-right after:transition-transform after:duration-300 
-                hover:after:scale-x-100 hover:after:origin-bottom-left
-                ${location.pathname === '/diagnose' ? 'after:scale-x-100' : ''}`}
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-14 items-center">
+        <div className="mr-4 hidden md:flex">
+          <Link to="/" className="mr-6 flex items-center space-x-2">
+            <span className="hidden font-bold sm:inline-block">PlantDoc</span>
+          </Link>
+          <nav className="flex items-center space-x-6 text-sm font-medium">
+            <Link
+              to="/diagnose"
+              className="transition-colors hover:text-foreground/80 text-foreground"
             >
               Diagnose
             </Link>
-            <Link 
-              to="/recommend" 
-              className={`relative text-foreground/80 hover:text-plantDoc-primary transition-colors duration-300 
-                ${location.pathname === '/recommend' ? 'text-plantDoc-primary' : ''}
-                after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 
-                after:bg-plantDoc-primary after:origin-bottom-right after:transition-transform after:duration-300 
-                hover:after:scale-x-100 hover:after:origin-bottom-left
-                ${location.pathname === '/recommend' ? 'after:scale-x-100' : ''}`}
+            <Link
+              to="/recommend"
+              className="transition-colors hover:text-foreground/80 text-foreground"
             >
-              <div className="flex items-center gap-1">
-                <Sprout className="h-4 w-4" />
-                Recommendations
-              </div>
+              Plant Recommendations
             </Link>
           </nav>
-        ) : (
-          <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+        </div>
+        
+        {/* Mobile menu */}
+        <div className="md:hidden flex items-center">
+          <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden">
+              <Button variant="outline" size="icon" className="mr-2">
                 <Menu className="h-5 w-5" />
                 <span className="sr-only">Toggle menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="bg-background/95 backdrop-blur-sm border-plantDoc-primary/20">
-              <div className="flex flex-col gap-6 pt-10">
+            <SheetContent side="left" className="w-[240px] sm:w-[300px]">
+              <div className="flex flex-col gap-6 mt-6">
                 <Link 
                   to="/" 
-                  onClick={() => setIsMenuOpen(false)}
-                  className={`text-lg px-2 py-3 rounded-md flex items-center gap-2 ${location.pathname === '/' ? 'bg-plantDoc-primary/10 text-plantDoc-primary' : 'hover:bg-plantDoc-primary/5'}`}
+                  className="text-lg font-bold"
+                  onClick={() => setOpen(false)}
                 >
-                  <Leaf className="h-5 w-5" />
-                  Home
+                  PlantDoc
                 </Link>
-                <Link 
-                  to="/diagnose" 
-                  onClick={() => setIsMenuOpen(false)}
-                  className={`text-lg px-2 py-3 rounded-md flex items-center gap-2 ${location.pathname === '/diagnose' ? 'bg-plantDoc-primary/10 text-plantDoc-primary' : 'hover:bg-plantDoc-primary/5'}`}
-                >
-                  <Leaf className="h-5 w-5" />
-                  Diagnose Plant
-                </Link>
-                <Link 
-                  to="/recommend" 
-                  onClick={() => setIsMenuOpen(false)}
-                  className={`text-lg px-2 py-3 rounded-md flex items-center gap-2 ${location.pathname === '/recommend' ? 'bg-plantDoc-primary/10 text-plantDoc-primary' : 'hover:bg-plantDoc-primary/5'}`}
-                >
-                  <Sprout className="h-5 w-5" />
-                  Plant Recommendations
-                </Link>
+                <nav className="flex flex-col gap-4">
+                  <Link
+                    to="/diagnose"
+                    className="text-foreground hover:text-foreground/80 transition-colors"
+                    onClick={() => setOpen(false)}
+                  >
+                    Diagnose
+                  </Link>
+                  <Link
+                    to="/recommend"
+                    className="text-foreground hover:text-foreground/80 transition-colors"
+                    onClick={() => setOpen(false)}
+                  >
+                    Plant Recommendations
+                  </Link>
+                </nav>
               </div>
             </SheetContent>
           </Sheet>
-        )}
-
-        <div className="flex items-center gap-2">
-          <a href="https://github.com/AadishY/PlantDoc" target="_blank" rel="noopener noreferrer">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              aria-label="GitHub repository"
-              className="hover:bg-black/30 transition-colors duration-300"
-            >
-              <Github className="h-5 w-5" />
-            </Button>
-          </a>
+          
+          <Link to="/" className="flex items-center space-x-2">
+            <span className="font-bold">PlantDoc</span>
+          </Link>
+        </div>
+        
+        <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
+          <div className="w-full flex-1 md:w-auto md:flex-none">
+            {/* Any additional controls can go here */}
+          </div>
+          <ModeToggle />
         </div>
       </div>
     </header>
