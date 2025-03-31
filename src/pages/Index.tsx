@@ -1,18 +1,43 @@
-import React from 'react';
+
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Leaf, ArrowUp, Droplet, Thermometer, Github, User, Instagram } from 'lucide-react';
+import { Leaf, ArrowUp, Droplet, Thermometer, Github, User, Instagram, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Card, CardContent } from '@/components/ui/card';
+import { 
+  Accordion, 
+  AccordionContent, 
+  AccordionItem, 
+  AccordionTrigger 
+} from '@/components/ui/accordion';
 import { HoverCard, HoverCardTrigger, HoverCardContent } from '@/components/ui/hover-card';
 
 const Index = () => {
+  const [scrollY, setScrollY] = useState(0);
+  
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+  
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-muted/50">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-muted/50 relative overflow-hidden">
+      {/* Dynamic background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute -top-[300px] -right-[300px] w-[600px] h-[600px] bg-plantDoc-primary/5 rounded-full blur-3xl opacity-70 animate-pulse"></div>
+        <div className="absolute top-[30%] -left-[200px] w-[400px] h-[400px] bg-plantDoc-secondary/5 rounded-full blur-3xl opacity-70" style={{ transform: `translateY(${scrollY * 0.1}px)` }}></div>
+        <div className="absolute bottom-[10%] right-[5%] w-[300px] h-[300px] bg-accent/5 rounded-full blur-3xl opacity-70" style={{ transform: `translateY(${-scrollY * 0.05}px)` }}></div>
+      </div>
+      
       <Header />
       
-      <main className="flex-1">
+      <main className="flex-1 relative z-10">
         {/* Hero Section */}
         <section className="py-16 md:py-24">
           <div className="container mx-auto px-4">
@@ -93,6 +118,76 @@ const Index = () => {
             </div>
           </div>
         </section>
+        
+        {/* FAQ Section */}
+        <section className="py-16 relative">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-12 animate-enter">
+              <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">Frequently Asked Questions</h2>
+              <p className="text-foreground/70 max-w-2xl mx-auto">
+                Common questions about Plant Doc and how it can help your plants thrive.
+              </p>
+            </div>
+            
+            <div className="max-w-3xl mx-auto glass-card rounded-xl p-6 md:p-8">
+              <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="item-1" className="border-b border-border/50">
+                  <AccordionTrigger className="text-lg font-medium py-4 hover:text-plantDoc-primary transition-colors">
+                    How accurate is the plant disease diagnosis?
+                  </AccordionTrigger>
+                  <AccordionContent className="text-foreground/80 pb-4">
+                    Plant Doc uses advanced AI technology powered by Google's Gemini model to analyze plant images. While accuracy is high, it depends on image quality and clear visibility of symptoms. For best results, take well-lit photos that clearly show the affected parts of your plant.
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="item-2" className="border-b border-border/50">
+                  <AccordionTrigger className="text-lg font-medium py-4 hover:text-plantDoc-primary transition-colors">
+                    Do I need to create an account to use Plant Doc?
+                  </AccordionTrigger>
+                  <AccordionContent className="text-foreground/80 pb-4">
+                    No, Plant Doc is completely free to use and doesn't require account creation. Simply upload your plant photo and get instant results without signing up or providing personal information.
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="item-3" className="border-b border-border/50">
+                  <AccordionTrigger className="text-lg font-medium py-4 hover:text-plantDoc-primary transition-colors">
+                    What information does Plant Doc provide in its diagnosis?
+                  </AccordionTrigger>
+                  <AccordionContent className="text-foreground/80 pb-4">
+                    Plant Doc provides comprehensive information including plant identification, disease detection, cause analysis, treatment recommendations, prevention tips, fertilizer advice, and general care instructions to help your plants recover and thrive.
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="item-4" className="border-b border-border/50">
+                  <AccordionTrigger className="text-lg font-medium py-4 hover:text-plantDoc-primary transition-colors">
+                    How does the plant recommendation feature work?
+                  </AccordionTrigger>
+                  <AccordionContent className="text-foreground/80 pb-4">
+                    The plant recommendation feature analyzes your local climate conditions, soil characteristics, and growing environment to suggest plants that would thrive in your specific location. It provides detailed information about each recommended plant including care instructions and growing tips.
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="item-5" className="border-b border-border/50">
+                  <AccordionTrigger className="text-lg font-medium py-4 hover:text-plantDoc-primary transition-colors">
+                    Can Plant Doc identify all types of plants?
+                  </AccordionTrigger>
+                  <AccordionContent className="text-foreground/80 pb-4">
+                    Plant Doc can identify a wide variety of common houseplants, garden plants, and agricultural crops. However, very rare species or newly discovered varieties might be more challenging to identify with complete accuracy. The system is continuously improving its plant recognition capabilities.
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="item-6">
+                  <AccordionTrigger className="text-lg font-medium py-4 hover:text-plantDoc-primary transition-colors">
+                    Is my data private when I use Plant Doc?
+                  </AccordionTrigger>
+                  <AccordionContent className="text-foreground/80 pb-4">
+                    Yes, your privacy is important to us. Plant Doc processes your plant images temporarily for analysis purposes only. We don't store your images permanently or use them for purposes other than providing you with diagnosis results. Your data remains private and secure.
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </div>
+          </div>
+        </section>
 
         {/* About Me Section */}
         <section className="py-16 bg-black/30 backdrop-blur-lg">
@@ -143,7 +238,7 @@ const Index = () => {
                   </p>
                   <p className="text-foreground/80">
                     At its core, Plant Doc harnesses the power of Google Gemini AI for all aspects of its analysis, ensuring reliable
-                    diagnoses and tailored treatment plans that address your plant’s specific needs.
+                    diagnoses and tailored treatment plans that address your plant's specific needs.
                   </p>
                 </div>
               </div>
@@ -168,4 +263,3 @@ const Index = () => {
 };
 
 export default Index;
-
