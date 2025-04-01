@@ -1,34 +1,50 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const DynamicBackground = () => {
+  const isMobile = useIsMobile();
+  
+  // Adjust sizes for mobile devices
+  const getSize = (desktopSize: number) => {
+    return isMobile ? desktopSize * 0.7 : desktopSize;
+  };
+  
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+    <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
       {/* Large animated gradient blobs */}
       <motion.div 
-        className="absolute -top-[300px] -right-[300px] w-[600px] h-[600px] rounded-full bg-gradient-to-r from-plantDoc-primary/30 to-plantDoc-secondary/20 blur-3xl"
+        className="absolute -top-[300px] -right-[300px] rounded-full bg-gradient-to-r from-plantDoc-primary/30 to-plantDoc-secondary/20 blur-3xl"
+        style={{ 
+          width: getSize(600), 
+          height: getSize(600) 
+        }}
         animate={{
-          x: [0, 30, 0],
-          y: [0, -20, 0],
-          scale: [1, 1.05, 1],
+          x: [0, 50, 0, -30, 0],
+          y: [0, -40, 20, 40, 0],
+          scale: [1, 1.05, 0.98, 1.02, 1],
         }}
         transition={{
-          duration: 15,
+          duration: 25,
           repeat: Infinity,
           repeatType: "reverse",
         }}
       />
       
       <motion.div 
-        className="absolute top-[30%] -left-[200px] w-[400px] h-[400px] rounded-full bg-gradient-to-r from-plantDoc-secondary/20 to-plantDoc-primary/10 blur-3xl"
+        className="absolute top-[30%] -left-[200px] rounded-full bg-gradient-to-r from-plantDoc-secondary/20 to-plantDoc-primary/10 blur-3xl"
+        style={{ 
+          width: getSize(400), 
+          height: getSize(400) 
+        }}
         animate={{
-          x: [0, -20, 0],
-          y: [0, 30, 0],
-          scale: [1, 1.1, 1],
+          x: [0, -40, 30, -20, 0],
+          y: [0, 60, -30, 15, 0],
+          scale: [1, 1.1, 0.95, 1.05, 1],
         }}
         transition={{
-          duration: 18,
+          duration: 20,
           repeat: Infinity,
           repeatType: "reverse",
           delay: 2,
@@ -36,45 +52,38 @@ const DynamicBackground = () => {
       />
       
       <motion.div 
-        className="absolute bottom-[10%] right-[5%] w-[300px] h-[300px] rounded-full bg-gradient-to-r from-accent/20 to-plantDoc-primary/10 blur-3xl"
+        className="absolute bottom-[10%] right-[5%] rounded-full bg-gradient-to-r from-accent/20 to-plantDoc-primary/10 blur-3xl"
+        style={{ 
+          width: getSize(300), 
+          height: getSize(300) 
+        }}
         animate={{
-          x: [0, 30, 0],
-          y: [0, 20, 0],
-          scale: [1, 1.08, 1],
+          x: [0, 50, -30, 20, 0],
+          y: [0, 40, 20, -30, 0],
+          scale: [1, 1.08, 0.97, 1.03, 1],
         }}
         transition={{
-          duration: 20,
+          duration: 22,
           repeat: Infinity,
           repeatType: "reverse",
           delay: 5,
         }}
       />
       
-      {/* Smaller floating elements */}
+      {/* New floating elements for more dynamic movement */}
       <motion.div 
-        className="absolute top-[15%] left-[10%] w-[150px] h-[150px] rounded-full bg-plantDoc-primary/20 blur-2xl"
+        className="absolute top-[50%] left-[50%] rounded-full bg-plantDoc-primary/15 blur-3xl"
+        style={{ 
+          width: getSize(250), 
+          height: getSize(250) 
+        }}
         animate={{
-          x: [0, 20, 0],
-          y: [0, -15, 0],
-          opacity: [0.7, 0.9, 0.7],
+          x: [0, 100, -100, 50, 0],
+          y: [0, -50, 50, -25, 0],
+          opacity: [0.3, 0.6, 0.4, 0.7, 0.3],
         }}
         transition={{
-          duration: 8,
-          repeat: Infinity,
-          repeatType: "reverse",
-          delay: 1,
-        }}
-      />
-      
-      <motion.div 
-        className="absolute top-[45%] right-[15%] w-[100px] h-[100px] rounded-full bg-accent/20 blur-2xl"
-        animate={{
-          x: [0, -15, 0],
-          y: [0, 15, 0],
-          opacity: [0.5, 0.8, 0.5],
-        }}
-        transition={{
-          duration: 10,
+          duration: 30,
           repeat: Infinity,
           repeatType: "reverse",
           delay: 3,
@@ -82,14 +91,76 @@ const DynamicBackground = () => {
       />
       
       <motion.div 
-        className="absolute bottom-[25%] left-[20%] w-[120px] h-[120px] rounded-full bg-plantDoc-secondary/20 blur-2xl"
+        className="absolute top-[20%] right-[25%] rounded-full bg-accent/15 blur-3xl"
+        style={{ 
+          width: getSize(150), 
+          height: getSize(150) 
+        }}
         animate={{
-          x: [0, 25, 0],
-          y: [0, 10, 0],
-          opacity: [0.6, 0.9, 0.6],
+          x: [0, -70, 70, -35, 0],
+          y: [0, 30, -30, 15, 0],
+          opacity: [0.2, 0.5, 0.3, 0.6, 0.2],
+        }}
+        transition={{
+          duration: 18,
+          repeat: Infinity,
+          repeatType: "reverse",
+          delay: 7,
+        }}
+      />
+      
+      {/* Smaller floating elements */}
+      <motion.div 
+        className="absolute top-[15%] left-[10%] rounded-full bg-plantDoc-primary/20 blur-2xl"
+        style={{ 
+          width: getSize(150), 
+          height: getSize(150) 
+        }}
+        animate={{
+          x: [0, 40, -30, 15, 0],
+          y: [0, -30, 20, -10, 0],
+          opacity: [0.5, 0.9, 0.6, 0.8, 0.5],
+        }}
+        transition={{
+          duration: 15,
+          repeat: Infinity,
+          repeatType: "reverse",
+          delay: 1,
+        }}
+      />
+      
+      <motion.div 
+        className="absolute top-[45%] right-[15%] rounded-full bg-accent/20 blur-2xl"
+        style={{ 
+          width: getSize(100), 
+          height: getSize(100) 
+        }}
+        animate={{
+          x: [0, -30, 20, -10, 0],
+          y: [0, 30, -20, 10, 0],
+          opacity: [0.4, 0.8, 0.5, 0.7, 0.4],
         }}
         transition={{
           duration: 12,
+          repeat: Infinity,
+          repeatType: "reverse",
+          delay: 3,
+        }}
+      />
+      
+      <motion.div 
+        className="absolute bottom-[25%] left-[20%] rounded-full bg-plantDoc-secondary/20 blur-2xl"
+        style={{ 
+          width: getSize(120), 
+          height: getSize(120) 
+        }}
+        animate={{
+          x: [0, 50, -30, 25, 0],
+          y: [0, 20, -15, 10, 0],
+          opacity: [0.4, 0.9, 0.5, 0.7, 0.4],
+        }}
+        transition={{
+          duration: 17,
           repeat: Infinity,
           repeatType: "reverse",
           delay: 6,

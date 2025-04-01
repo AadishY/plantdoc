@@ -78,14 +78,28 @@
 }
 
 @layer utilities {
+  /* Glass effect variants */
   .glass-card {
     @apply bg-black/30 backdrop-blur-xl border border-white/10 shadow-lg transition-all duration-300 hover:bg-black/40 hover:shadow-xl hover:border-white/20;
+  }
+  
+  .glass-card-intense {
+    @apply bg-black/50 backdrop-blur-2xl border border-white/20 shadow-xl transition-all duration-300 hover:bg-black/60 hover:shadow-2xl hover:border-white/30;
   }
   
   .glass-nav {
     @apply bg-black/50 backdrop-blur-lg border-b border-white/10 transition-all duration-300;
   }
   
+  .glass-button {
+    @apply bg-white/10 backdrop-blur-md border border-white/30 hover:bg-white/20 transition-all duration-300 shadow-md hover:shadow-lg;
+  }
+  
+  .glass-input {
+    @apply bg-black/20 border-white/10 focus:border-plantDoc-primary/50 focus:ring-plantDoc-primary/20 transition-all duration-300;
+  }
+
+  /* Interactive effects */
   .hover-scale {
     @apply transition-transform duration-300 hover:scale-105;
   }
@@ -94,24 +108,50 @@
     @apply transition-all duration-300 hover:shadow-[0_0_15px_rgba(76,175,80,0.5)];
   }
   
-  .glass-input {
-    @apply bg-black/20 border-white/10 focus:border-plantDoc-primary/50 focus:ring-plantDoc-primary/20 transition-all duration-300;
+  .hover-bounce {
+    @apply transition-transform duration-300 hover:-translate-y-1;
   }
-  
+
+  /* Animation utilities */
   .animate-float {
     animation: float 6s ease-in-out infinite;
+  }
+  
+  .animate-float-slow {
+    animation: float 10s ease-in-out infinite;
   }
   
   .animate-pulse-glow {
     animation: pulse-glow 3s infinite;
   }
   
+  .animate-pulse-glow-slow {
+    animation: pulse-glow 5s infinite;
+  }
+  
   .text-gradient {
     @apply bg-gradient-to-r from-plantDoc-primary to-plantDoc-secondary bg-clip-text text-transparent;
   }
   
+  .text-gradient-gold {
+    @apply bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 bg-clip-text text-transparent;
+  }
+  
   .glass-blob {
     @apply absolute rounded-full bg-gradient-to-r filter blur-3xl opacity-70 animate-float;
+  }
+  
+  /* Mobile optimized containers and spacing */
+  .responsive-container {
+    @apply w-full px-4 md:px-6 lg:px-8 max-w-7xl mx-auto;
+  }
+  
+  .mobile-padding {
+    @apply px-4 py-3 md:px-6 md:py-4 lg:px-8 lg:py-5;
+  }
+  
+  .mobile-spacing {
+    @apply gap-4 md:gap-6 lg:gap-8;
   }
   
   @keyframes float {
@@ -150,6 +190,19 @@
       transform: rotate(360deg);
     }
   }
+  
+  /* Responsive typography */
+  .text-responsive {
+    @apply text-base md:text-lg lg:text-xl;
+  }
+  
+  .heading-responsive {
+    @apply text-2xl md:text-3xl lg:text-4xl font-bold;
+  }
+  
+  .subheading-responsive {
+    @apply text-xl md:text-2xl lg:text-3xl font-semibold;
+  }
 }
 
 html {
@@ -177,4 +230,28 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(76, 175, 80, 0.8);
+}
+
+/* Mobile-specific styles */
+@media (max-width: 768px) {
+  .glass-card {
+    @apply bg-black/40; /* Slightly darker on mobile for better contrast */
+  }
+  
+  .animate-float {
+    animation-duration: 8s; /* Slower animations on mobile */
+  }
+  
+  /* Adjust font sizes for better mobile readability */
+  h1 {
+    @apply text-3xl;
+  }
+  
+  h2 {
+    @apply text-2xl;
+  }
+  
+  h3 {
+    @apply text-xl;
+  }
 }
