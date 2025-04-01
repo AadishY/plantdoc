@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -73,6 +74,11 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* Better tap target size on mobile */
+  button, a, [role="button"] {
+    @apply touch-manipulation;
   }
 }
 
@@ -168,53 +174,108 @@
   .mobile-spacing {
     @apply gap-4 md:gap-6 lg:gap-8;
   }
-  
-  @keyframes float {
-    0% {
-      transform: translateY(0px) translateX(0px);
-    }
-    50% {
-      transform: translateY(-20px) translateX(10px);
-    }
-    100% {
-      transform: translateY(0px) translateX(0px);
-    }
+
+  /* Touch optimized interactive elements */
+  .touch-target {
+    @apply min-w-[44px] min-h-[44px] flex items-center justify-center;
+  }
+
+  /* Prevent text overflow issues on mobile */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .text-pretty {
+    text-wrap: pretty;
   }
   
-  @keyframes pulse-glow {
-    0% {
-      box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4);
-    }
-    70% {
-      box-shadow: 0 0 0 15px rgba(76, 175, 80, 0);
-    }
-    100% {
-      box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
-    }
+  /* Mobile safe area utilities */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
   
-  .animate-spin-slow {
-    animation: spin 20s linear infinite;
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
   }
   
-  @keyframes spin {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
+  .pl-safe {
+    padding-left: env(safe-area-inset-left, 0px);
+  }
+  
+  .pr-safe {
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+  
+  /* Dynamic sizing for different screens */
+  .text-dynamic-sm {
+    @apply text-xs sm:text-sm md:text-base;
+  }
+  
+  .text-dynamic-base {
+    @apply text-sm sm:text-base md:text-lg;
+  }
+  
+  .text-dynamic-lg {
+    @apply text-base sm:text-lg md:text-xl;
+  }
+  
+  .text-dynamic-xl {
+    @apply text-lg sm:text-xl md:text-2xl;
+  }
+  
+  /* Modern loading effects */
+  .shimmer {
+    @apply relative overflow-hidden;
+  }
+  
+  .shimmer::before {
+    @apply absolute inset-0 -translate-x-full bg-shimmer animate-shimmer;
+    content: '';
+  }
+  
+  /* Micro-interactions */
+  .btn-press {
+    @apply active:scale-95 transition-transform;
+  }
+  
+  .btn-subtle-hover {
+    @apply transition-colors duration-200 hover:bg-black/10;
+  }
+  
+  /* Card interactions */
+  .card-hover {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg;
+  }
+  
+  .card-active {
+    @apply active:scale-[0.98] transition-transform;
+  }
+  
+  /* Ripple effect */
+  .ripple {
+    @apply relative overflow-hidden;
+  }
+  
+  .ripple::after {
+    @apply absolute inset-0 scale-0 rounded-full bg-white/20 opacity-0;
+    content: '';
+    transform-origin: center;
+  }
+  
+  .ripple:active::after {
+    @apply animate-ripple;
   }
   
   /* Enhanced glassmorphism effects */
   .frost-panel {
-    @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-lg;
+    @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-lg shadow-xl;
   }
   
   .frost-panel-dark {
-    @apply bg-black/40 backdrop-blur-xl border border-white/5 rounded-lg;
+    @apply bg-black/40 backdrop-blur-xl border border-white/5 rounded-lg shadow-2xl;
   }
-  
+
+  /* Modern gradient borders */
   .gradient-border {
     position: relative;
     border-radius: 0.5rem;
@@ -245,16 +306,35 @@
   .subheading-responsive {
     @apply text-xl md:text-2xl lg:text-3xl font-semibold;
   }
+  
+  /* Modern card layouts */
+  .card-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6;
+  }
+  
+  .card-flex {
+    @apply flex flex-col sm:flex-row flex-wrap gap-4 md:gap-6;
+  }
 }
 
 html {
   scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
   min-height: 100vh;
   position: relative;
   overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  /* Mobile viewport height fix */
+  min-height: -webkit-fill-available;
+}
+
+/* iOS viewport height fix */
+html {
+  height: -webkit-fill-available;
 }
 
 ::-webkit-scrollbar {
@@ -296,6 +376,21 @@ body {
   h3 {
     @apply text-xl;
   }
+  
+  /* Better button sizing for touch targets */
+  button, a[role="button"] {
+    @apply min-h-[44px];
+  }
+  
+  /* Prevent text overflow issues on mobile */
+  p, h1, h2, h3, h4, h5, h6 {
+    @apply text-balance;
+  }
+  
+  /* Improve form element spacing on mobile */
+  input, select, textarea {
+    @apply mb-4;
+  }
 }
 
 /* Enhanced background patterns */
@@ -322,4 +417,53 @@ body {
 /* Optimize images with object-fit */
 .optimized-image {
   @apply w-full h-full object-cover object-center;
+}
+
+/* Enhanced mobile menu styles */
+.mobile-menu-item {
+  @apply py-3 px-4 flex items-center gap-2 hover:bg-black/20 active:bg-black/30 rounded-md transition-all duration-200;
+}
+
+/* Bottom navigation for mobile */
+.bottom-nav {
+  @apply fixed bottom-0 left-0 right-0 bg-black/60 backdrop-blur-xl border-t border-white/10 py-2 px-4 flex justify-around items-center z-50 pb-safe;
+}
+
+.bottom-nav-item {
+  @apply flex flex-col items-center justify-center gap-1 p-2 rounded-md hover:bg-black/30 transition-colors;
+}
+
+/* Improvements for mobile media handling */
+img, video {
+  @apply max-w-full h-auto;
+}
+
+/* For mobile-first modals */
+@media (max-width: 640px) {
+  .mobile-modal-full {
+    @apply fixed inset-0 rounded-none !important;
+  }
+
+  .mobile-modal-bottom {
+    @apply fixed inset-x-0 bottom-0 top-auto rounded-b-none rounded-t-2xl !important;
+  }
+}
+
+/* Better focus styles for accessibility */
+:focus-visible {
+  @apply outline-none ring-2 ring-plantDoc-primary ring-offset-2 ring-offset-background;
+}
+
+/* Input autofill styling */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px rgba(0, 0, 0, 0.1) inset;
+  -webkit-text-fill-color: inherit;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Prevent text selection in UI elements */
+.no-select {
+  @apply select-none;
 }
