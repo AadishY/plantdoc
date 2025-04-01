@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Translate } from 'lucide-react';
+import { Globe } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,7 +26,7 @@ const TranslateButton = () => {
             whileHover={{ rotate: 20 }}
             transition={{ duration: 0.2 }}
           >
-            <Translate className="h-4 w-4" />
+            <Globe className="h-4 w-4" />
           </motion.div>
           <span className="sr-only">Toggle language</span>
         </Button>
