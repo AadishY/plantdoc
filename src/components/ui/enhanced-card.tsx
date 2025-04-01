@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { HTMLAttributes } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { motion } from 'framer-motion';
+import { motion, MotionProps } from 'framer-motion';
+import { useIsMobile } from '@/hooks/use-mobile';
 
-interface EnhancedCardProps extends React.HTMLAttributes<HTMLDivElement> {
+interface EnhancedCardProps extends HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   className?: string;
   hoverEffect?: 'lift' | 'glow' | 'both' | 'none';
@@ -18,22 +19,33 @@ export const EnhancedCard = ({
   glassEffect = true,
   ...props 
 }: EnhancedCardProps) => {
+  const isMobile = useIsMobile();
+  
   // Define the hover animations based on hoverEffect prop
   const getHoverAnimations = () => {
+    // Reduce animation intensity on mobile
+    const liftDistance = isMobile ? -5 : -10;
+    const glowIntensity = isMobile ? '0 0 15px rgba(76, 175, 80, 0.3)' : '0 0 20px rgba(76, 175, 80, 0.4)';
+    
     switch (hoverEffect) {
       case 'lift':
-        return { y: -10 };
+        return { y: liftDistance };
       case 'glow':
-        return { boxShadow: '0 0 20px rgba(76, 175, 80, 0.4)' };
+        return { boxShadow: glowIntensity };
       case 'both':
         return { 
-          y: -8,
-          boxShadow: '0 0 20px rgba(76, 175, 80, 0.4)' 
+          y: liftDistance,
+          boxShadow: glowIntensity
         };
       case 'none':
       default:
         return {};
     }
+  };
+
+  const motionProps: MotionProps = {
+    whileHover: getHoverAnimations(),
+    transition: { duration: 0.3 }
   };
 
   return (
@@ -42,8 +54,7 @@ export const EnhancedCard = ({
         glassEffect ? 'glass-card rounded-xl overflow-hidden border-none shadow-lg' : '',
         className
       )}
-      whileHover={getHoverAnimations()}
-      transition={{ duration: 0.3 }}
+      {...motionProps}
       {...props}
     >
       {children}
