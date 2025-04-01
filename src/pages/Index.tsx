@@ -15,11 +15,13 @@ import { HoverCard, HoverCardTrigger, HoverCardContent } from '@/components/ui/h
 import { EnhancedCard, EnhancedCardHeader, EnhancedCardTitle, EnhancedCardContent } from '@/components/ui/enhanced-card';
 import DynamicBackground from '@/components/DynamicBackground';
 import { motion } from 'framer-motion';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const Index = () => {
   const [scrollY, setScrollY] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const aboutRef = useRef<HTMLDivElement>(null);
+  const { translate } = useTranslation();
   
   useEffect(() => {
     const handleScroll = () => {
@@ -70,17 +72,16 @@ const Index = () => {
                   <Leaf className="h-6 w-6 text-plantDoc-primary" />
                 </motion.div>
                 <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gradient relative">
-                  AI-Powered Plant Disease Diagnosis
+                  {translate('heroTitle')}
                   <div className="absolute -bottom-2 left-0 md:w-1/3 h-0.5 bg-gradient-to-r from-plantDoc-primary to-transparent"></div>
                 </h1>
                 <p className="text-lg text-foreground/70 mb-8 md:max-w-xl">
-                  Upload a photo of your plant and get instant diagnosis, treatment recommendations, 
-                  and care tips to help your plants thrive.
+                  {translate('heroDescription')}
                 </p>
                 <Link to="/diagnose">
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
-                    <Button className="bg-gradient-to-r from-plantDoc-primary to-plantDoc-secondary text-white font-medium px-8 py-6 text-lg rounded-full hover:shadow-xl transition-all duration-300 hover:shadow-plantDoc-primary/30 group">
-                      <span className="mr-2">Diagnose Your Plant</span>
+                    <Button variant="gradient" size="pill" className="font-medium py-6 text-lg hover:shadow-xl group">
+                      <span className="mr-2">{translate('diagnoseButton')}</span>
                       <span className="relative">
                         <span className="absolute -right-6 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 group-hover:right-0 transition-all duration-300">
                           <ArrowUp className="h-4 w-4 rotate-45" />
@@ -140,11 +141,11 @@ const Index = () => {
               transition={{ duration: 0.6 }}
             >
               <h2 className="text-3xl font-bold mb-4 text-gradient relative inline-block">
-                How Plant Doc Works
+                {translate('howItWorks')}
                 <div className="absolute -bottom-2 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-transparent via-plantDoc-primary to-transparent"></div>
               </h2>
               <p className="text-foreground/70 max-w-2xl mx-auto">
-                Our advanced AI technology helps you identify and treat plant diseases with just a photo.
+                {translate('howItWorksDescription')}
               </p>
             </motion.div>
             
@@ -163,9 +164,9 @@ const Index = () => {
                 >
                   <ArrowUp className="text-plantDoc-primary h-8 w-8 group-hover:animate-bounce" />
                 </motion.div>
-                <h3 className="text-xl font-semibold mb-2 text-gradient">Upload a Photo</h3>
+                <h3 className="text-xl font-semibold mb-2 text-gradient">{translate('uploadPhotoTitle')}</h3>
                 <p className="text-foreground/70">
-                  Take a clear picture of your plant showing the affected areas and upload it.
+                  {translate('uploadPhotoDescription')}
                 </p>
               </motion.div>
               
@@ -183,9 +184,9 @@ const Index = () => {
                 >
                   <Leaf className="text-plantDoc-primary h-8 w-8 group-hover:rotate-12 transition-transform duration-300" />
                 </motion.div>
-                <h3 className="text-xl font-semibold mb-2 text-gradient">Get Diagnosis</h3>
+                <h3 className="text-xl font-semibold mb-2 text-gradient">{translate('getDiagnosisTitle')}</h3>
                 <p className="text-foreground/70">
-                  Our AI analyzes your plant's condition and identifies any diseases or issues.
+                  {translate('getDiagnosisDescription')}
                 </p>
               </motion.div>
               
@@ -203,9 +204,9 @@ const Index = () => {
                 >
                   <Thermometer className="text-plantDoc-primary h-8 w-8 group-hover:animate-pulse" />
                 </motion.div>
-                <h3 className="text-xl font-semibold mb-2 text-gradient">Receive Treatment Plan</h3>
+                <h3 className="text-xl font-semibold mb-2 text-gradient">{translate('treatmentPlanTitle')}</h3>
                 <p className="text-foreground/70">
-                  Get personalized recommendations for treatment, prevention, and care.
+                  {translate('treatmentPlanDescription')}
                 </p>
               </motion.div>
             </div>
@@ -223,11 +224,11 @@ const Index = () => {
               transition={{ duration: 0.6 }}
             >
               <h2 className="text-3xl font-bold mb-4 text-gradient relative inline-block">
-                Frequently Asked Questions
+                {translate('faqTitle')}
                 <div className="absolute -bottom-2 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-transparent via-plantDoc-primary to-transparent"></div>
               </h2>
               <p className="text-foreground/70 max-w-2xl mx-auto">
-                Common questions about Plant Doc and how it can help your plants thrive.
+                {translate('faqDescription')}
               </p>
             </motion.div>
             
@@ -249,7 +250,7 @@ const Index = () => {
                       className="group-hover:translate-x-1 transition-transform duration-300"
                       whileHover={{ x: 5 }}
                     >
-                      How accurate is the plant disease diagnosis?
+                      {translate('faqQuestion1')}
                     </motion.span>
                   </AccordionTrigger>
                   <AccordionContent className="text-foreground/80 pb-4">
@@ -259,7 +260,7 @@ const Index = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3 }}
                     >
-                      Plant Doc uses advanced AI technology powered by Google's Gemini model to analyze plant images. While accuracy is high, it depends on image quality and clear visibility of symptoms. For best results, take well-lit photos that clearly show the affected parts of your plant.
+                      {translate('faqAnswer1')}
                     </motion.div>
                   </AccordionContent>
                 </AccordionItem>
@@ -270,7 +271,7 @@ const Index = () => {
                       className="group-hover:translate-x-1 transition-transform duration-300"
                       whileHover={{ x: 5 }}
                     >
-                      Do I need to create an account to use Plant Doc?
+                      {translate('faqQuestion2')}
                     </motion.span>
                   </AccordionTrigger>
                   <AccordionContent className="text-foreground/80 pb-4">
@@ -280,7 +281,7 @@ const Index = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3 }}
                     >
-                      No, Plant Doc is completely free to use and doesn't require account creation. Simply upload your plant photo and get instant results without signing up or providing personal information.
+                      {translate('faqAnswer2')}
                     </motion.div>
                   </AccordionContent>
                 </AccordionItem>
@@ -291,7 +292,7 @@ const Index = () => {
                       className="group-hover:translate-x-1 transition-transform duration-300"
                       whileHover={{ x: 5 }}
                     >
-                      What information does Plant Doc provide in its diagnosis?
+                      {translate('faqQuestion3')}
                     </motion.span>
                   </AccordionTrigger>
                   <AccordionContent className="text-foreground/80 pb-4">
@@ -301,7 +302,7 @@ const Index = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3 }}
                     >
-                      Plant Doc provides comprehensive information including plant identification, disease detection, cause analysis, treatment recommendations, prevention tips, fertilizer advice, and general care instructions to help your plants recover and thrive.
+                      {translate('faqAnswer3')}
                     </motion.div>
                   </AccordionContent>
                 </AccordionItem>
@@ -312,7 +313,7 @@ const Index = () => {
                       className="group-hover:translate-x-1 transition-transform duration-300"
                       whileHover={{ x: 5 }}
                     >
-                      How does the plant recommendation feature work?
+                      {translate('faqQuestion4')}
                     </motion.span>
                   </AccordionTrigger>
                   <AccordionContent className="text-foreground/80 pb-4">
@@ -322,7 +323,7 @@ const Index = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3 }}
                     >
-                      The plant recommendation feature analyzes your local climate conditions, soil characteristics, and growing environment to suggest plants that would thrive in your specific location. It provides detailed information about each recommended plant including care instructions and growing tips.
+                      {translate('faqAnswer4')}
                     </motion.div>
                   </AccordionContent>
                 </AccordionItem>
@@ -333,7 +334,7 @@ const Index = () => {
                       className="group-hover:translate-x-1 transition-transform duration-300"
                       whileHover={{ x: 5 }}
                     >
-                      Can Plant Doc identify all types of plants?
+                      {translate('faqQuestion5')}
                     </motion.span>
                   </AccordionTrigger>
                   <AccordionContent className="text-foreground/80 pb-4">
@@ -343,7 +344,7 @@ const Index = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3 }}
                     >
-                      Plant Doc can identify a wide variety of common houseplants, garden plants, and agricultural crops. However, very rare species or newly discovered varieties might be more challenging to identify with complete accuracy. The system is continuously improving its plant recognition capabilities.
+                      {translate('faqAnswer5')}
                     </motion.div>
                   </AccordionContent>
                 </AccordionItem>
@@ -354,7 +355,7 @@ const Index = () => {
                       className="group-hover:translate-x-1 transition-transform duration-300"
                       whileHover={{ x: 5 }}
                     >
-                      Is my data private when I use Plant Doc?
+                      {translate('faqQuestion6')}
                     </motion.span>
                   </AccordionTrigger>
                   <AccordionContent className="text-foreground/80 pb-4">
@@ -364,7 +365,7 @@ const Index = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3 }}
                     >
-                      Yes, your privacy is important to us. Plant Doc processes your plant images temporarily for analysis purposes only. We don't store your images permanently or use them for purposes other than providing you with diagnosis results. Your data remains private and secure.
+                      {translate('faqAnswer6')}
                     </motion.div>
                   </AccordionContent>
                 </AccordionItem>
@@ -440,7 +441,7 @@ const Index = () => {
                 </div>
                 <div className="md:w-2/3 p-8 bg-black/40 backdrop-blur-xl">
                   <h2 className="text-3xl font-bold mb-6 text-gradient relative inline-block">
-                    About Plant Doc
+                    {translate('aboutTitle')}
                     <div className="absolute -bottom-2 left-0 w-1/3 h-0.5 bg-gradient-to-r from-plantDoc-primary to-transparent"></div>
                   </h2>
                   
@@ -449,8 +450,7 @@ const Index = () => {
                     whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.3)' }}
                     transition={{ duration: 0.3 }}
                   >
-                    Plant Doc is an AI-powered application designed to help plant enthusiasts diagnose and treat plant diseases efficiently. 
-                    Using advanced machine learning algorithms, it can identify various plant diseases from photos and provide accurate treatment recommendations.
+                    {translate('aboutDescription1')}
                   </motion.p>
                   
                   <motion.p 
@@ -458,9 +458,7 @@ const Index = () => {
                     whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.3)' }}
                     transition={{ duration: 0.3 }}
                   >
-                    This project was developed as a way to combine my passion for technology and nature. As a student interested in 
-                    artificial intelligence and environmental science, I wanted to create a tool that can make plant care more accessible 
-                    to everyone and help people maintain healthier plants.
+                    {translate('aboutDescription2')}
                   </motion.p>
                   
                   <motion.p 
@@ -468,8 +466,7 @@ const Index = () => {
                     whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.3)' }}
                     transition={{ duration: 0.3 }}
                   >
-                    At its core, Plant Doc harnesses the power of Google Gemini AI for all aspects of its analysis, ensuring reliable
-                    diagnoses and tailored treatment plans that address your plant's specific needs.
+                    {translate('aboutDescription3')}
                   </motion.p>
                 </div>
               </div>
@@ -485,9 +482,9 @@ const Index = () => {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
           >
-            <Button className="bg-gradient-to-r from-plantDoc-primary to-plantDoc-secondary text-white font-bold px-6 py-6 rounded-full shadow-xl hover:shadow-2xl hover:shadow-plantDoc-primary/30 group animate-pulse-glow">
+            <Button variant="gradient" size="pill" className="font-bold px-6 py-6 shadow-xl hover:shadow-2xl hover:shadow-plantDoc-primary/30 group animate-pulse-glow">
               <Leaf className="h-6 w-6 mr-2 group-hover:rotate-12 transition-transform" />
-              <span className="text-lg">Diagnose Your Plant</span>
+              <span className="text-lg">{translate('diagnoseButton')}</span>
             </Button>
           </motion.div>
         </Link>

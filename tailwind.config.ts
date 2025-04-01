@@ -135,6 +135,14 @@ export default {
 					"100%": {
 						transform: "rotate(360deg)"
 					}
+				},
+				'shimmer': {
+					"0%": {
+						backgroundPosition: "-500px 0"
+					},
+					"100%": {
+						backgroundPosition: "500px 0"
+					}
 				}
 			},
 			animation: {
@@ -145,11 +153,14 @@ export default {
 				'enter': 'fade-in 0.3s ease-out, scale-in 0.2s ease-out',
 				'float': 'float 6s ease-in-out infinite',
 				'pulse-glow': 'pulse-glow 3s infinite',
-				'rotate-slow': 'rotate-slow 20s linear infinite'
+				'rotate-slow': 'rotate-slow 20s linear infinite',
+				'shimmer': 'shimmer 2s infinite linear'
 			},
 			backgroundImage: {
 				'radial-gradient': 'radial-gradient(circle, var(--tw-gradient-stops))',
 				'conic-gradient': 'conic-gradient(var(--tw-gradient-stops))',
+				'glass-gradient': 'linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))',
+				'shimmer': 'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%)',
 			}
 		}
 	},

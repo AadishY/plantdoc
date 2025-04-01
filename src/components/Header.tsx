@@ -5,11 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Menu, X, Github, Leaf, ExternalLink } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { motion } from "framer-motion";
+import TranslateButton from "./TranslateButton";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const Header = () => {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const { translate } = useTranslation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -51,7 +54,7 @@ const Header = () => {
                 isActive('/diagnose') ? 'text-plantDoc-primary' : ''
               }`}
             >
-              <span className="py-1">Diagnose</span>
+              <span className="py-1">{translate('diagnose')}</span>
               <span className={`absolute -bottom-1 left-0 h-0.5 bg-plantDoc-primary transition-all duration-300 ${
                 isActive('/diagnose') ? 'w-full' : 'w-0 group-hover:w-full'
               }`}></span>
@@ -62,7 +65,7 @@ const Header = () => {
                 isActive('/recommend') ? 'text-plantDoc-primary' : ''
               }`}
             >
-              <span className="py-1">Plant Recommendations</span>
+              <span className="py-1">{translate('recommend')}</span>
               <span className={`absolute -bottom-1 left-0 h-0.5 bg-plantDoc-primary transition-all duration-300 ${
                 isActive('/recommend') ? 'w-full' : 'w-0 group-hover:w-full'
               }`}></span>
@@ -100,7 +103,7 @@ const Header = () => {
                     }`}
                     onClick={() => setOpen(false)}
                   >
-                    <span>Diagnose</span>
+                    <span>{translate('diagnose')}</span>
                   </Link>
                   <Link
                     to="/recommend"
@@ -109,7 +112,7 @@ const Header = () => {
                     }`}
                     onClick={() => setOpen(false)}
                   >
-                    <span>Plant Recommendations</span>
+                    <span>{translate('recommend')}</span>
                   </Link>
                 </nav>
               </div>
@@ -129,6 +132,12 @@ const Header = () => {
           <div className="w-full flex-1 md:w-auto md:flex-none">
             {/* Any additional controls can go here */}
           </div>
+          
+          {/* Translate button */}
+          <div className="mr-2">
+            <TranslateButton />
+          </div>
+          
           <a 
             href="https://github.com/AadishY/plantdoc" 
             target="_blank" 
