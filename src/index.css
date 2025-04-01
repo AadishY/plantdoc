@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -98,6 +97,22 @@
   .glass-input {
     @apply bg-black/20 border-white/10 focus:border-plantDoc-primary/50 focus:ring-plantDoc-primary/20 transition-all duration-300;
   }
+  
+  .glass-modal {
+    @apply bg-black/60 backdrop-blur-xl border border-white/20 shadow-2xl;
+  }
+  
+  .glass-tooltip {
+    @apply bg-black/70 backdrop-blur-md border border-white/10;
+  }
+  
+  .glass-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-white/20 hover:bg-white/30;
+  }
+  
+  .glass-scrollbar::-webkit-scrollbar-track {
+    @apply bg-black/10;
+  }
 
   /* Interactive effects */
   .hover-scale {
@@ -191,6 +206,33 @@
     }
   }
   
+  /* Enhanced glassmorphism effects */
+  .frost-panel {
+    @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-lg;
+  }
+  
+  .frost-panel-dark {
+    @apply bg-black/40 backdrop-blur-xl border border-white/5 rounded-lg;
+  }
+  
+  .gradient-border {
+    position: relative;
+    border-radius: 0.5rem;
+    background-clip: padding-box;
+  }
+  
+  .gradient-border::after {
+    content: '';
+    position: absolute;
+    top: -1px;
+    right: -1px;
+    bottom: -1px;
+    left: -1px;
+    z-index: -1;
+    border-radius: inherit;
+    background: linear-gradient(45deg, #4CAF50, transparent, #388E3C);
+  }
+  
   /* Responsive typography */
   .text-responsive {
     @apply text-base md:text-lg lg:text-xl;
@@ -254,4 +296,30 @@ body {
   h3 {
     @apply text-xl;
   }
+}
+
+/* Enhanced background patterns */
+.dot-pattern {
+  background-image: radial-gradient(rgba(76, 175, 80, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.diagonal-pattern {
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(76, 175, 80, 0.05),
+    rgba(76, 175, 80, 0.05) 10px,
+    transparent 10px,
+    transparent 20px
+  );
+}
+
+/* Optimized loading animations */
+.skeleton-loading {
+  @apply animate-pulse bg-white/10 rounded;
+}
+
+/* Optimize images with object-fit */
+.optimized-image {
+  @apply w-full h-full object-cover object-center;
 }
