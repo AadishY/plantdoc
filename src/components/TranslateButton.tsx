@@ -74,8 +74,10 @@ const TranslateButton = () => {
               const iframe = document.querySelector('.goog-te-menu-frame') as HTMLIFrameElement;
               if (iframe) {
                 const innerDoc = iframe.contentDocument || iframe.contentWindow?.document;
-                const englishLink = innerDoc?.querySelector('a[href*="en"]');
-                englishLink?.click();
+                const englishLink = innerDoc?.querySelector('a[href*="en"]') as HTMLElement | null;
+                if (englishLink) {
+                  englishLink.click();
+                }
               }
             }}
             className="transition-colors duration-300"
@@ -87,8 +89,10 @@ const TranslateButton = () => {
               const iframe = document.querySelector('.goog-te-menu-frame') as HTMLIFrameElement;
               if (iframe) {
                 const innerDoc = iframe.contentDocument || iframe.contentWindow?.document;
-                const hindiLink = innerDoc?.querySelector('a[href*="hi"]');
-                hindiLink?.click();
+                const hindiLink = innerDoc?.querySelector('a[href*="hi"]') as HTMLElement | null;
+                if (hindiLink) {
+                  hindiLink.click();
+                }
               }
             }}
             className="transition-colors duration-300"
