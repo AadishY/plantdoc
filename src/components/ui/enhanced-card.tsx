@@ -5,7 +5,10 @@ import { cn } from '@/lib/utils';
 import { motion, MotionProps } from 'framer-motion';
 import { useIsMobile } from '@/hooks/use-mobile';
 
-interface EnhancedCardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onDrag'> {
+// Create a type that includes all drag-related event handlers to exclude them
+type DragEvents = 'onDrag' | 'onDragEnd' | 'onDragEnter' | 'onDragExit' | 'onDragLeave' | 'onDragOver' | 'onDragStart';
+
+interface EnhancedCardProps extends Omit<HTMLAttributes<HTMLDivElement>, DragEvents> {
   children: React.ReactNode;
   className?: string;
   hoverEffect?: 'lift' | 'glow' | 'both' | 'none';
