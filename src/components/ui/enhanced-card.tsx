@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { motion, MotionProps } from 'framer-motion';
 import { useIsMobile } from '@/hooks/use-mobile';
 
-interface EnhancedCardProps extends HTMLAttributes<HTMLDivElement> {
+interface EnhancedCardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onDrag'> {
   children: React.ReactNode;
   className?: string;
   hoverEffect?: 'lift' | 'glow' | 'both' | 'none';
