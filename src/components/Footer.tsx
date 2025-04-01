@@ -1,83 +1,68 @@
 
 import React from "react";
 import { Link } from "react-router-dom";
-import { Leaf, Heart, Github, Instagram } from "lucide-react";
+import { Leaf, Heart, Github, Instagram, ExternalLink, Send } from "lucide-react";
 import { motion } from "framer-motion";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Button } from "@/components/ui/button";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const isMobile = useIsMobile();
+
+  const staggerChildren = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const item = {
+    hidden: { y: 20, opacity: 0 },
+    show: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 300, damping: 24 } }
+  };
 
   return (
-    <footer className="relative z-10 border-t border-white/10 backdrop-blur-xl bg-black/40">
+    <footer className="relative z-10 border-t border-white/10 backdrop-blur-xl bg-black/40 pb-safe">
       <div className="container mx-auto py-8 px-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="space-y-4">
-            <Link to="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity group w-fit">
-              <div className="relative">
-                <motion.div 
-                  className="absolute inset-0 bg-plantDoc-primary/20 rounded-full blur-md"
-                  animate={{ 
-                    opacity: [0.7, 1, 0.7],
-                    scale: [1, 1.1, 1]
-                  }}
-                  transition={{ 
-                    duration: 3,
-                    repeat: Infinity,
-                    repeatType: "reverse"
-                  }}
-                />
-                <Leaf className="h-5 w-5 text-plantDoc-primary relative group-hover:rotate-12 transition-transform duration-300" />
-              </div>
-              <span className="font-bold text-xl bg-gradient-to-r from-plantDoc-primary to-plantDoc-secondary bg-clip-text text-transparent">PlantDoc</span>
-            </Link>
-            <motion.p 
-              className="text-foreground/70 text-sm max-w-xs"
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-            >
+        {/* Main footer content */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+          <motion.div 
+            className="space-y-4"
+            initial="hidden"
+            whileInView="show"
+            variants={staggerChildren}
+            viewport={{ once: true, margin: "-100px" }}
+          >
+            <motion.div variants={item}>
+              <Link to="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity group w-fit">
+                <div className="relative">
+                  <motion.div 
+                    className="absolute inset-0 bg-plantDoc-primary/20 rounded-full blur-md"
+                    animate={{ 
+                      opacity: [0.7, 1, 0.7],
+                      scale: [1, 1.1, 1]
+                    }}
+                    transition={{ 
+                      duration: 3,
+                      repeat: Infinity,
+                      repeatType: "reverse"
+                    }}
+                  />
+                  <Leaf className="h-6 w-6 text-plantDoc-primary relative group-hover:rotate-12 transition-transform duration-300" />
+                </div>
+                <span className="font-bold text-xl bg-gradient-to-r from-plantDoc-primary to-plantDoc-secondary bg-clip-text text-transparent">PlantDoc</span>
+              </Link>
+            </motion.div>
+            
+            <motion.p variants={item} className="text-foreground/70 text-sm max-w-xs">
               AI-powered plant disease diagnosis and treatment recommendations to help your plants thrive.
             </motion.p>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="text-sm font-medium uppercase tracking-wider text-foreground/80">Quick Links</h3>
-            <ul className="space-y-2">
-              <motion.li
-                initial={{ opacity: 0, x: -10 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.3, delay: 0.1 }}
-              >
-                <Link to="/" className="text-foreground/70 hover:text-plantDoc-primary transition-colors duration-200 flex items-center gap-1 group">
-                  <motion.span 
-                    className="h-0.5 w-0 bg-plantDoc-primary group-hover:w-2 transition-all duration-300"
-                    whileHover={{ width: 8 }}
-                  />
-                  <span>Home</span>
-                </Link>
-              </motion.li>
-              <motion.li
-                initial={{ opacity: 0, x: -10 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.3, delay: 0.2 }}
-              >
-                <Link to="/diagnose" className="text-foreground/70 hover:text-plantDoc-primary transition-colors duration-200 flex items-center gap-1 group">
-                  <motion.span 
-                    className="h-0.5 w-0 bg-plantDoc-primary group-hover:w-2 transition-all duration-300"
-                    whileHover={{ width: 8 }}
-                  />
-                  <span>Diagnose</span>
-                </Link>
-              </motion.li>
-            </ul>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="text-sm font-medium uppercase tracking-wider text-foreground/80">Connect</h3>
-            <div className="flex space-x-4">
+            
+            <motion.div variants={item} className="flex space-x-4">
               <motion.a
                 whileHover={{ y: -3 }}
                 href="https://github.com/AadishY/plantdoc"
@@ -112,16 +97,122 @@ const Footer = () => {
                   <Instagram className="h-5 w-5 group-hover:rotate-12 transition-transform duration-300" />
                 </motion.span>
               </motion.a>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
+
+          <motion.div 
+            className="space-y-4"
+            initial="hidden"
+            whileInView="show"
+            variants={staggerChildren}
+            viewport={{ once: true, margin: "-100px" }}
+          >
+            <motion.h3 variants={item} className="text-sm font-medium uppercase tracking-wider text-foreground/80">Quick Links</motion.h3>
+            <motion.ul variants={staggerChildren} className="space-y-3">
+              <motion.li variants={item}>
+                <Link to="/" className="text-foreground/70 hover:text-plantDoc-primary transition-colors duration-200 flex items-center gap-1 group">
+                  <motion.span 
+                    className="h-0.5 w-0 bg-plantDoc-primary group-hover:w-2 transition-all duration-300"
+                    whileHover={{ width: 8 }}
+                  />
+                  <span>Home</span>
+                </Link>
+              </motion.li>
+              <motion.li variants={item}>
+                <Link to="/diagnose" className="text-foreground/70 hover:text-plantDoc-primary transition-colors duration-200 flex items-center gap-1 group">
+                  <motion.span 
+                    className="h-0.5 w-0 bg-plantDoc-primary group-hover:w-2 transition-all duration-300"
+                    whileHover={{ width: 8 }}
+                  />
+                  <span>Diagnose</span>
+                </Link>
+              </motion.li>
+              <motion.li variants={item}>
+                <Link to="/recommend" className="text-foreground/70 hover:text-plantDoc-primary transition-colors duration-200 flex items-center gap-1 group">
+                  <motion.span 
+                    className="h-0.5 w-0 bg-plantDoc-primary group-hover:w-2 transition-all duration-300"
+                    whileHover={{ width: 8 }}
+                  />
+                  <span>Plant Recommendations</span>
+                </Link>
+              </motion.li>
+            </motion.ul>
+          </motion.div>
+
+          <motion.div 
+            className="space-y-4"
+            initial="hidden"
+            whileInView="show"
+            variants={staggerChildren}
+            viewport={{ once: true, margin: "-100px" }}
+          >
+            <motion.h3 variants={item} className="text-sm font-medium uppercase tracking-wider text-foreground/80">Support</motion.h3>
+            <motion.ul variants={staggerChildren} className="space-y-3">
+              <motion.li variants={item}>
+                <a href="#" className="text-foreground/70 hover:text-plantDoc-primary transition-colors duration-200 flex items-center gap-1 group">
+                  <motion.span 
+                    className="h-0.5 w-0 bg-plantDoc-primary group-hover:w-2 transition-all duration-300"
+                    whileHover={{ width: 8 }}
+                  />
+                  <span>Help Center</span>
+                </a>
+              </motion.li>
+              <motion.li variants={item}>
+                <a href="#" className="text-foreground/70 hover:text-plantDoc-primary transition-colors duration-200 flex items-center gap-1 group">
+                  <motion.span 
+                    className="h-0.5 w-0 bg-plantDoc-primary group-hover:w-2 transition-all duration-300"
+                    whileHover={{ width: 8 }}
+                  />
+                  <span>Privacy Policy</span>
+                </a>
+              </motion.li>
+              <motion.li variants={item}>
+                <a href="#" className="text-foreground/70 hover:text-plantDoc-primary transition-colors duration-200 flex items-center gap-1 group">
+                  <motion.span 
+                    className="h-0.5 w-0 bg-plantDoc-primary group-hover:w-2 transition-all duration-300"
+                    whileHover={{ width: 8 }}
+                  />
+                  <span>Terms of Service</span>
+                </a>
+              </motion.li>
+            </motion.ul>
+          </motion.div>
+          
+          <motion.div 
+            className="space-y-4"
+            initial="hidden"
+            whileInView="show"
+            variants={staggerChildren}
+            viewport={{ once: true, margin: "-100px" }}
+          >
+            <motion.h3 variants={item} className="text-sm font-medium uppercase tracking-wider text-foreground/80">Subscribe</motion.h3>
+            <motion.p variants={item} className="text-foreground/70 text-sm">
+              Get the latest updates and news
+            </motion.p>
+            <motion.div variants={item} className="flex">
+              <input 
+                type="email" 
+                placeholder="Enter your email" 
+                className="glass-input bg-black/20 text-sm border border-white/10 focus:border-plantDoc-primary/50 outline-none py-2 px-3 rounded-l-md w-full"
+              />
+              <Button 
+                size={isMobile ? "icon-sm" : "icon"}
+                variant="gradient" 
+                className="rounded-r-md rounded-l-none"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </motion.div>
+          </motion.div>
         </div>
 
-        <div className="mt-8 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between">
+        {/* Copyright and signature */}
+        <div className="mt-8 pt-6 border-t border-white/10 flex flex-col md:flex-row items-center justify-between">
           <p className="text-foreground/60 text-sm">
             &copy; {currentYear} Plant Doc. All rights reserved.
           </p>
           <motion.p 
-            className="text-foreground/60 text-sm mt-2 md:mt-0 flex items-center"
+            className="text-foreground/60 text-sm mt-4 md:mt-0 flex items-center"
             whileHover={{ color: 'rgba(255, 255, 255, 0.8)' }}
           >
             Made with <Heart className="h-3 w-3 text-plantDoc-danger mx-1 animate-pulse" /> by Aadish Kumar Yadav
@@ -135,7 +226,7 @@ const Footer = () => {
         className="absolute -bottom-10 -left-10 w-40 h-40 bg-plantDoc-primary/10 rounded-full blur-3xl"
         animate={{ 
           scale: [1, 1.2, 1],
-          opacity: [0.7, 0.9, 0.7],
+          opacity: [0.5, 0.7, 0.5],
         }}
         transition={{ 
           duration: 8,
@@ -144,10 +235,10 @@ const Footer = () => {
         }}
       />
       <motion.div 
-        className="absolute -bottom-10 -right-10 w-40 h-40 bg-accent/10 rounded-full blur-3xl"
+        className="absolute -bottom-20 -right-10 w-60 h-60 bg-accent/10 rounded-full blur-3xl"
         animate={{ 
-          scale: [1, 1.2, 1],
-          opacity: [0.6, 0.8, 0.6],
+          scale: [1, 1.1, 1],
+          opacity: [0.4, 0.6, 0.4],
         }}
         transition={{ 
           duration: 10,

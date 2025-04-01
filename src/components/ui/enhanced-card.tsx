@@ -13,10 +13,12 @@ type ConflictingEventHandlers =
 interface EnhancedCardProps extends Omit<HTMLAttributes<HTMLDivElement>, ConflictingEventHandlers> {
   children: React.ReactNode;
   className?: string;
-  hoverEffect?: 'lift' | 'glow' | 'both' | 'none';
+  hoverEffect?: 'lift' | 'glow' | 'both' | 'scale' | 'none';
   glassEffect?: boolean;
   glassIntensity?: 'light' | 'medium' | 'heavy';
   borderGlow?: boolean;
+  animate?: boolean;
+  animateOnScroll?: boolean;
 }
 
 export const EnhancedCard = ({ 
@@ -26,6 +28,8 @@ export const EnhancedCard = ({
   glassEffect = true,
   glassIntensity = 'medium',
   borderGlow = false,
+  animate = false,
+  animateOnScroll = false,
   ...props 
 }: EnhancedCardProps) => {
   const isMobile = useIsMobile();
@@ -33,7 +37,8 @@ export const EnhancedCard = ({
   // Define the hover animations based on hoverEffect prop
   const getHoverAnimations = () => {
     // Reduce animation intensity on mobile
-    const liftDistance = isMobile ? -5 : -10;
+    const liftDistance = isMobile ? -3 : -8;
+    const scaleAmount = isMobile ? 1.03 : 1.05;
     const glowIntensity = isMobile ? '0 0 15px rgba(76, 175, 80, 0.3)' : '0 0 20px rgba(76, 175, 80, 0.4)';
     
     switch (hoverEffect) {
@@ -41,6 +46,8 @@ export const EnhancedCard = ({
         return { y: liftDistance };
       case 'glow':
         return { boxShadow: glowIntensity };
+      case 'scale':
+        return { scale: scaleAmount };
       case 'both':
         return { 
           y: liftDistance,
@@ -64,16 +71,32 @@ export const EnhancedCard = ({
     }
   };
 
+  const initialAnimation = animate ? {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.5 }
+  } : {};
+
+  const scrollAnimation = animateOnScroll ? {
+    initial: { opacity: 0, y: 20 },
+    whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true, margin: "-100px" },
+    transition: { duration: 0.5 }
+  } : {};
+
   const motionProps: MotionProps = {
     whileHover: getHoverAnimations(),
-    transition: { duration: 0.3 }
+    transition: { duration: 0.3 },
+    ...initialAnimation,
+    ...scrollAnimation
   };
 
   return (
     <motion.div
       className={cn(
-        glassEffect ? `${getGlassStyles()} rounded-xl overflow-hidden border-white/10 shadow-lg` : '',
+        glassEffect ? `${getGlassStyles()} rounded-xl overflow-hidden border border-white/10 shadow-lg` : '',
         borderGlow ? 'border border-plantDoc-primary/30' : 'border-none',
+        'transition-all duration-300',
         className
       )}
       {...motionProps}
