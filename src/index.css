@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -79,6 +78,24 @@
   /* Better tap target size on mobile */
   button, a, [role="button"] {
     @apply touch-manipulation;
+  }
+  
+  /* Enhanced text selection style */
+  ::selection {
+    @apply bg-plantDoc-primary/30 text-foreground;
+  }
+  
+  /* Customize scrollbar for better visibility */
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-black/20;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-plantDoc-primary/50 hover:bg-plantDoc-primary/70 rounded-full;
   }
 }
 
@@ -391,79 +408,133 @@ html {
   input, select, textarea {
     @apply mb-4;
   }
+  
+  /* Haptic feedback for touch interactions */
+  .haptic-feedback {
+    transition: transform 0.1s;
+  }
+  
+  .haptic-feedback:active {
+    transform: scale(0.95);
+  }
+  
+  /* Mobile swipe area for interactive elements */
+  .swipe-area {
+    @apply overflow-x-auto scrollbar-none -mx-4 px-4 py-2;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .swipe-item {
+    @apply min-w-[80vw] scroll-snap-align-start mr-4 last:mr-0;
+  }
 }
 
-/* Enhanced background patterns */
-.dot-pattern {
-  background-image: radial-gradient(rgba(76, 175, 80, 0.1) 1px, transparent 1px);
-  background-size: 20px 20px;
+/* Add more interactive components styles */
+/* Interactive card hover effects */
+.hover-card-3d {
+  transform-style: preserve-3d;
+  perspective: 1000px;
+  transition: transform 0.5s;
 }
 
-.diagonal-pattern {
-  background-image: repeating-linear-gradient(
-    45deg,
-    rgba(76, 175, 80, 0.05),
-    rgba(76, 175, 80, 0.05) 10px,
-    transparent 10px,
-    transparent 20px
-  );
+.hover-card-3d:hover {
+  transform: rotateY(5deg) rotateX(5deg);
 }
 
-/* Optimized loading animations */
-.skeleton-loading {
-  @apply animate-pulse bg-white/10 rounded;
+/* Animated borders */
+.animated-border {
+  position: relative;
+  overflow: hidden;
 }
 
-/* Optimize images with object-fit */
-.optimized-image {
-  @apply w-full h-full object-cover object-center;
+.animated-border::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(76, 175, 80, 0.8));
+  animation: borderSlide 2s linear infinite;
 }
 
-/* Enhanced mobile menu styles */
-.mobile-menu-item {
-  @apply py-3 px-4 flex items-center gap-2 hover:bg-black/20 active:bg-black/30 rounded-md transition-all duration-200;
+@keyframes borderSlide {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* Ripple effect for buttons */
+.ripple-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple-button span.ripple {
+  position: absolute;
+  border-radius: 50%;
+  transform: scale(0);
+  animation: ripple 0.6s linear;
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+@keyframes ripple {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* Text selection popover */
+.text-selection-popover {
+  transform: translateX(-50%) translateY(-10px);
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.text-selection-popover:hover {
+  transform: translateX(-50%) translateY(-12px);
 }
 
 /* Bottom navigation for mobile */
 .bottom-nav {
-  @apply fixed bottom-0 left-0 right-0 bg-black/60 backdrop-blur-xl border-t border-white/10 py-2 px-4 flex justify-around items-center z-50 pb-safe;
+  @apply fixed bottom-0 left-0 right-0 bg-black/70 backdrop-blur-xl border-t border-white/10 py-2 px-4 flex justify-around items-center z-50 pb-safe;
 }
 
 .bottom-nav-item {
   @apply flex flex-col items-center justify-center gap-1 p-2 rounded-md hover:bg-black/30 transition-colors;
 }
 
-/* Improvements for mobile media handling */
-img, video {
-  @apply max-w-full h-auto;
+/* Mobile menu enhancements */
+.mobile-menu-item {
+  @apply py-3 px-4 flex items-center gap-2 hover:bg-black/20 active:bg-black/30 rounded-md transition-all duration-200;
 }
 
-/* For mobile-first modals */
-@media (max-width: 640px) {
-  .mobile-modal-full {
-    @apply fixed inset-0 rounded-none !important;
-  }
-
-  .mobile-modal-bottom {
-    @apply fixed inset-x-0 bottom-0 top-auto rounded-b-none rounded-t-2xl !important;
-  }
+/* Glossy button effect for mobile */
+.glossy-button {
+  @apply relative overflow-hidden bg-gradient-to-br from-plantDoc-primary/90 to-plantDoc-secondary border border-white/20 shadow-lg;
 }
 
-/* Better focus styles for accessibility */
+.glossy-button::before {
+  content: '';
+  @apply absolute inset-0 bg-gradient-to-t from-transparent to-white/20 opacity-50;
+}
+
+.glossy-button:active {
+  @apply transform scale-95;
+}
+
+/* Improved focus styles for accessibility */
 :focus-visible {
   @apply outline-none ring-2 ring-plantDoc-primary ring-offset-2 ring-offset-background;
 }
 
-/* Input autofill styling */
+/* Fix for autofill text visibility on input fields */
 input:-webkit-autofill,
 input:-webkit-autofill:hover, 
 input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0px 1000px rgba(0, 0, 0, 0.1) inset;
-  -webkit-text-fill-color: inherit;
+  -webkit-text-fill-color: var(--foreground);
+  -webkit-box-shadow: 0 0 0px 1000px transparent inset;
   transition: background-color 5000s ease-in-out 0s;
-}
-
-/* Prevent text selection in UI elements */
-.no-select {
-  @apply select-none;
+  backdrop-filter: none !important;
+  background-color: transparent !important;
 }

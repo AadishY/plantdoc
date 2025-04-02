@@ -1,39 +1,45 @@
 
-import React from "react";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ThemeProvider } from "@/components/ThemeProvider";
-import Index from "./pages/Index";
-import DiagnosePage from "./pages/DiagnosePage";
-import RecommendPage from "./pages/RecommendPage";
-import NotFound from "./pages/NotFound";
+import { Suspense, lazy } from 'react';
+import { Routes, Route } from 'react-router-dom';
+import { ThemeProvider } from '@/components/ThemeProvider';
+import { Toaster } from '@/components/ui/toaster';
+import TextHighlighter from '@/components/TextHighlighter';
+import MobileNav from '@/components/MobileNav';
+import AnimatedLoader from '@/components/ui/animated-loader';
 
-// Create a client
-const queryClient = new QueryClient();
+// Lazily load pages for better performance
+const Index = lazy(() => import('@/pages/Index'));
+const DiagnosePage = lazy(() => import('@/pages/DiagnosePage'));
+const RecommendPage = lazy(() => import('@/pages/RecommendPage'));
+const AboutPage = lazy(() => import('@/pages/AboutPage'));
+const NotFound = lazy(() => import('@/pages/NotFound'));
 
-const App: React.FC = () => {
+// Fallback loading component for lazy-loaded routes
+const PageLoading = () => (
+  <div className="h-screen w-full flex flex-col items-center justify-center">
+    <AnimatedLoader size="lg" color="primary" text="Loading Plant Doc..." />
+  </div>
+);
+
+function App() {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="plantdoc-theme">
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/diagnose" element={<DiagnosePage />} />
-              <Route path="/recommend" element={<RecommendPage />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </QueryClientProvider>
+      <Suspense fallback={<PageLoading />}>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/diagnose" element={<DiagnosePage />} />
+          <Route path="/recommend" element={<RecommendPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
+      
+      {/* Global Components */}
+      <MobileNav />
+      <TextHighlighter />
+      <Toaster />
     </ThemeProvider>
   );
-};
+}
 
 export default App;
