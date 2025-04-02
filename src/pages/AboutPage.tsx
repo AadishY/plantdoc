@@ -1,10 +1,17 @@
 
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Github, Mail, Leaf, User, School, MapPin, Instagram } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import AnimatedLoader from '@/components/ui/animated-loader';
+
+const ComponentLoader = () => (
+  <div className="flex items-center justify-center h-32">
+    <AnimatedLoader size="md" color="primary" />
+  </div>
+);
 
 const AboutPage = () => {
   return (

@@ -1,10 +1,9 @@
 
 import React from "react";
 import { Link } from "react-router-dom";
-import { Leaf, Heart, Github, Instagram, ExternalLink, Send } from "lucide-react";
+import { Leaf, Heart, Github, Instagram, ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Button } from "@/components/ui/button";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -27,9 +26,9 @@ const Footer = () => {
 
   return (
     <footer className="relative z-10 border-t border-white/10 backdrop-blur-xl bg-black/40 pb-safe">
-      <div className="container mx-auto py-8 px-4">
+      <div className="container mx-auto py-6 px-4">
         {/* Main footer content */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
           <motion.div 
             className="space-y-4"
             initial="hidden"
@@ -136,78 +135,21 @@ const Footer = () => {
                   <span>Plant Recommendations</span>
                 </Link>
               </motion.li>
-            </motion.ul>
-          </motion.div>
-
-          <motion.div 
-            className="space-y-4"
-            initial="hidden"
-            whileInView="show"
-            variants={staggerChildren}
-            viewport={{ once: true, margin: "-100px" }}
-          >
-            <motion.h3 variants={item} className="text-sm font-medium uppercase tracking-wider text-foreground/80">Support</motion.h3>
-            <motion.ul variants={staggerChildren} className="space-y-3">
               <motion.li variants={item}>
-                <a href="#" className="text-foreground/70 hover:text-plantDoc-primary transition-colors duration-200 flex items-center gap-1 group">
+                <Link to="/about" className="text-foreground/70 hover:text-plantDoc-primary transition-colors duration-200 flex items-center gap-1 group">
                   <motion.span 
                     className="h-0.5 w-0 bg-plantDoc-primary group-hover:w-2 transition-all duration-300"
                     whileHover={{ width: 8 }}
                   />
-                  <span>Help Center</span>
-                </a>
-              </motion.li>
-              <motion.li variants={item}>
-                <a href="#" className="text-foreground/70 hover:text-plantDoc-primary transition-colors duration-200 flex items-center gap-1 group">
-                  <motion.span 
-                    className="h-0.5 w-0 bg-plantDoc-primary group-hover:w-2 transition-all duration-300"
-                    whileHover={{ width: 8 }}
-                  />
-                  <span>Privacy Policy</span>
-                </a>
-              </motion.li>
-              <motion.li variants={item}>
-                <a href="#" className="text-foreground/70 hover:text-plantDoc-primary transition-colors duration-200 flex items-center gap-1 group">
-                  <motion.span 
-                    className="h-0.5 w-0 bg-plantDoc-primary group-hover:w-2 transition-all duration-300"
-                    whileHover={{ width: 8 }}
-                  />
-                  <span>Terms of Service</span>
-                </a>
+                  <span>About</span>
+                </Link>
               </motion.li>
             </motion.ul>
-          </motion.div>
-          
-          <motion.div 
-            className="space-y-4"
-            initial="hidden"
-            whileInView="show"
-            variants={staggerChildren}
-            viewport={{ once: true, margin: "-100px" }}
-          >
-            <motion.h3 variants={item} className="text-sm font-medium uppercase tracking-wider text-foreground/80">Subscribe</motion.h3>
-            <motion.p variants={item} className="text-foreground/70 text-sm">
-              Get the latest updates and news
-            </motion.p>
-            <motion.div variants={item} className="flex">
-              <input 
-                type="email" 
-                placeholder="Enter your email" 
-                className="glass-input bg-black/20 text-sm border border-white/10 focus:border-plantDoc-primary/50 outline-none py-2 px-3 rounded-l-md w-full"
-              />
-              <Button 
-                size={isMobile ? "icon-sm" : "icon"}
-                variant="gradient" 
-                className="rounded-r-md rounded-l-none"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
-            </motion.div>
           </motion.div>
         </div>
 
         {/* Copyright and signature */}
-        <div className="mt-8 pt-6 border-t border-white/10 flex flex-col md:flex-row items-center justify-between">
+        <div className="mt-6 pt-4 border-t border-white/10 flex flex-col md:flex-row items-center justify-between">
           <p className="text-foreground/60 text-sm">
             &copy; {currentYear} Plant Doc. All rights reserved.
           </p>
