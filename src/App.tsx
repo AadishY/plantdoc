@@ -54,7 +54,7 @@ function App() {
 
   return (
     <ThemeProvider defaultTheme="dark" storageKey="plantdoc-theme">
-      <div className="min-h-screen w-full">
+      <div className="min-h-screen w-full bg-background">
         <Suspense fallback={<PageLoading />}>
           <Routes>
             <Route path="/" element={<Index />} />
@@ -63,10 +63,8 @@ function App() {
             <Route path="/about" element={<AboutPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </Suspense>
-        
-        {/* Global Components - lazy loaded for better initial page load */}
-        <Suspense fallback={null}>
+          
+          {/* Global Components - lazy loaded for better initial page load */}
           <FixedMobileNav />
           <TextHighlighter />
         </Suspense>
