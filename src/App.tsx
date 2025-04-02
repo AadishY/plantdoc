@@ -1,11 +1,13 @@
 
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { Toaster } from '@/components/ui/toaster';
-import TextHighlighter from '@/components/TextHighlighter';
-import FixedMobileNav from '@/components/FixedMobileNav';
 import AnimatedLoader from '@/components/ui/animated-loader';
+
+// Lazily load components for better performance
+const TextHighlighter = lazy(() => import('@/components/TextHighlighter'));
+const FixedMobileNav = lazy(() => import('@/components/FixedMobileNav'));
 
 // Lazily load pages for better performance
 const Index = lazy(() => import('@/pages/Index'));
@@ -22,6 +24,33 @@ const PageLoading = () => (
 );
 
 function App() {
+  // Preload critical components when idle
+  useEffect(() => {
+    if ('requestIdleCallback' in window) {
+      const idleCallback = window.requestIdleCallback(() => {
+        // Preload components likely to be used
+        const preloadComponents = async () => {
+          // Preload the Index page since it's the most common entry point
+          const indexModule = import('@/pages/Index');
+          
+          // After a short delay, preload other components
+          setTimeout(() => {
+            import('@/components/TextHighlighter');
+            import('@/components/FixedMobileNav');
+          }, 1000);
+        };
+        
+        preloadComponents();
+      });
+      
+      return () => {
+        if ('cancelIdleCallback' in window) {
+          window.cancelIdleCallback(idleCallback);
+        }
+      };
+    }
+  }, []);
+
   return (
     <ThemeProvider defaultTheme="dark" storageKey="plantdoc-theme">
       <Suspense fallback={<PageLoading />}>
@@ -34,9 +63,11 @@ function App() {
         </Routes>
       </Suspense>
       
-      {/* Global Components */}
-      <FixedMobileNav />
-      <TextHighlighter />
+      {/* Global Components - lazy loaded for better initial page load */}
+      <Suspense fallback={null}>
+        <FixedMobileNav />
+        <TextHighlighter />
+      </Suspense>
       <Toaster />
     </ThemeProvider>
   );
