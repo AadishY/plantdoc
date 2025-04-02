@@ -35,12 +35,15 @@ const EnhancedCard = forwardRef<HTMLDivElement, EnhancedCardProps>(({
     <Card
       ref={ref}
       className={cn(
+        "bg-black/40 backdrop-blur-md border border-white/10", // Base glass effect
         isHoverable && "transition-all duration-300 hover:-translate-y-1 hover:shadow-lg",
         isRaised && "shadow-lg",
         isFrosted && "glass-card",
+        glassIntensity === 'intense' && "bg-black/60 backdrop-blur-lg",
+        glassIntensity === 'medium' && "bg-black/50 backdrop-blur-md",
+        glassIntensity === 'light' && "bg-black/30 backdrop-blur-sm",
+        borderGlow && "hover:border-plantDoc-primary/50 hover:shadow-plantDoc-primary/20 hover:shadow-md",
         hoverEffect,
-        glassIntensity === 'intense' && "glass-card-intense",
-        borderGlow && "hover-glow",
         className
       )}
       {...props}

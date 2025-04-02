@@ -158,8 +158,8 @@ const RecommendPage = () => {
         >
           <EnhancedCard className="max-w-4xl mx-auto shadow-lg shadow-plantDoc-primary/5 glass-card">
             <EnhancedCardHeader>
-              <EnhancedCardTitle>Your Growing Environment</EnhancedCardTitle>
-              <EnhancedCardDescription>Tell us about your location and we'll recommend suitable plants</EnhancedCardDescription>
+              <EnhancedCardTitle className="text-white">Your Growing Environment</EnhancedCardTitle>
+              <EnhancedCardDescription className="text-white/80">Tell us about your location and we'll recommend suitable plants</EnhancedCardDescription>
             </EnhancedCardHeader>
             <EnhancedCardContent className="space-y-6">
               {/* Location Section */}
@@ -426,29 +426,29 @@ const RecommendPage = () => {
                         )}
                       </motion.div>
                       
-                      <EnhancedCardTitle className="text-xl pr-10">{plant.name}</EnhancedCardTitle>
-                      <EnhancedCardDescription className="italic">{plant.scientificName}</EnhancedCardDescription>
+                      <EnhancedCardTitle className="text-xl pr-10 text-white">{plant.name}</EnhancedCardTitle>
+                      <EnhancedCardDescription className="italic text-white/80">{plant.scientificName}</EnhancedCardDescription>
                     </EnhancedCardHeader>
                     <EnhancedCardContent className="pt-4 flex-grow">
                       <div className="space-y-4">
                         <div>
-                          <p className="text-sm">{plant.description}</p>
+                          <p className="text-sm text-white/90">{plant.description}</p>
                         </div>
                         
                         <div className="grid grid-cols-2 gap-3 text-sm">
-                          <div className="flex items-center gap-2 glass-card p-2 rounded-md">
+                          <div className="flex items-center gap-2 glass-card p-2 rounded-md text-white">
                             <ThermometerSun className="h-4 w-4 text-plantDoc-primary" />
                             <span className="font-medium">Growth:</span> {plant.growthTime}
                           </div>
-                          <div className="flex items-center gap-2 glass-card p-2 rounded-md">
+                          <div className="flex items-center gap-2 glass-card p-2 rounded-md text-white">
                             <Droplet className="h-4 w-4 text-plantDoc-primary" />
                             <span className="font-medium">Water:</span> {plant.waterNeeds}
                           </div>
-                          <div className="flex items-center gap-2 glass-card p-2 rounded-md">
+                          <div className="flex items-center gap-2 glass-card p-2 rounded-md text-white">
                             <Sun className="h-4 w-4 text-plantDoc-primary" />
                             <span className="font-medium">Light:</span> {plant.sunlight}
                           </div>
-                          <div className="flex items-center gap-2 glass-card p-2 rounded-md">
+                          <div className="flex items-center gap-2 glass-card p-2 rounded-md text-white">
                             <CloudSun className="h-4 w-4 text-plantDoc-primary" />
                             <span className="font-medium">Season:</span> {plant.bestSeason}
                           </div>
@@ -465,7 +465,7 @@ const RecommendPage = () => {
                             Care Instructions:
                           </h4>
                           <ul className="list-disc pl-5 text-sm space-y-2">
-                            {plant.careInstructions.map((instruction, idx) => (
+                            {plant.careInstructions && plant.careInstructions.map((instruction, idx) => (
                               <li key={idx} className="text-white/90">{instruction}</li>
                             ))}
                           </ul>

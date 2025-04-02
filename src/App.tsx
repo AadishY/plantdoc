@@ -54,22 +54,24 @@ function App() {
 
   return (
     <ThemeProvider defaultTheme="dark" storageKey="plantdoc-theme">
-      <Suspense fallback={<PageLoading />}>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/diagnose" element={<DiagnosePage />} />
-          <Route path="/recommend" element={<RecommendPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Suspense>
-      
-      {/* Global Components - lazy loaded for better initial page load */}
-      <Suspense fallback={null}>
-        <FixedMobileNav />
-        <TextHighlighter />
-      </Suspense>
-      <Toaster />
+      <div className="min-h-screen w-full">
+        <Suspense fallback={<PageLoading />}>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/diagnose" element={<DiagnosePage />} />
+            <Route path="/recommend" element={<RecommendPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+        
+        {/* Global Components - lazy loaded for better initial page load */}
+        <Suspense fallback={null}>
+          <FixedMobileNav />
+          <TextHighlighter />
+        </Suspense>
+        <Toaster />
+      </div>
     </ThemeProvider>
   );
 }
