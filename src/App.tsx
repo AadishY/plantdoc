@@ -4,7 +4,7 @@ import { Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { Toaster } from '@/components/ui/toaster';
 import TextHighlighter from '@/components/TextHighlighter';
-import MobileNav from '@/components/MobileNav';
+import FixedMobileNav from '@/components/FixedMobileNav';
 import AnimatedLoader from '@/components/ui/animated-loader';
 
 // Lazily load pages for better performance
@@ -35,7 +35,7 @@ function App() {
       </Suspense>
       
       {/* Global Components */}
-      <MobileNav />
+      <FixedMobileNav />
       <TextHighlighter />
       <Toaster />
     </ThemeProvider>
