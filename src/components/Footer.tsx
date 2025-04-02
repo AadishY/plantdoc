@@ -28,7 +28,7 @@ const Footer = () => {
     <footer className="relative z-10 border-t border-white/10 backdrop-blur-xl bg-black/40 pb-safe">
       <div className="container mx-auto py-6 px-4">
         {/* Main footer content */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+        <div className="flex justify-between items-center flex-wrap gap-6">
           <motion.div 
             className="space-y-4"
             initial="hidden"
@@ -60,91 +60,51 @@ const Footer = () => {
             <motion.p variants={item} className="text-foreground/70 text-sm max-w-xs">
               AI-powered plant disease diagnosis and treatment recommendations to help your plants thrive.
             </motion.p>
-            
-            <motion.div variants={item} className="flex space-x-4">
-              <motion.a
-                whileHover={{ y: -3 }}
-                href="https://github.com/AadishY/plantdoc"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-foreground/70 hover:text-plantDoc-primary transition-colors duration-200 group"
-              >
-                <motion.span 
-                  className="glass-card p-2 rounded-full inline-flex"
-                  whileHover={{ 
-                    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                    boxShadow: '0 0 10px rgba(76, 175, 80, 0.3)'
-                  }}
-                >
-                  <Github className="h-5 w-5 group-hover:rotate-12 transition-transform duration-300" />
-                </motion.span>
-              </motion.a>
-              <motion.a
-                whileHover={{ y: -3 }}
-                href="https://instagram.com/yo.akatsuki"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-foreground/70 hover:text-plantDoc-primary transition-colors duration-200 group"
-              >
-                <motion.span 
-                  className="glass-card p-2 rounded-full inline-flex"
-                  whileHover={{ 
-                    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                    boxShadow: '0 0 10px rgba(76, 175, 80, 0.3)'
-                  }}
-                >
-                  <Instagram className="h-5 w-5 group-hover:rotate-12 transition-transform duration-300" />
-                </motion.span>
-              </motion.a>
-            </motion.div>
           </motion.div>
 
           <motion.div 
-            className="space-y-4"
+            className="flex space-x-4"
             initial="hidden"
             whileInView="show"
             variants={staggerChildren}
             viewport={{ once: true, margin: "-100px" }}
           >
-            <motion.h3 variants={item} className="text-sm font-medium uppercase tracking-wider text-foreground/80">Quick Links</motion.h3>
-            <motion.ul variants={staggerChildren} className="space-y-3">
-              <motion.li variants={item}>
-                <Link to="/" className="text-foreground/70 hover:text-plantDoc-primary transition-colors duration-200 flex items-center gap-1 group">
-                  <motion.span 
-                    className="h-0.5 w-0 bg-plantDoc-primary group-hover:w-2 transition-all duration-300"
-                    whileHover={{ width: 8 }}
-                  />
-                  <span>Home</span>
-                </Link>
-              </motion.li>
-              <motion.li variants={item}>
-                <Link to="/diagnose" className="text-foreground/70 hover:text-plantDoc-primary transition-colors duration-200 flex items-center gap-1 group">
-                  <motion.span 
-                    className="h-0.5 w-0 bg-plantDoc-primary group-hover:w-2 transition-all duration-300"
-                    whileHover={{ width: 8 }}
-                  />
-                  <span>Diagnose</span>
-                </Link>
-              </motion.li>
-              <motion.li variants={item}>
-                <Link to="/recommend" className="text-foreground/70 hover:text-plantDoc-primary transition-colors duration-200 flex items-center gap-1 group">
-                  <motion.span 
-                    className="h-0.5 w-0 bg-plantDoc-primary group-hover:w-2 transition-all duration-300"
-                    whileHover={{ width: 8 }}
-                  />
-                  <span>Plant Recommendations</span>
-                </Link>
-              </motion.li>
-              <motion.li variants={item}>
-                <Link to="/about" className="text-foreground/70 hover:text-plantDoc-primary transition-colors duration-200 flex items-center gap-1 group">
-                  <motion.span 
-                    className="h-0.5 w-0 bg-plantDoc-primary group-hover:w-2 transition-all duration-300"
-                    whileHover={{ width: 8 }}
-                  />
-                  <span>About</span>
-                </Link>
-              </motion.li>
-            </motion.ul>
+            <motion.a
+              whileHover={{ y: -3 }}
+              href="https://github.com/AadishY/plantdoc"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-foreground/70 hover:text-plantDoc-primary transition-colors duration-200 group"
+              variants={item}
+            >
+              <motion.span 
+                className="glass-card p-2 rounded-full inline-flex"
+                whileHover={{ 
+                  backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                  boxShadow: '0 0 10px rgba(76, 175, 80, 0.3)'
+                }}
+              >
+                <Github className="h-5 w-5 group-hover:rotate-12 transition-transform duration-300" />
+              </motion.span>
+            </motion.a>
+            <motion.a
+              whileHover={{ y: -3 }}
+              href="https://instagram.com/yo.akatsuki"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-foreground/70 hover:text-plantDoc-primary transition-colors duration-200 group"
+              variants={item}
+            >
+              <motion.span 
+                className="glass-card p-2 rounded-full inline-flex"
+                whileHover={{ 
+                  backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                  boxShadow: '0 0 10px rgba(76, 175, 80, 0.3)'
+                }}
+              >
+                <Instagram className="h-5 w-5 group-hover:rotate-12 transition-transform duration-300" />
+              </motion.span>
+            </motion.a>
           </motion.div>
         </div>
 
@@ -157,7 +117,7 @@ const Footer = () => {
             className="text-foreground/60 text-sm mt-4 md:mt-0 flex items-center"
             whileHover={{ color: 'rgba(255, 255, 255, 0.8)' }}
           >
-            Made with <Heart className="h-3 w-3 text-plantDoc-danger mx-1 animate-pulse" /> by Aadish Kumar Yadav
+            Made with <Heart className="h-3 w-3 text-plantDoc-primary mx-1 animate-pulse" /> by Aadish Kumar Yadav
           </motion.p>
         </div>
       </div>

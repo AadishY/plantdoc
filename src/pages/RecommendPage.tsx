@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { getPlantRecommendations, getClimateDatabByLocation } from '@/services/api';
-import { Loader2, Leaf, Sun, CloudSun, Droplet, ThermometerSun } from 'lucide-react';
+import { Loader2, Leaf, Sun, CloudSun, Droplet, ThermometerSun, Plant, Wind, Flower } from 'lucide-react';
 import { PlantRecommendation, GrowingConditions } from '@/types/recommendation';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -166,35 +167,35 @@ const RecommendPage = () => {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="country">Country*</Label>
+                    <Label htmlFor="country" className="text-white">Country*</Label>
                     <Input 
                       id="country" 
                       value={country} 
                       onChange={(e) => setCountry(e.target.value)}
                       placeholder="e.g. United States" 
                       required
-                      className="glass-input border-plantDoc-primary/20 focus-visible:ring-plantDoc-primary/30"
+                      className="glass-input border-plantDoc-primary/20 focus-visible:ring-plantDoc-primary/30 text-white placeholder:text-white/50"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="state">State/Region*</Label>
+                    <Label htmlFor="state" className="text-white">State/Region*</Label>
                     <Input 
                       id="state" 
                       value={state} 
                       onChange={(e) => setState(e.target.value)}
                       placeholder="e.g. California" 
                       required
-                      className="glass-input border-plantDoc-primary/20 focus-visible:ring-plantDoc-primary/30"
+                      className="glass-input border-plantDoc-primary/20 focus-visible:ring-plantDoc-primary/30 text-white placeholder:text-white/50"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="city">City (Optional)</Label>
+                    <Label htmlFor="city" className="text-white">City (Optional)</Label>
                     <Input 
                       id="city" 
                       value={city} 
                       onChange={(e) => setCity(e.target.value)}
                       placeholder="e.g. San Francisco"
-                      className="glass-input border-plantDoc-primary/20 focus-visible:ring-plantDoc-primary/30"
+                      className="glass-input border-plantDoc-primary/20 focus-visible:ring-plantDoc-primary/30 text-white placeholder:text-white/50"
                     />
                   </div>
                 </div>
@@ -214,30 +215,30 @@ const RecommendPage = () => {
                     <AccordionContent className="space-y-6">
                       {/* Climate Information */}
                       <div className="space-y-4 pt-2">
-                        <h3 className="text-lg font-semibold">Climate Information</h3>
+                        <h3 className="text-lg font-semibold text-white">Climate Information</h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div className="space-y-2">
-                            <Label htmlFor="temperature">Temperature (°C)</Label>
+                            <Label htmlFor="temperature" className="text-white">Temperature (°C)</Label>
                             <Input 
                               id="temperature" 
                               type="number" 
                               value={temperature}
                               onChange={(e) => setTemperature(Number(e.target.value))}
-                              className="glass-input border-plantDoc-primary/20 focus-visible:ring-plantDoc-primary/30"
+                              className="glass-input border-plantDoc-primary/20 focus-visible:ring-plantDoc-primary/30 text-white"
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="rainfall">Rainfall (mm)</Label>
+                            <Label htmlFor="rainfall" className="text-white">Rainfall (mm)</Label>
                             <Input 
                               id="rainfall" 
                               type="number" 
                               value={rainfall}
                               onChange={(e) => setRainfall(Number(e.target.value))}
-                              className="glass-input border-plantDoc-primary/20 focus-visible:ring-plantDoc-primary/30"
+                              className="glass-input border-plantDoc-primary/20 focus-visible:ring-plantDoc-primary/30 text-white"
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="humidity">Humidity (%)</Label>
+                            <Label htmlFor="humidity" className="text-white">Humidity (%)</Label>
                             <Input 
                               id="humidity" 
                               type="number" 
@@ -245,7 +246,7 @@ const RecommendPage = () => {
                               onChange={(e) => setHumidity(Number(e.target.value))}
                               min="0"
                               max="100"
-                              className="glass-input border-plantDoc-primary/20 focus-visible:ring-plantDoc-primary/30"
+                              className="glass-input border-plantDoc-primary/20 focus-visible:ring-plantDoc-primary/30 text-white"
                             />
                           </div>
                         </div>
@@ -255,9 +256,9 @@ const RecommendPage = () => {
                       <div className="space-y-4 border-t pt-4 border-plantDoc-primary/10">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-2">
-                            <Label htmlFor="soil-type">Soil Type</Label>
+                            <Label htmlFor="soil-type" className="text-white">Soil Type</Label>
                             <Select value={soilType} onValueChange={setSoilType}>
-                              <SelectTrigger className="glass-input border-plantDoc-primary/20 focus:ring-plantDoc-primary/30">
+                              <SelectTrigger className="glass-input border-plantDoc-primary/20 focus:ring-plantDoc-primary/30 text-white">
                                 <SelectValue placeholder="Select soil type" />
                               </SelectTrigger>
                               <SelectContent>
@@ -268,9 +269,9 @@ const RecommendPage = () => {
                             </Select>
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="sunlight">Sunlight</Label>
+                            <Label htmlFor="sunlight" className="text-white">Sunlight</Label>
                             <Select value={sunlight} onValueChange={setSunlight}>
-                              <SelectTrigger className="glass-input border-plantDoc-primary/20 focus:ring-plantDoc-primary/30">
+                              <SelectTrigger className="glass-input border-plantDoc-primary/20 focus:ring-plantDoc-primary/30 text-white">
                                 <SelectValue placeholder="Select sunlight level" />
                               </SelectTrigger>
                               <SelectContent>
@@ -284,8 +285,8 @@ const RecommendPage = () => {
                         
                         <div className="space-y-2">
                           <div className="flex justify-between">
-                            <Label htmlFor="ph">Soil pH</Label>
-                            <span>{ph}</span>
+                            <Label htmlFor="ph" className="text-white">Soil pH</Label>
+                            <span className="text-white">{ph}</span>
                           </div>
                           <Slider
                             id="ph"
@@ -296,7 +297,7 @@ const RecommendPage = () => {
                             onValueChange={(value) => setPh(value[0])}
                             className="py-2"
                           />
-                          <div className="flex justify-between text-xs text-muted-foreground">
+                          <div className="flex justify-between text-xs text-white/70">
                             <span>Acidic (3.5)</span>
                             <span>Neutral (7)</span>
                             <span>Alkaline (9)</span>
@@ -306,13 +307,13 @@ const RecommendPage = () => {
                       
                       {/* Nutrients */}
                       <div className="space-y-4 border-t pt-4 border-plantDoc-primary/10">
-                        <h3 className="text-lg font-semibold">Soil Nutrient Levels (%)</h3>
+                        <h3 className="text-lg font-semibold text-white">Soil Nutrient Levels (%)</h3>
                         
                         <div className="space-y-6">
                           <div className="space-y-2">
                             <div className="flex justify-between">
-                              <Label htmlFor="nitrogen">Nitrogen (N)</Label>
-                              <span>{nitrogen}%</span>
+                              <Label htmlFor="nitrogen" className="text-white">Nitrogen (N)</Label>
+                              <span className="text-white">{nitrogen}%</span>
                             </div>
                             <Slider
                               id="nitrogen"
@@ -327,8 +328,8 @@ const RecommendPage = () => {
                           
                           <div className="space-y-2">
                             <div className="flex justify-between">
-                              <Label htmlFor="phosphorus">Phosphorus (P)</Label>
-                              <span>{phosphorus}%</span>
+                              <Label htmlFor="phosphorus" className="text-white">Phosphorus (P)</Label>
+                              <span className="text-white">{phosphorus}%</span>
                             </div>
                             <Slider
                               id="phosphorus"
@@ -343,8 +344,8 @@ const RecommendPage = () => {
                           
                           <div className="space-y-2">
                             <div className="flex justify-between">
-                              <Label htmlFor="potassium">Potassium (K)</Label>
-                              <span>{potassium}%</span>
+                              <Label htmlFor="potassium" className="text-white">Potassium (K)</Label>
+                              <span className="text-white">{potassium}%</span>
                             </div>
                             <Slider
                               id="potassium"
@@ -365,7 +366,7 @@ const RecommendPage = () => {
               
               <Button 
                 onClick={handleGetRecommendations} 
-                className="w-full bg-gradient-to-r from-plantDoc-primary to-plantDoc-secondary hover:from-plantDoc-primary/90 hover:to-plantDoc-secondary/90 text-white animate-pulse-glow" 
+                className="w-full bg-gradient-to-r from-plantDoc-primary to-plantDoc-secondary text-white font-medium px-8 py-6 text-lg rounded-full hover:shadow-xl transition-all duration-300 hover:shadow-plantDoc-primary/30 group animate-pulse-glow" 
                 size="lg"
                 disabled={isLoading || !country || !state}
               >
@@ -399,12 +400,34 @@ const RecommendPage = () => {
               {recommendations.map((plant, index) => (
                 <motion.div key={index} variants={itemAnimation}>
                   <EnhancedCard 
-                    className="h-full flex flex-col"
+                    className="h-full flex flex-col hover:shadow-plantDoc-primary/30 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
                     glassIntensity="medium"
                     borderGlow={true}
                   >
-                    <EnhancedCardHeader className="pb-2">
-                      <EnhancedCardTitle className="text-xl">{plant.name}</EnhancedCardTitle>
+                    <EnhancedCardHeader className="pb-2 relative">
+                      {/* Plant icon in top right corner */}
+                      <motion.div 
+                        className="absolute top-2 right-2 bg-plantDoc-primary/20 rounded-full p-2"
+                        animate={{
+                          rotate: [0, index % 2 === 0 ? 10 : -10, 0],
+                          scale: [1, 1.1, 1],
+                        }}
+                        transition={{
+                          duration: 3 + index % 3,
+                          repeat: Infinity,
+                          repeatType: "reverse"
+                        }}
+                      >
+                        {index % 3 === 0 ? (
+                          <Leaf className="h-5 w-5 text-plantDoc-primary" />
+                        ) : index % 3 === 1 ? (
+                          <Flower className="h-5 w-5 text-plantDoc-primary" />
+                        ) : (
+                          <Plant className="h-5 w-5 text-plantDoc-primary" />
+                        )}
+                      </motion.div>
+                      
+                      <EnhancedCardTitle className="text-xl pr-10">{plant.name}</EnhancedCardTitle>
                       <EnhancedCardDescription className="italic">{plant.scientificName}</EnhancedCardDescription>
                     </EnhancedCardHeader>
                     <EnhancedCardContent className="pt-4 flex-grow">
@@ -413,30 +436,38 @@ const RecommendPage = () => {
                           <p className="text-sm">{plant.description}</p>
                         </div>
                         
-                        <div className="grid grid-cols-2 gap-2 text-sm">
-                          <div className="flex items-center gap-2">
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <div className="flex items-center gap-2 glass-card p-2 rounded-md">
                             <ThermometerSun className="h-4 w-4 text-plantDoc-primary" />
                             <span className="font-medium">Growth:</span> {plant.growthTime}
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 glass-card p-2 rounded-md">
                             <Droplet className="h-4 w-4 text-plantDoc-primary" />
                             <span className="font-medium">Water:</span> {plant.waterNeeds}
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 glass-card p-2 rounded-md">
                             <Sun className="h-4 w-4 text-plantDoc-primary" />
                             <span className="font-medium">Light:</span> {plant.sunlight}
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 glass-card p-2 rounded-md">
                             <CloudSun className="h-4 w-4 text-plantDoc-primary" />
                             <span className="font-medium">Season:</span> {plant.bestSeason}
                           </div>
                         </div>
                         
-                        <div className="pt-2 border-t border-plantDoc-primary/10">
-                          <h4 className="font-medium mb-1 text-plantDoc-primary">Care Instructions:</h4>
-                          <ul className="list-disc pl-5 text-sm space-y-1">
+                        <div className="pt-2 mt-2 border-t border-plantDoc-primary/20 glass-card p-3 rounded-md">
+                          <h4 className="font-medium mb-2 text-plantDoc-primary flex items-center gap-2">
+                            <motion.div
+                              animate={{ rotate: [0, 5, 0, -5, 0] }}
+                              transition={{ duration: 2, repeat: Infinity }}
+                            >
+                              <Wind className="h-4 w-4" />
+                            </motion.div>
+                            Care Instructions:
+                          </h4>
+                          <ul className="list-disc pl-5 text-sm space-y-2">
                             {plant.careInstructions.map((instruction, idx) => (
-                              <li key={idx}>{instruction}</li>
+                              <li key={idx} className="text-white/90">{instruction}</li>
                             ))}
                           </ul>
                         </div>
