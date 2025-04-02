@@ -4,7 +4,7 @@ import { toast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { getPlantRecommendations, getClimateDatabByLocation } from '@/services/api';
-import { Loader2, Leaf, Sun, CloudSun, Droplet, ThermometerSun, Seedling, Wind, Flower } from 'lucide-react';
+import { Loader2, Leaf, Sun, CloudSun, Droplet, ThermometerSun, Sprout, Wind, Flower } from 'lucide-react';
 import { PlantRecommendation, GrowingConditions } from '@/types/recommendation';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -422,7 +422,7 @@ const RecommendPage = () => {
                         ) : index % 3 === 1 ? (
                           <Flower className="h-5 w-5 text-plantDoc-primary" />
                         ) : (
-                          <Seedling className="h-5 w-5 text-plantDoc-primary" />
+                          <Sprout className="h-5 w-5 text-plantDoc-primary" />
                         )}
                       </motion.div>
                       
