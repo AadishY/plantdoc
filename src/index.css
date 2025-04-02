@@ -100,6 +100,16 @@
 }
 
 @layer utilities {
+  /* Define the scrollbar-none utility class */
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
   /* Glass effect variants */
   .glass-card {
     @apply bg-black/30 backdrop-blur-xl border border-white/10 shadow-lg transition-all duration-300 hover:bg-black/40 hover:shadow-xl hover:border-white/20;

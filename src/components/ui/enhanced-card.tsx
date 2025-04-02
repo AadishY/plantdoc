@@ -12,6 +12,10 @@ interface EnhancedCardProps extends HTMLAttributes<HTMLDivElement> {
   isInteractive?: boolean;
   isFrosted?: boolean;
   intensity?: number;
+  // Add the missing props that are used in various components
+  hoverEffect?: string;
+  glassIntensity?: string;
+  borderGlow?: boolean;
 }
 
 const EnhancedCard = forwardRef<HTMLDivElement, EnhancedCardProps>(({
@@ -21,6 +25,9 @@ const EnhancedCard = forwardRef<HTMLDivElement, EnhancedCardProps>(({
   isInteractive = false,
   isFrosted = false,
   intensity = 10,
+  hoverEffect,
+  glassIntensity,
+  borderGlow,
   children,
   ...props
 }, ref) => {
@@ -31,6 +38,9 @@ const EnhancedCard = forwardRef<HTMLDivElement, EnhancedCardProps>(({
         isHoverable && "transition-all duration-300 hover:-translate-y-1 hover:shadow-lg",
         isRaised && "shadow-lg",
         isFrosted && "glass-card",
+        hoverEffect,
+        glassIntensity === 'intense' && "glass-card-intense",
+        borderGlow && "hover-glow",
         className
       )}
       {...props}
