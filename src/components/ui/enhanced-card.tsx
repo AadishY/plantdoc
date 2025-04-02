@@ -1,114 +1,100 @@
 
-import React, { forwardRef, HTMLAttributes } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './card';
+import React from 'react';
 import { cn } from '@/lib/utils';
-import { motion } from 'framer-motion';
-import InteractiveParallax from '@/components/InteractiveParallax';
+import { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 
-interface EnhancedCardProps extends HTMLAttributes<HTMLDivElement> {
-  className?: string;
-  isHoverable?: boolean;
-  isRaised?: boolean;
-  isInteractive?: boolean;
-  isFrosted?: boolean;
-  intensity?: number;
-  // Add the missing props that are used in various components
-  hoverEffect?: string;
-  glassIntensity?: string;
+// Glass effect intensities for the cards
+type GlassIntensity = 'low' | 'medium' | 'high';
+
+interface EnhancedCardProps extends React.HTMLAttributes<HTMLDivElement> {
+  glassIntensity?: GlassIntensity;
   borderGlow?: boolean;
 }
 
-const EnhancedCard = forwardRef<HTMLDivElement, EnhancedCardProps>(({
-  className,
-  isHoverable = false,
-  isRaised = false,
-  isInteractive = false,
-  isFrosted = false,
-  intensity = 10,
-  hoverEffect,
-  glassIntensity,
-  borderGlow,
-  children,
-  ...props
-}, ref) => {
-  const cardContent = (
-    <Card
-      ref={ref}
-      className={cn(
-        "bg-black/40 backdrop-blur-md border border-white/10", // Base glass effect
-        isHoverable && "transition-all duration-300 hover:-translate-y-1 hover:shadow-lg",
-        isRaised && "shadow-lg",
-        isFrosted && "glass-card",
-        glassIntensity === 'intense' && "bg-black/60 backdrop-blur-lg",
-        glassIntensity === 'medium' && "bg-black/50 backdrop-blur-md",
-        glassIntensity === 'light' && "bg-black/30 backdrop-blur-sm",
-        borderGlow && "hover:border-plantDoc-primary/50 hover:shadow-plantDoc-primary/20 hover:shadow-md",
-        hoverEffect,
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </Card>
-  );
-  
-  if (isInteractive) {
-    return (
-      <InteractiveParallax intensity={intensity}>
-        {cardContent}
-      </InteractiveParallax>
-    );
+const getGlassClasses = (intensity: GlassIntensity = 'medium') => {
+  switch (intensity) {
+    case 'low':
+      return 'bg-black/10 backdrop-blur-sm';
+    case 'high':
+      return 'bg-black/40 backdrop-blur-xl';
+    case 'medium':
+    default:
+      return 'bg-black/30 backdrop-blur-md';
   }
-  
-  return cardContent;
-});
-EnhancedCard.displayName = "EnhancedCard";
-
-const EnhancedCardHeader = forwardRef<
-  HTMLDivElement,
-  React.ComponentPropsWithoutRef<typeof CardHeader>
->((props, ref) => {
-  return <CardHeader ref={ref} {...props} />;
-});
-EnhancedCardHeader.displayName = "EnhancedCardHeader";
-
-const EnhancedCardTitle = forwardRef<
-  HTMLParagraphElement,
-  React.ComponentPropsWithoutRef<typeof CardTitle>
->((props, ref) => {
-  return <CardTitle ref={ref} {...props} />;
-});
-EnhancedCardTitle.displayName = "EnhancedCardTitle";
-
-const EnhancedCardDescription = forwardRef<
-  HTMLParagraphElement,
-  React.ComponentPropsWithoutRef<typeof CardDescription>
->((props, ref) => {
-  return <CardDescription ref={ref} {...props} />;
-});
-EnhancedCardDescription.displayName = "EnhancedCardDescription";
-
-const EnhancedCardContent = forwardRef<
-  HTMLDivElement,
-  React.ComponentPropsWithoutRef<typeof CardContent>
->((props, ref) => {
-  return <CardContent ref={ref} {...props} />;
-});
-EnhancedCardContent.displayName = "EnhancedCardContent";
-
-const EnhancedCardFooter = forwardRef<
-  HTMLDivElement,
-  React.ComponentPropsWithoutRef<typeof CardFooter>
->((props, ref) => {
-  return <CardFooter ref={ref} {...props} />;
-});
-EnhancedCardFooter.displayName = "EnhancedCardFooter";
-
-export {
-  EnhancedCard,
-  EnhancedCardHeader,
-  EnhancedCardTitle,
-  EnhancedCardDescription,
-  EnhancedCardContent,
-  EnhancedCardFooter,
 };
+
+export const EnhancedCard = React.forwardRef<
+  HTMLDivElement,
+  EnhancedCardProps
+>(({ className, glassIntensity = 'medium', borderGlow = false, ...props }, ref) => (
+  <Card
+    ref={ref}
+    className={cn(
+      'border border-white/10 text-white shadow-sm',
+      getGlassClasses(glassIntensity),
+      borderGlow && 'shadow-[0_0_15px_rgba(76,175,80,0.15)]',
+      className
+    )}
+    {...props}
+  />
+));
+EnhancedCard.displayName = 'EnhancedCard';
+
+export const EnhancedCardHeader = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <CardHeader
+    ref={ref}
+    className={cn('flex flex-col space-y-1.5 p-6', className)}
+    {...props}
+  />
+));
+EnhancedCardHeader.displayName = 'EnhancedCardHeader';
+
+export const EnhancedCardTitle = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLHeadingElement>
+>(({ className, ...props }, ref) => (
+  <CardTitle
+    ref={ref}
+    className={cn(
+      'text-2xl font-semibold leading-none tracking-tight text-white',
+      className
+    )}
+    {...props}
+  />
+));
+EnhancedCardTitle.displayName = 'EnhancedCardTitle';
+
+export const EnhancedCardDescription = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, ...props }, ref) => (
+  <CardDescription
+    ref={ref}
+    className={cn('text-sm text-white/70', className)}
+    {...props}
+  />
+));
+EnhancedCardDescription.displayName = 'EnhancedCardDescription';
+
+export const EnhancedCardContent = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <CardContent ref={ref} className={cn('p-6 pt-0 text-white', className)} {...props} />
+));
+EnhancedCardContent.displayName = 'EnhancedCardContent';
+
+export const EnhancedCardFooter = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <CardFooter
+    ref={ref}
+    className={cn('flex items-center p-6 pt-0', className)}
+    {...props}
+  />
+));
+EnhancedCardFooter.displayName = 'EnhancedCardFooter';

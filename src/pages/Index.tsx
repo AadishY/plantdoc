@@ -55,7 +55,7 @@ const Index = () => {
   };
   
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-muted/50 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-muted/50 relative overflow-hidden text-white">
       <DynamicBackground />
       
       <Header />
@@ -81,11 +81,11 @@ const Index = () => {
                 >
                   <Leaf className="h-6 w-6 text-plantDoc-primary" />
                 </motion.div>
-                <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gradient relative">
+                <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white bg-gradient-to-r from-white to-white/80 bg-clip-text relative">
                   AI-Powered Plant Disease Diagnosis
                   <div className="absolute -bottom-2 left-0 md:w-1/3 h-0.5 bg-gradient-to-r from-plantDoc-primary to-transparent"></div>
                 </h1>
-                <p className="text-lg text-foreground/70 mb-8 md:max-w-xl">
+                <p className="text-lg text-white/90 mb-8 md:max-w-xl">
                   Upload a photo of your plant and get instant diagnosis, treatment recommendations, 
                   and care tips to help your plants thrive.
                 </p>
