@@ -31,13 +31,14 @@ function App() {
         // Preload components likely to be used
         const preloadComponents = async () => {
           // Preload the Index page since it's the most common entry point
-          const indexModule = import('@/pages/Index');
+          import('@/pages/Index').catch(console.error);
           
-          // After a short delay, preload other components
+          // Add a small delay to not overwhelm mobile devices
           setTimeout(() => {
-            import('@/components/TextHighlighter');
-            import('@/components/FixedMobileNav');
-          }, 1000);
+            // Preload key components
+            import('@/components/TextHighlighter').catch(console.error);
+            import('@/components/FixedMobileNav').catch(console.error);
+          }, 2000); // Longer delay for mobile optimization
         };
         
         preloadComponents();
