@@ -6,8 +6,8 @@ export interface PlantRecommendation {
   waterNeeds: string;
   sunlight: string;
   description: string;
-  careInstructions?: string[];
-  bestSeason?: string;
+  careInstructions: string[];  // Changed from optional to required
+  bestSeason: string;          // Changed from optional to required
   idealTemperature?: {
     min: number;
     max: number;
