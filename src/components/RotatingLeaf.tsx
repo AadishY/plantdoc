@@ -70,6 +70,7 @@ const RotatingLeaf: React.FC = () => {
         ref={leafRef}
         animate={controls}
         initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
         className="w-80 h-80 perspective-1000"
         style={{
           transformStyle: "preserve-3d",

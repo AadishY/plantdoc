@@ -1,7 +1,6 @@
-
 import React, { useEffect, useState, useRef, lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
-import { Leaf, ArrowUp, Droplet, Thermometer, ChevronDown, ChevronUp, Sun, Wind, Cloud } from 'lucide-react';
+import { Leaf, ArrowUp, Droplet, Thermometer, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -11,7 +10,6 @@ import AnimatedLoader from '@/components/ui/animated-loader';
 
 const ParallaxSection = lazy(() => import('@/components/ParallaxSection'));
 const RotatingLeaf = lazy(() => import('@/components/RotatingLeaf'));
-const ThreeDPlant = lazy(() => import('@/components/ThreeDPlant'));
 const Accordion = lazy(() => import('@/components/ui/accordion').then(module => ({ 
   default: module.Accordion 
 })));
@@ -120,9 +118,7 @@ const Index = () => {
           <ParallaxSection />
         </Suspense>
 
-        {/* Interactive 3D Plant Section */}
-        <section className="py-16 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-black/10 via-transparent to-black/20 pointer-events-none"></div>
+        <section className="py-16">
           <div className="container mx-auto px-4">
             <motion.div 
               className="text-center mb-12"
@@ -132,105 +128,11 @@ const Index = () => {
               transition={{ duration: 0.6 }}
             >
               <h2 className="text-3xl font-bold mb-4 text-gradient relative inline-block">
-                Explore Plants in 3D
+                How Plant Doc Works
                 <div className="absolute -bottom-2 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-transparent via-plantDoc-primary to-transparent"></div>
               </h2>
               <p className="text-foreground/70 max-w-2xl mx-auto">
-                Interact with our 3D plant models to learn more about plant structures and common disease symptoms.
-              </p>
-            </motion.div>
-            
-            <div className="flex flex-col md:flex-row items-center gap-8">
-              <motion.div 
-                className="w-full md:w-1/2 h-[400px] glass-card rounded-xl overflow-hidden"
-                initial={{ opacity: 0, x: -50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
-              >
-                <Suspense fallback={<ComponentLoader />}>
-                  <ThreeDPlant />
-                </Suspense>
-              </motion.div>
-              
-              <motion.div 
-                className="w-full md:w-1/2 space-y-6"
-                initial={{ opacity: 0, x: 50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-              >
-                <div className="glass-card p-6 rounded-xl hover:shadow-plantDoc-primary/20 hover:shadow-lg transition-all duration-300">
-                  <div className="flex items-center gap-4 mb-4">
-                    <motion.div 
-                      className="h-12 w-12 bg-plantDoc-primary/20 rounded-full flex items-center justify-center"
-                      animate={{ scale: [1, 1.1, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    >
-                      <Sun className="h-6 w-6 text-plantDoc-primary" />
-                    </motion.div>
-                    <h3 className="text-xl font-semibold text-gradient">Light Requirements</h3>
-                  </div>
-                  <p className="text-foreground/80">
-                    Plants need the right amount of light to thrive. Our AI analyzes your plant's species 
-                    and condition to recommend optimal lighting conditions.
-                  </p>
-                </div>
-                
-                <div className="glass-card p-6 rounded-xl hover:shadow-plantDoc-primary/20 hover:shadow-lg transition-all duration-300">
-                  <div className="flex items-center gap-4 mb-4">
-                    <motion.div 
-                      className="h-12 w-12 bg-plantDoc-primary/20 rounded-full flex items-center justify-center"
-                      animate={{ rotate: [0, 10, 0, -10, 0] }}
-                      transition={{ duration: 4, repeat: Infinity }}
-                    >
-                      <Wind className="h-6 w-6 text-plantDoc-primary" />
-                    </motion.div>
-                    <h3 className="text-xl font-semibold text-gradient">Airflow & Humidity</h3>
-                  </div>
-                  <p className="text-foreground/80">
-                    Proper airflow and humidity levels can prevent many plant diseases. Our diagnosis includes 
-                    environmental factor analysis for comprehensive plant health.
-                  </p>
-                </div>
-                
-                <div className="glass-card p-6 rounded-xl hover:shadow-plantDoc-primary/20 hover:shadow-lg transition-all duration-300">
-                  <div className="flex items-center gap-4 mb-4">
-                    <motion.div 
-                      className="h-12 w-12 bg-plantDoc-primary/20 rounded-full flex items-center justify-center"
-                      animate={{ y: [0, -5, 0] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    >
-                      <Droplet className="h-6 w-6 text-plantDoc-primary" />
-                    </motion.div>
-                    <h3 className="text-xl font-semibold text-gradient">Water & Nutrients</h3>
-                  </div>
-                  <p className="text-foreground/80">
-                    Balance is key with watering and fertilizing. Our personalized recommendations help you 
-                    provide exactly what your plant needs to flourish.
-                  </p>
-                </div>
-              </motion.div>
-            </div>
-          </div>
-        </section>
-
-        {/* Plant Care Reimagined Section */}
-        <section className="py-16 relative">
-          <div className="container mx-auto px-4">
-            <motion.div 
-              className="text-center mb-12"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6 }}
-            >
-              <h2 className="text-3xl font-bold mb-4 text-gradient relative inline-block">
-                Plant Care Reimagined
-                <div className="absolute -bottom-2 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-transparent via-plantDoc-primary to-transparent"></div>
-              </h2>
-              <p className="text-foreground/70 max-w-2xl mx-auto">
-                Experience the future of plant care with our AI-powered diagnosis and recommendations.
+                Our advanced AI technology helps you identify and treat plant diseases with just a photo.
               </p>
             </motion.div>
             
@@ -251,7 +153,7 @@ const Index = () => {
                 </motion.div>
                 <h3 className="text-xl font-semibold mb-2 text-gradient">Upload a Photo</h3>
                 <p className="text-foreground/70">
-                  Take a clear picture of your plant showing the affected areas and upload it to our intelligent system.
+                  Take a clear picture of your plant showing the affected areas and upload it.
                 </p>
               </motion.div>
               
@@ -271,7 +173,7 @@ const Index = () => {
                 </motion.div>
                 <h3 className="text-xl font-semibold mb-2 text-gradient">Get Diagnosis</h3>
                 <p className="text-foreground/70">
-                  Our advanced AI analyzes your plant's condition and provides a comprehensive diagnosis of any issues.
+                  Our AI analyzes your plant's condition and identifies any diseases or issues.
                 </p>
               </motion.div>
               
@@ -291,146 +193,8 @@ const Index = () => {
                 </motion.div>
                 <h3 className="text-xl font-semibold mb-2 text-gradient">Receive Treatment Plan</h3>
                 <p className="text-foreground/70">
-                  Get personalized recommendations for treatment, prevention, and ongoing care to help your plants thrive.
+                  Get personalized recommendations for treatment, prevention, and care.
                 </p>
-              </motion.div>
-            </div>
-          </div>
-        </section>
-        
-        {/* Climate-Aware Recommendations Section */}
-        <section className="py-16 relative overflow-hidden bg-black/30 backdrop-blur-sm">
-          <div className="absolute inset-0 bg-gradient-to-r from-plantDoc-primary/10 to-plantDoc-secondary/10 pointer-events-none"></div>
-          <motion.div 
-            className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-plantDoc-primary/20 blur-3xl opacity-60"
-            animate={{ scale: [1, 1.2, 1], opacity: [0.6, 0.4, 0.6] }}
-            transition={{ duration: 8, repeat: Infinity }}
-          />
-          <motion.div 
-            className="absolute -bottom-20 -left-20 w-60 h-60 rounded-full bg-plantDoc-secondary/20 blur-3xl opacity-50"
-            animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0.3, 0.5] }}
-            transition={{ duration: 10, repeat: Infinity, delay: 1 }}
-          />
-        
-          <div className="container mx-auto px-4">
-            <motion.div 
-              className="text-center mb-10"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6 }}
-            >
-              <h2 className="text-3xl font-bold mb-4 text-gradient relative inline-block">
-                Climate-Aware Plant Recommendations
-                <div className="absolute -bottom-2 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-transparent via-plantDoc-primary to-transparent"></div>
-              </h2>
-              <p className="text-foreground/70 max-w-2xl mx-auto">
-                Our intelligent system considers your local climate and growing conditions to suggest plants 
-                that will thrive in your specific environment.
-              </p>
-            </motion.div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-              <motion.div 
-                className="order-2 lg:order-1"
-                initial={{ opacity: 0, x: -30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
-              >
-                <div className="space-y-6">
-                  <motion.div 
-                    className="glass-card p-5 rounded-xl hover:bg-black/40 transition-all duration-300"
-                    whileHover={{ x: 5 }}
-                  >
-                    <div className="flex items-center gap-4">
-                      <motion.div 
-                        className="bg-plantDoc-primary/20 rounded-full p-3"
-                        animate={{ rotate: [0, 10, 0, -10, 0] }}
-                        transition={{ duration: 8, repeat: Infinity }}
-                      >
-                        <Cloud className="h-6 w-6 text-plantDoc-primary" />
-                      </motion.div>
-                      <div>
-                        <h3 className="font-semibold text-xl mb-1 text-gradient">Local Climate Analysis</h3>
-                        <p className="text-foreground/70">
-                          We analyze temperature patterns, humidity levels, and seasonal changes in your area.
-                        </p>
-                      </div>
-                    </div>
-                  </motion.div>
-                  
-                  <motion.div 
-                    className="glass-card p-5 rounded-xl hover:bg-black/40 transition-all duration-300"
-                    whileHover={{ x: 5 }}
-                  >
-                    <div className="flex items-center gap-4">
-                      <motion.div 
-                        className="bg-plantDoc-primary/20 rounded-full p-3"
-                        animate={{ scale: [1, 1.1, 1] }}
-                        transition={{ duration: 3, repeat: Infinity }}
-                      >
-                        <Sun className="h-6 w-6 text-plantDoc-primary" />
-                      </motion.div>
-                      <div>
-                        <h3 className="font-semibold text-xl mb-1 text-gradient">Sunlight Assessment</h3>
-                        <p className="text-foreground/70">
-                          Our recommendations account for your garden's sunlight exposure throughout the day.
-                        </p>
-                      </div>
-                    </div>
-                  </motion.div>
-                  
-                  <motion.div 
-                    className="glass-card p-5 rounded-xl hover:bg-black/40 transition-all duration-300"
-                    whileHover={{ x: 5 }}
-                  >
-                    <div className="flex items-center gap-4">
-                      <motion.div 
-                        className="bg-plantDoc-primary/20 rounded-full p-3"
-                        animate={{ y: [0, -5, 0] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                      >
-                        <Droplet className="h-6 w-6 text-plantDoc-primary" />
-                      </motion.div>
-                      <div>
-                        <h3 className="font-semibold text-xl mb-1 text-gradient">Soil & Water Insights</h3>
-                        <p className="text-foreground/70">
-                          We consider soil types, water availability, and drainage conditions in your area.
-                        </p>
-                      </div>
-                    </div>
-                  </motion.div>
-                </div>
-                
-                <motion.div 
-                  className="mt-8"
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: 0.4 }}
-                >
-                  <Link to="/recommend">
-                    <Button className="bg-gradient-to-r from-plantDoc-primary to-plantDoc-secondary text-white font-medium px-6 py-5 rounded-full hover:shadow-xl transition-all duration-300 hover:shadow-plantDoc-primary/30">
-                      Get Plant Recommendations
-                      <ArrowUp className="ml-2 h-4 w-4 rotate-45" />
-                    </Button>
-                  </Link>
-                </motion.div>
-              </motion.div>
-              
-              <motion.div 
-                className="order-1 lg:order-2 glass-card p-1 rounded-xl overflow-hidden shadow-xl"
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
-              >
-                <img 
-                  src="https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?q=80&w=2940&auto=format&fit=crop" 
-                  alt="Garden with various plants" 
-                  className="w-full h-full object-cover rounded-lg"
-                />
               </motion.div>
             </div>
           </div>
@@ -599,7 +363,7 @@ const Index = () => {
         </section>
       </main>
       
-      <div className="fixed bottom-16 md:bottom-8 right-8 z-50">
+      <div className="fixed bottom-8 right-8 z-50">
         <Link to="/diagnose">
           <motion.div
             whileHover={{ scale: 1.1 }}
@@ -615,7 +379,7 @@ const Index = () => {
       
       <motion.button 
         onClick={scrollToTop} 
-        className={`fixed bottom-16 md:bottom-8 left-8 z-50 p-3 rounded-full glass-card ${
+        className={`fixed bottom-8 left-8 z-50 p-3 rounded-full glass-card ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'
         }`}
         whileHover={{ 

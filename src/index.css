@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -76,17 +75,14 @@
     @apply bg-background text-foreground;
   }
 
-  /* Better tap target size on mobile */
   button, a, [role="button"] {
     @apply touch-manipulation;
   }
   
-  /* Enhanced text selection style */
   ::selection {
     @apply bg-plantDoc-primary/30 text-foreground;
   }
   
-  /* Customize scrollbar for better visibility */
   ::-webkit-scrollbar {
     @apply w-2;
   }
@@ -101,7 +97,6 @@
 }
 
 @layer utilities {
-  /* Define the scrollbar-none utility class */
   .scrollbar-none {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -111,9 +106,8 @@
     display: none;
   }
 
-  /* Add scroll snap utilities */
-  .scroll-snap-none {
-    scroll-snap-align: none;
+  .scroll-snap-x {
+    scroll-snap-type: x mandatory;
   }
   
   .scroll-snap-start {
@@ -128,7 +122,6 @@
     scroll-snap-align: end;
   }
 
-  /* Glass effect variants */
   .glass-card {
     @apply bg-black/30 backdrop-blur-xl border border-white/10 shadow-lg transition-all duration-300 hover:bg-black/40 hover:shadow-xl hover:border-white/20;
   }
@@ -165,7 +158,6 @@
     @apply bg-black/10;
   }
 
-  /* Interactive effects */
   .hover-scale {
     @apply transition-transform duration-300 hover:scale-105;
   }
@@ -178,7 +170,6 @@
     @apply transition-transform duration-300 hover:-translate-y-1;
   }
 
-  /* Animation utilities */
   .animate-float {
     animation: float 6s ease-in-out infinite;
   }
@@ -207,7 +198,6 @@
     @apply absolute rounded-full bg-gradient-to-r filter blur-3xl opacity-70 animate-float;
   }
   
-  /* Mobile optimized containers and spacing */
   .responsive-container {
     @apply w-full px-4 md:px-6 lg:px-8 max-w-7xl mx-auto;
   }
@@ -220,12 +210,10 @@
     @apply gap-4 md:gap-6 lg:gap-8;
   }
 
-  /* Touch optimized interactive elements */
   .touch-target {
     @apply min-w-[44px] min-h-[44px] flex items-center justify-center;
   }
 
-  /* Prevent text overflow issues on mobile */
   .text-balance {
     text-wrap: balance;
   }
@@ -234,7 +222,6 @@
     text-wrap: pretty;
   }
   
-  /* Mobile safe area utilities */
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
@@ -251,7 +238,6 @@
     padding-right: env(safe-area-inset-right, 0px);
   }
   
-  /* Dynamic sizing for different screens */
   .text-dynamic-sm {
     @apply text-xs sm:text-sm md:text-base;
   }
@@ -268,7 +254,6 @@
     @apply text-lg sm:text-xl md:text-2xl;
   }
   
-  /* Modern loading effects */
   .shimmer {
     @apply relative overflow-hidden;
   }
@@ -278,7 +263,6 @@
     content: '';
   }
   
-  /* Micro-interactions */
   .btn-press {
     @apply active:scale-95 transition-transform;
   }
@@ -287,7 +271,6 @@
     @apply transition-colors duration-200 hover:bg-black/10;
   }
   
-  /* Card interactions */
   .card-hover {
     @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg;
   }
@@ -296,7 +279,6 @@
     @apply active:scale-[0.98] transition-transform;
   }
   
-  /* Ripple effect */
   .ripple {
     @apply relative overflow-hidden;
   }
@@ -311,7 +293,6 @@
     @apply animate-ripple;
   }
   
-  /* Enhanced glassmorphism effects */
   .frost-panel {
     @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-lg shadow-xl;
   }
@@ -320,7 +301,6 @@
     @apply bg-black/40 backdrop-blur-xl border border-white/5 rounded-lg shadow-2xl;
   }
 
-  /* Modern gradient borders */
   .gradient-border {
     position: relative;
     border-radius: 0.5rem;
@@ -339,7 +319,6 @@
     background: linear-gradient(45deg, #4CAF50, transparent, #388E3C);
   }
   
-  /* Responsive typography */
   .text-responsive {
     @apply text-base md:text-lg lg:text-xl;
   }
@@ -352,7 +331,6 @@
     @apply text-xl md:text-2xl lg:text-3xl font-semibold;
   }
   
-  /* Modern card layouts */
   .card-grid {
     @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6;
   }
@@ -373,11 +351,9 @@ body {
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
-  /* Mobile viewport height fix */
   min-height: -webkit-fill-available;
 }
 
-/* iOS viewport height fix */
 html {
   height: -webkit-fill-available;
 }
@@ -399,17 +375,15 @@ html {
   background: rgba(76, 175, 80, 0.8);
 }
 
-/* Mobile-specific styles */
 @media (max-width: 768px) {
   .glass-card {
-    @apply bg-black/40; /* Slightly darker on mobile for better contrast */
+    @apply bg-black/40;
   }
   
   .animate-float {
-    animation-duration: 8s; /* Slower animations on mobile */
+    animation-duration: 8s;
   }
   
-  /* Adjust font sizes for better mobile readability */
   h1 {
     @apply text-3xl;
   }
@@ -422,22 +396,18 @@ html {
     @apply text-xl;
   }
   
-  /* Better button sizing for touch targets */
   button, a[role="button"] {
     @apply min-h-[44px];
   }
   
-  /* Prevent text overflow issues on mobile */
   p, h1, h2, h3, h4, h5, h6 {
     @apply text-balance;
   }
   
-  /* Improve form element spacing on mobile */
   input, select, textarea {
     @apply mb-4;
   }
   
-  /* Haptic feedback for touch interactions */
   .haptic-feedback {
     transition: transform 0.1s;
   }
@@ -446,10 +416,8 @@ html {
     transform: scale(0.95);
   }
   
-  /* Mobile swipe area for interactive elements */
   .swipe-area {
-    @apply overflow-x-auto scrollbar-none -mx-4 px-4 py-2;
-    scroll-snap-type: x mandatory;
+    @apply overflow-x-auto scrollbar-none -mx-4 px-4 py-2 scroll-snap-x;
     -webkit-overflow-scrolling: touch;
   }
   
@@ -458,8 +426,6 @@ html {
   }
 }
 
-/* Add more interactive components styles */
-/* Interactive card hover effects */
 .hover-card-3d {
   transform-style: preserve-3d;
   perspective: 1000px;
@@ -470,7 +436,6 @@ html {
   transform: rotateY(5deg) rotateX(5deg);
 }
 
-/* Animated borders */
 .animated-border {
   position: relative;
   overflow: hidden;
@@ -492,7 +457,6 @@ html {
   100% { left: 100%; }
 }
 
-/* Ripple effect for buttons */
 .ripple-button {
   position: relative;
   overflow: hidden;
@@ -513,7 +477,6 @@ html {
   }
 }
 
-/* Text selection popover */
 .text-selection-popover {
   transform: translateX(-50%) translateY(-10px);
   transition: opacity 0.2s, transform 0.2s;
@@ -523,7 +486,6 @@ html {
   transform: translateX(-50%) translateY(-12px);
 }
 
-/* Bottom navigation for mobile */
 .bottom-nav {
   @apply fixed bottom-0 left-0 right-0 bg-black/70 backdrop-blur-xl border-t border-white/10 py-2 px-4 flex justify-around items-center z-50 pb-safe;
 }
@@ -532,12 +494,10 @@ html {
   @apply flex flex-col items-center justify-center gap-1 p-2 rounded-md hover:bg-black/30 transition-colors;
 }
 
-/* Mobile menu enhancements */
 .mobile-menu-item {
   @apply py-3 px-4 flex items-center gap-2 hover:bg-black/20 active:bg-black/30 rounded-md transition-all duration-200;
 }
 
-/* Glossy button effect for mobile */
 .glossy-button {
   @apply relative overflow-hidden bg-gradient-to-br from-plantDoc-primary/90 to-plantDoc-secondary border border-white/20 shadow-lg;
 }
@@ -551,12 +511,10 @@ html {
   @apply transform scale-95;
 }
 
-/* Improved focus styles for accessibility */
 :focus-visible {
   @apply outline-none ring-2 ring-plantDoc-primary ring-offset-2 ring-offset-background;
 }
 
-/* Fix for autofill text visibility on input fields */
 input:-webkit-autofill,
 input:-webkit-autofill:hover, 
 input:-webkit-autofill:focus {
@@ -565,53 +523,4 @@ input:-webkit-autofill:focus {
   transition: background-color 5000s ease-in-out 0s;
   backdrop-filter: none !important;
   background-color: transparent !important;
-  color: white !important;
-}
-
-/* Fix autofill contrasts for better visibility */
-input:-webkit-autofill,
-select:-webkit-autofill {
-  background-color: transparent !important;
-  color: white !important;
-  -webkit-text-fill-color: white !important;
-  caret-color: white !important;
-}
-
-/* 3D Transform styles for ThreeDPlant component */
-.perspective-1000 {
-  perspective: 1000px;
-}
-
-@keyframes float {
-  0% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-20px);
-  }
-  100% {
-    transform: translateY(0px);
-  }
-}
-
-@keyframes pulse-glow {
-  0% {
-    opacity: 0.7;
-    box-shadow: 0 0 5px 0px rgba(76, 175, 80, 0.3);
-  }
-  50% {
-    opacity: 1;
-    box-shadow: 0 0 20px 5px rgba(76, 175, 80, 0.6);
-  }
-  100% {
-    opacity: 0.7;
-    box-shadow: 0 0 5px 0px rgba(76, 175, 80, 0.3);
-  }
-}
-
-@keyframes ripple {
-  to {
-    transform: scale(4);
-    opacity: 0;
-  }
 }
