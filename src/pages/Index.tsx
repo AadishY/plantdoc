@@ -1,13 +1,14 @@
 
 import React, { useEffect, useState, useRef, lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
-import { Leaf, ArrowUp, Droplet, Thermometer, ChevronDown, ChevronUp } from 'lucide-react';
+import { Leaf, ArrowUp, Droplet, Thermometer, ChevronDown, ChevronUp, Zap, ShieldCheck, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { motion } from 'framer-motion';
 import DynamicBackground from '@/components/DynamicBackground';
 import AnimatedLoader from '@/components/ui/animated-loader';
+import { Card } from '@/components/ui/card';
 
 const ParallaxSection = lazy(() => import('@/components/ParallaxSection'));
 const RotatingLeaf = lazy(() => import('@/components/RotatingLeaf'));
@@ -102,7 +103,7 @@ const Index = () => {
                 </Link>
               </motion.div>
               <motion.div 
-                className="flex-1 flex justify-center md:justify-end"
+                className="flex-1 flex justify-center md:justify-end h-72 relative"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
@@ -115,9 +116,162 @@ const Index = () => {
           </div>
         </section>
 
+        {/* New Features Highlight Section */}
+        <section className="py-12 md:py-16 relative">
+          <div className="container mx-auto px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.6 }}
+              className="text-center mb-10"
+            >
+              <h2 className="text-3xl font-bold mb-3 text-gradient">How It Works</h2>
+              <p className="text-foreground/70 max-w-2xl mx-auto">Diagnose plant issues in three simple steps</p>
+            </motion.div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ delay: 0.3, duration: 0.6 }}
+                className="glass-card p-6 rounded-xl text-center relative"
+                whileHover={{ 
+                  y: -10,
+                  backgroundColor: "rgba(0,0,0,0.5)"
+                }}
+              >
+                <div className="absolute -top-4 -left-4 w-12 h-12 bg-plantDoc-primary rounded-full flex items-center justify-center font-bold text-black">1</div>
+                <div className="pt-6">
+                  <motion.div 
+                    className="w-16 h-16 mx-auto mb-4 bg-plantDoc-primary/20 rounded-full flex items-center justify-center"
+                    whileHover={{ rotate: 15 }}
+                  >
+                    <Upload className="h-7 w-7 text-plantDoc-primary" />
+                  </motion.div>
+                  <h3 className="text-xl font-semibold mb-2">Upload Photo</h3>
+                  <p className="text-foreground/70">Take a clear photo of your plant's affected parts and upload it to our system</p>
+                </div>
+              </motion.div>
+              
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ delay: 0.45, duration: 0.6 }}
+                className="glass-card p-6 rounded-xl text-center relative"
+                whileHover={{ 
+                  y: -10,
+                  backgroundColor: "rgba(0,0,0,0.5)"
+                }}
+              >
+                <div className="absolute -top-4 -left-4 w-12 h-12 bg-plantDoc-primary rounded-full flex items-center justify-center font-bold text-black">2</div>
+                <div className="pt-6">
+                  <motion.div 
+                    className="w-16 h-16 mx-auto mb-4 bg-plantDoc-primary/20 rounded-full flex items-center justify-center"
+                    whileHover={{ rotate: 15 }}
+                  >
+                    <Zap className="h-7 w-7 text-plantDoc-primary" />
+                  </motion.div>
+                  <h3 className="text-xl font-semibold mb-2">AI Analysis</h3>
+                  <p className="text-foreground/70">Our AI system analyzes the image to identify diseases and health issues</p>
+                </div>
+              </motion.div>
+              
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ delay: 0.6, duration: 0.6 }}
+                className="glass-card p-6 rounded-xl text-center relative"
+                whileHover={{ 
+                  y: -10,
+                  backgroundColor: "rgba(0,0,0,0.5)"
+                }}
+              >
+                <div className="absolute -top-4 -left-4 w-12 h-12 bg-plantDoc-primary rounded-full flex items-center justify-center font-bold text-black">3</div>
+                <div className="pt-6">
+                  <motion.div 
+                    className="w-16 h-16 mx-auto mb-4 bg-plantDoc-primary/20 rounded-full flex items-center justify-center"
+                    whileHover={{ rotate: 15 }}
+                  >
+                    <ShieldCheck className="h-7 w-7 text-plantDoc-primary" />
+                  </motion.div>
+                  <h3 className="text-xl font-semibold mb-2">Get Results</h3>
+                  <p className="text-foreground/70">Receive comprehensive diagnosis and treatment recommendations in seconds</p>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
         <Suspense fallback={<ComponentLoader />}>
           <ParallaxSection />
         </Suspense>
+
+        {/* Statistics Section */}
+        <section className="py-16 relative overflow-hidden">
+          <div className="container mx-auto px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.6 }}
+              className="max-w-4xl mx-auto"
+            >
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true, margin: "-100px" }}
+                  transition={{ delay: 0.3, duration: 0.6 }}
+                  className="glass-card p-6 rounded-xl text-center"
+                  whileHover={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+                >
+                  <h3 className="text-3xl md:text-4xl font-bold text-plantDoc-primary mb-2">500+</h3>
+                  <p className="text-foreground/70 text-sm">Plant Species</p>
+                </motion.div>
+                
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true, margin: "-100px" }}
+                  transition={{ delay: 0.4, duration: 0.6 }}
+                  className="glass-card p-6 rounded-xl text-center"
+                  whileHover={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+                >
+                  <h3 className="text-3xl md:text-4xl font-bold text-plantDoc-primary mb-2">95%</h3>
+                  <p className="text-foreground/70 text-sm">Accuracy Rate</p>
+                </motion.div>
+                
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true, margin: "-100px" }}
+                  transition={{ delay: 0.5, duration: 0.6 }}
+                  className="glass-card p-6 rounded-xl text-center"
+                  whileHover={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+                >
+                  <h3 className="text-3xl md:text-4xl font-bold text-plantDoc-primary mb-2">200+</h3>
+                  <p className="text-foreground/70 text-sm">Disease Types</p>
+                </motion.div>
+                
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true, margin: "-100px" }}
+                  transition={{ delay: 0.6, duration: 0.6 }}
+                  className="glass-card p-6 rounded-xl text-center"
+                  whileHover={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+                >
+                  <h3 className="text-3xl md:text-4xl font-bold text-plantDoc-primary mb-2">24/7</h3>
+                  <p className="text-foreground/70 text-sm">Availability</p>
+                </motion.div>
+              </div>
+            </motion.div>
+          </div>
+        </section>
 
         <section className="py-16 relative">
           <div className="container mx-auto px-4">
@@ -282,7 +436,7 @@ const Index = () => {
         </section>
       </main>
       
-      <div className="fixed bottom-24 right-8 z-50">
+      <div className="fixed bottom-28 right-8 z-50">
         <Link to="/diagnose">
           <motion.div
             whileHover={{ scale: 1.1 }}
@@ -298,7 +452,7 @@ const Index = () => {
       
       <motion.button 
         onClick={scrollToTop} 
-        className={`fixed bottom-24 left-8 z-50 p-3 rounded-full glass-card ${
+        className={`fixed bottom-28 left-8 z-50 p-3 rounded-full glass-card ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'
         }`}
         whileHover={{ 
