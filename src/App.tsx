@@ -6,7 +6,7 @@ import { Toaster } from '@/components/ui/toaster';
 import AnimatedLoader from '@/components/ui/animated-loader';
 
 // Lazily load components for better performance
-const TextHighlighter = lazy(() => import('@/components/TextHighlighter'));
+const TextHighlighter = lazy(() => import('@/components/CustomHighlighter'));
 const FixedMobileNav = lazy(() => import('@/components/FixedMobileNav'));
 
 // Lazily load pages for better performance
@@ -35,7 +35,7 @@ function App() {
           
           // After a short delay, preload other components
           setTimeout(() => {
-            import('@/components/TextHighlighter');
+            import('@/components/CustomHighlighter');
             import('@/components/FixedMobileNav');
           }, 1000);
         };
@@ -66,7 +66,6 @@ function App() {
       {/* Global Components - lazy loaded for better initial page load */}
       <Suspense fallback={null}>
         <FixedMobileNav />
-        <TextHighlighter />
       </Suspense>
       <Toaster />
     </ThemeProvider>
