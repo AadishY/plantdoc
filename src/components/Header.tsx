@@ -70,7 +70,6 @@ const Header = () => {
           <NavLink to="/" label="Home" isActive={isActive('/')} />
           <NavLink to="/diagnose" label="Diagnose" isActive={isActive('/diagnose')} />
           <NavLink to="/recommend" label="Plant Recommendations" isActive={isActive('/recommend')} />
-          <NavLink to="/about" label="About" isActive={isActive('/about')} />
         </nav>
         
         {/* Right side elements */}
@@ -130,12 +129,6 @@ const Header = () => {
                       to="/recommend" 
                       label="Plant Recommendations" 
                       isActive={isActive('/recommend')} 
-                      onClick={() => setOpen(false)} 
-                    />
-                    <MobileNavLink 
-                      to="/about" 
-                      label="About" 
-                      isActive={isActive('/about')} 
                       onClick={() => setOpen(false)} 
                     />
                   </nav>
