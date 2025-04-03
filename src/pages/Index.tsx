@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useRef, lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import { Leaf, ArrowUp, Droplet, Thermometer, ChevronDown, ChevronUp } from 'lucide-react';
@@ -281,7 +282,7 @@ const Index = () => {
         </section>
       </main>
       
-      <div className="fixed bottom-16 right-8 z-50">
+      <div className="fixed bottom-24 right-8 z-50">
         <Link to="/diagnose">
           <motion.div
             whileHover={{ scale: 1.1 }}
@@ -297,7 +298,7 @@ const Index = () => {
       
       <motion.button 
         onClick={scrollToTop} 
-        className={`fixed bottom-16 left-8 z-50 p-3 rounded-full glass-card ${
+        className={`fixed bottom-24 left-8 z-50 p-3 rounded-full glass-card ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'
         }`}
         whileHover={{ 
