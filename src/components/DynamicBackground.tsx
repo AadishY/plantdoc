@@ -35,10 +35,10 @@ const DynamicBackground = () => {
           y: `${Math.random() * 100}%`,
           size: `${isMobile ? 150 + Math.random() * 150 : 200 + Math.random() * 300}px`,
           color: i % 3 === 0 
-            ? 'from-plantDoc-primary/20 to-plantDoc-secondary/10' 
+            ? 'from-plantDoc-primary/30 to-plantDoc-secondary/20' 
             : i % 3 === 1 
-              ? 'from-plantDoc-secondary/15 to-plantDoc-primary/10'
-              : 'from-accent/15 to-plantDoc-primary/10',
+              ? 'from-plantDoc-secondary/20 to-plantDoc-primary/10'
+              : 'from-accent/20 to-plantDoc-primary/10',
           delay: i * 0.5,
           duration: 15 + Math.random() * 10
         });
@@ -47,7 +47,7 @@ const DynamicBackground = () => {
       setBlobs(newBlobs);
       setMounted(true);
     }
-  }, [isMobile, mounted, blobCount]);
+  }, [isMobile, mounted]);
   
   // Optimize rendering with useCallback
   const renderBlobs = () => {
@@ -60,7 +60,7 @@ const DynamicBackground = () => {
           top: blob.y,
           width: blob.size,
           height: blob.size,
-          opacity: 0.15
+          opacity: 0.3
         }}
         animate={{
           x: [0, 30, -20, 10, 0],
@@ -85,10 +85,10 @@ const DynamicBackground = () => {
       {renderBlobs()}
       
       {/* Optional grid pattern for more modern look */}
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMxQTIwMkMiIGZpbGwtb3BhY2l0eT0iMC4wNCI+PHBhdGggZD0iTTM2IDM0aDR2MWgtNHYtMXptMC0zaC00djFoNHYtMXptMC0yaC00djFoNHYtMXptLTYgMWgtNHYxaDR2LTF6TTEyIDEyaDR2MWgtNHYtMXptMC0zaC00djFoNHYtMXptMC0yaC00djFoNHYtMXptLTYgMWgtNHYxaDR2LTF6TTM2IDEyaDR2MWgtNHYtMXptMC0zaC00djFoNHYtMXptMC0yaC00djFoNHYtMXptLTYgMWgtNHYxaDR2LTF6TTEyIDM0aDR2MWgtNHYtMXptMC0zaC00djFoNHYtMXptMC0yaC00djFoNHYtMXptLTYgMWgtNHYxaDR2LTF6Ij48L3BhdGg+PC9nPjwvZz48L3N2Zz4=')] opacity-10"></div>
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMxQTIwMkMiIGZpbGwtb3BhY2l0eT0iMC4wNCI+PHBhdGggZD0iTTM2IDM0aDR2MWgtNHYtMXptMC0zaC00djFoNHYtMXptMC0yaC00djFoNHYtMXptLTYgMWgtNHYxaDR2LTF6TTEyIDEyaDR2MWgtNHYtMXptMC0zaC00djFoNHYtMXptMC0yaC00djFoNHYtMXptLTYgMWgtNHYxaDR2LTF6TTM2IDEyaDR2MWgtNHYtMXptMC0zaC00djFoNHYtMXptMC0yaC00djFoNHYtMXptLTYgMWgtNHYxaDR2LTF6TTEyIDM0aDR2MWgtNHYtMXptMC0zaC00djFoNHYtMXptMC0yaC00djFoNHYtMXptLTYgMWgtNHYxaDR2LTF6Ij48L3BhdGg+PC9nPjwvZz48L3N2Zz4=')] opacity-20"></div>
       
       {/* Radial gradient overlay for depth */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-transparent to-background/80 pointer-events-none"></div>
+      <div className="absolute inset-0 bg-radial-gradient from-transparent via-transparent to-background/80 pointer-events-none"></div>
     </div>
   );
 };

@@ -79,11 +79,11 @@ const Index = () => {
                 >
                   <Leaf className="h-6 w-6 text-plantDoc-primary" />
                 </motion.div>
-                <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gradient relative text-white">
+                <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gradient relative">
                   AI-Powered Plant Disease Diagnosis
                   <div className="absolute -bottom-2 left-0 md:w-1/3 h-0.5 bg-gradient-to-r from-plantDoc-primary to-transparent"></div>
                 </h1>
-                <p className="text-lg text-white mb-8 md:max-w-xl">
+                <p className="text-lg text-foreground/70 mb-8 md:max-w-xl">
                   Upload a photo of your plant and get instant diagnosis, treatment recommendations, 
                   and care tips to help your plants thrive.
                 </p>
@@ -127,12 +127,12 @@ const Index = () => {
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.6 }}
             >
-              <h2 className="text-3xl font-bold mb-4 text-gradient relative inline-block text-white">
-                Plant Care Reimagined
+              <h2 className="text-3xl font-bold mb-4 text-gradient relative inline-block">
+                How Plant Doc Works
                 <div className="absolute -bottom-2 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-transparent via-plantDoc-primary to-transparent"></div>
               </h2>
-              <p className="text-white max-w-2xl mx-auto">
-                Our advanced AI technology helps you identify and treat plant diseases with just a photo, revolutionizing how you care for your plants.
+              <p className="text-foreground/70 max-w-2xl mx-auto">
+                Our advanced AI technology helps you identify and treat plant diseases with just a photo.
               </p>
             </motion.div>
             
@@ -151,9 +151,9 @@ const Index = () => {
                 >
                   <ArrowUp className="text-plantDoc-primary h-8 w-8 group-hover:animate-bounce" />
                 </motion.div>
-                <h3 className="text-xl font-semibold mb-2 text-gradient text-white">Upload a Photo</h3>
-                <p className="text-white">
-                  Take a clear picture of your plant showing the affected areas and upload it for instant analysis.
+                <h3 className="text-xl font-semibold mb-2 text-gradient">Upload a Photo</h3>
+                <p className="text-foreground/70">
+                  Take a clear picture of your plant showing the affected areas and upload it.
                 </p>
               </motion.div>
               
@@ -171,9 +171,9 @@ const Index = () => {
                 >
                   <Leaf className="text-plantDoc-primary h-8 w-8 group-hover:rotate-12 transition-transform duration-300" />
                 </motion.div>
-                <h3 className="text-xl font-semibold mb-2 text-gradient text-white">Get Diagnosis</h3>
-                <p className="text-white">
-                  Our AI analyzes your plant's condition and identifies any diseases or issues with high accuracy.
+                <h3 className="text-xl font-semibold mb-2 text-gradient">Get Diagnosis</h3>
+                <p className="text-foreground/70">
+                  Our AI analyzes your plant's condition and identifies any diseases or issues.
                 </p>
               </motion.div>
               
@@ -191,103 +191,9 @@ const Index = () => {
                 >
                   <Thermometer className="text-plantDoc-primary h-8 w-8 group-hover:animate-pulse" />
                 </motion.div>
-                <h3 className="text-xl font-semibold mb-2 text-gradient text-white">Receive Treatment Plan</h3>
-                <p className="text-white">
-                  Get personalized recommendations for treatment, prevention, and care tailored to your plant's needs.
-                </p>
-              </motion.div>
-            </div>
-          </div>
-        </section>
-
-        <section className="py-16 bg-black/20 backdrop-blur-md">
-          <div className="container mx-auto px-4">
-            <motion.div 
-              className="text-center mb-12"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6 }}
-            >
-              <h2 className="text-3xl font-bold mb-4 text-gradient relative inline-block text-white">
-                Why Choose PlantDoc
-                <div className="absolute -bottom-2 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-transparent via-plantDoc-primary to-transparent"></div>
-              </h2>
-              <p className="text-white max-w-2xl mx-auto">
-                Discover the advantages of using our AI-powered plant care assistant for your greenery.
-              </p>
-            </motion.div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.6 }}
-                className="glass-card rounded-xl p-6 hover:bg-black/40 transition-colors"
-              >
-                <h3 className="text-xl font-semibold mb-3 text-gradient flex items-center text-white">
-                  <span className="w-8 h-8 rounded-full bg-plantDoc-primary/20 flex items-center justify-center mr-3">
-                    <span className="text-plantDoc-primary">1</span>
-                  </span>
-                  Instant Diagnosis
-                </h3>
-                <p className="text-white pl-11">
-                  Get immediate results without waiting for expert consultations or lengthy research. Our AI processes your plant photos in seconds.
-                </p>
-              </motion.div>
-              
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.6, delay: 0.1 }}
-                className="glass-card rounded-xl p-6 hover:bg-black/40 transition-colors"
-              >
-                <h3 className="text-xl font-semibold mb-3 text-gradient flex items-center text-white">
-                  <span className="w-8 h-8 rounded-full bg-plantDoc-primary/20 flex items-center justify-center mr-3">
-                    <span className="text-plantDoc-primary">2</span>
-                  </span>
-                  High Accuracy
-                </h3>
-                <p className="text-white pl-11">
-                  Powered by advanced machine learning models trained on thousands of plant disease samples for reliable and precise results.
-                </p>
-              </motion.div>
-              
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="glass-card rounded-xl p-6 hover:bg-black/40 transition-colors"
-              >
-                <h3 className="text-xl font-semibold mb-3 text-gradient flex items-center text-white">
-                  <span className="w-8 h-8 rounded-full bg-plantDoc-primary/20 flex items-center justify-center mr-3">
-                    <span className="text-plantDoc-primary">3</span>
-                  </span>
-                  Personalized Solutions
-                </h3>
-                <p className="text-white pl-11">
-                  Receive tailored treatment plans and care recommendations specific to your plant's condition and species.
-                </p>
-              </motion.div>
-              
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-                className="glass-card rounded-xl p-6 hover:bg-black/40 transition-colors"
-              >
-                <h3 className="text-xl font-semibold mb-3 text-gradient flex items-center text-white">
-                  <span className="w-8 h-8 rounded-full bg-plantDoc-primary/20 flex items-center justify-center mr-3">
-                    <span className="text-plantDoc-primary">4</span>
-                  </span>
-                  Completely Free
-                </h3>
-                <p className="text-white pl-11">
-                  Access all features without any cost or account creation. Plant health shouldn't come with a premium price tag.
+                <h3 className="text-xl font-semibold mb-2 text-gradient">Receive Treatment Plan</h3>
+                <p className="text-foreground/70">
+                  Get personalized recommendations for treatment, prevention, and care.
                 </p>
               </motion.div>
             </div>
@@ -303,11 +209,11 @@ const Index = () => {
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.6 }}
             >
-              <h2 className="text-3xl font-bold mb-4 text-gradient relative inline-block text-white">
+              <h2 className="text-3xl font-bold mb-4 text-gradient relative inline-block">
                 Frequently Asked Questions
                 <div className="absolute -bottom-2 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-transparent via-plantDoc-primary to-transparent"></div>
               </h2>
-              <p className="text-white max-w-2xl mx-auto">
+              <p className="text-foreground/70 max-w-2xl mx-auto">
                 Common questions about Plant Doc and how it can help your plants thrive.
               </p>
             </motion.div>
@@ -326,7 +232,7 @@ const Index = () => {
               <Suspense fallback={<ComponentLoader />}>
                 <Accordion type="single" collapsible className="w-full">
                   <AccordionItem value="item-1" className="border-b border-white/10 group">
-                    <AccordionTrigger className="text-lg font-medium py-4 hover:text-plantDoc-primary transition-colors group-hover:bg-black/20 px-4 rounded-md -mx-4 text-white">
+                    <AccordionTrigger className="text-lg font-medium py-4 hover:text-plantDoc-primary transition-colors group-hover:bg-black/20 px-4 rounded-md -mx-4">
                       <motion.span
                         className="group-hover:translate-x-1 transition-transform duration-300"
                         whileHover={{ x: 5 }}
@@ -334,7 +240,7 @@ const Index = () => {
                         How accurate is the plant disease diagnosis?
                       </motion.span>
                     </AccordionTrigger>
-                    <AccordionContent className="text-white/80 pb-4">
+                    <AccordionContent className="text-foreground/80 pb-4">
                       <motion.div 
                         className="bg-black/20 p-4 rounded-lg"
                         initial={{ opacity: 0, y: -10 }}
@@ -347,7 +253,7 @@ const Index = () => {
                   </AccordionItem>
                   
                   <AccordionItem value="item-2" className="border-b border-white/10 group">
-                    <AccordionTrigger className="text-lg font-medium py-4 hover:text-plantDoc-primary transition-colors group-hover:bg-black/20 px-4 rounded-md -mx-4 text-white">
+                    <AccordionTrigger className="text-lg font-medium py-4 hover:text-plantDoc-primary transition-colors group-hover:bg-black/20 px-4 rounded-md -mx-4">
                       <motion.span
                         className="group-hover:translate-x-1 transition-transform duration-300"
                         whileHover={{ x: 5 }}
@@ -355,7 +261,7 @@ const Index = () => {
                         Do I need to create an account to use Plant Doc?
                       </motion.span>
                     </AccordionTrigger>
-                    <AccordionContent className="text-white/80 pb-4">
+                    <AccordionContent className="text-foreground/80 pb-4">
                       <motion.div 
                         className="bg-black/20 p-4 rounded-lg"
                         initial={{ opacity: 0, y: -10 }}
@@ -368,7 +274,7 @@ const Index = () => {
                   </AccordionItem>
                   
                   <AccordionItem value="item-3" className="border-b border-white/10 group">
-                    <AccordionTrigger className="text-lg font-medium py-4 hover:text-plantDoc-primary transition-colors group-hover:bg-black/20 px-4 rounded-md -mx-4 text-white">
+                    <AccordionTrigger className="text-lg font-medium py-4 hover:text-plantDoc-primary transition-colors group-hover:bg-black/20 px-4 rounded-md -mx-4">
                       <motion.span
                         className="group-hover:translate-x-1 transition-transform duration-300"
                         whileHover={{ x: 5 }}
@@ -376,7 +282,7 @@ const Index = () => {
                         What information does Plant Doc provide in its diagnosis?
                       </motion.span>
                     </AccordionTrigger>
-                    <AccordionContent className="text-white/80 pb-4">
+                    <AccordionContent className="text-foreground/80 pb-4">
                       <motion.div 
                         className="bg-black/20 p-4 rounded-lg"
                         initial={{ opacity: 0, y: -10 }}
@@ -389,7 +295,7 @@ const Index = () => {
                   </AccordionItem>
                   
                   <AccordionItem value="item-4" className="border-b border-white/10 group">
-                    <AccordionTrigger className="text-lg font-medium py-4 hover:text-plantDoc-primary transition-colors group-hover:bg-black/20 px-4 rounded-md -mx-4 text-white">
+                    <AccordionTrigger className="text-lg font-medium py-4 hover:text-plantDoc-primary transition-colors group-hover:bg-black/20 px-4 rounded-md -mx-4">
                       <motion.span
                         className="group-hover:translate-x-1 transition-transform duration-300"
                         whileHover={{ x: 5 }}
@@ -397,7 +303,7 @@ const Index = () => {
                         How does the plant recommendation feature work?
                       </motion.span>
                     </AccordionTrigger>
-                    <AccordionContent className="text-white/80 pb-4">
+                    <AccordionContent className="text-foreground/80 pb-4">
                       <motion.div 
                         className="bg-black/20 p-4 rounded-lg"
                         initial={{ opacity: 0, y: -10 }}
@@ -410,7 +316,7 @@ const Index = () => {
                   </AccordionItem>
                   
                   <AccordionItem value="item-5" className="border-b border-white/10 group">
-                    <AccordionTrigger className="text-lg font-medium py-4 hover:text-plantDoc-primary transition-colors group-hover:bg-black/20 px-4 rounded-md -mx-4 text-white">
+                    <AccordionTrigger className="text-lg font-medium py-4 hover:text-plantDoc-primary transition-colors group-hover:bg-black/20 px-4 rounded-md -mx-4">
                       <motion.span
                         className="group-hover:translate-x-1 transition-transform duration-300"
                         whileHover={{ x: 5 }}
@@ -418,7 +324,7 @@ const Index = () => {
                         Can Plant Doc identify all types of plants?
                       </motion.span>
                     </AccordionTrigger>
-                    <AccordionContent className="text-white/80 pb-4">
+                    <AccordionContent className="text-foreground/80 pb-4">
                       <motion.div 
                         className="bg-black/20 p-4 rounded-lg"
                         initial={{ opacity: 0, y: -10 }}
@@ -431,7 +337,7 @@ const Index = () => {
                   </AccordionItem>
                   
                   <AccordionItem value="item-6" className="group">
-                    <AccordionTrigger className="text-lg font-medium py-4 hover:text-plantDoc-primary transition-colors group-hover:bg-black/20 px-4 rounded-md -mx-4 text-white">
+                    <AccordionTrigger className="text-lg font-medium py-4 hover:text-plantDoc-primary transition-colors group-hover:bg-black/20 px-4 rounded-md -mx-4">
                       <motion.span
                         className="group-hover:translate-x-1 transition-transform duration-300"
                         whileHover={{ x: 5 }}
@@ -439,7 +345,7 @@ const Index = () => {
                         Is my data private when I use Plant Doc?
                       </motion.span>
                     </AccordionTrigger>
-                    <AccordionContent className="text-white/80 pb-4">
+                    <AccordionContent className="text-foreground/80 pb-4">
                       <motion.div 
                         className="bg-black/20 p-4 rounded-lg"
                         initial={{ opacity: 0, y: -10 }}
@@ -457,7 +363,7 @@ const Index = () => {
         </section>
       </main>
       
-      <div className="fixed bottom-24 right-8 z-50">
+      <div className="fixed bottom-8 right-8 z-50">
         <Link to="/diagnose">
           <motion.div
             whileHover={{ scale: 1.1 }}

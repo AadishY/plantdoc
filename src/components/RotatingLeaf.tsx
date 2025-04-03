@@ -42,15 +42,10 @@ const RotatingLeaf: React.FC = () => {
   // Create the animation sequence
   useEffect(() => {
     const sequence = async () => {
-      // Set initial state first
-      await controls.set({ scale: 0.8, opacity: 0 });
-      
-      // Then animate to visible state
       await controls.start({
-        scale: 1,
-        opacity: 1,
         rotateY: 0,
         rotateX: 0,
+        scale: 1,
         transition: { duration: 1 }
       });
       
@@ -74,6 +69,8 @@ const RotatingLeaf: React.FC = () => {
       <motion.div
         ref={leafRef}
         animate={controls}
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
         className="w-80 h-80 perspective-1000"
         style={{
           transformStyle: "preserve-3d",
@@ -105,7 +102,6 @@ const RotatingLeaf: React.FC = () => {
                   transformStyle: "preserve-3d",
                   transform: `translateZ(${Math.random() * 20 + 10}px)`
                 }}
-                initial={{ scale: 0, opacity: 0 }}
                 animate={{
                   y: [0, -20, 0],
                   opacity: [0, 1, 0],
