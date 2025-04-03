@@ -3,17 +3,45 @@ import React from 'react';
 import { motion, useAnimation } from 'framer-motion';
 
 const RotatingLeaf = () => {
+  const controls1 = useAnimation();
+  const controls2 = useAnimation();
+  const controls3 = useAnimation();
+  
+  React.useEffect(() => {
+    controls1.start({
+      rotate: 360,
+      transition: {
+        repeat: Infinity,
+        duration: 24,
+        ease: "linear",
+      }
+    });
+    
+    controls2.start({
+      rotate: -360,
+      transition: {
+        repeat: Infinity,
+        duration: 30,
+        ease: "linear",
+      }
+    });
+    
+    controls3.start({
+      rotate: 360,
+      transition: {
+        repeat: Infinity,
+        duration: 36,
+        ease: "linear",
+      }
+    });
+  }, [controls1, controls2, controls3]);
+
   return (
     <div className="relative">
       <motion.div
         className="absolute top-0 left-0 w-full h-full flex items-center justify-center"
         initial={{ rotate: 0 }}
-        animate={{ rotate: 360 }}
-        transition={{
-          repeat: Infinity,
-          duration: 24,
-          ease: "linear",
-        }}
+        animate={controls1}
       >
         <motion.img
           src="/images/leaf-1.png"
@@ -31,12 +59,7 @@ const RotatingLeaf = () => {
       <motion.div
         className="absolute top-0 left-0 w-full h-full flex items-center justify-center"
         initial={{ rotate: 0 }}
-        animate={{ rotate: -360 }}
-        transition={{
-          repeat: Infinity,
-          duration: 30,
-          ease: "linear",
-        }}
+        animate={controls2}
       >
         <motion.img
           src="/images/leaf-2.png"
@@ -54,12 +77,7 @@ const RotatingLeaf = () => {
       <motion.div
         className="absolute top-0 left-0 w-full h-full flex items-center justify-center"
         initial={{ rotate: 0 }}
-        animate={{ rotate: 360 }}
-        transition={{
-          repeat: Infinity,
-          duration: 36,
-          ease: "linear",
-        }}
+        animate={controls3}
       >
         <motion.img
           src="/images/leaf-3.png"

@@ -1,7 +1,6 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
-import { Leaf, Heart, Github, Instagram, ExternalLink } from "lucide-react";
+import { Leaf, Heart, Github, Instagram } from "lucide-react";
 import { motion } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -148,7 +147,7 @@ const Footer = () => {
           </motion.div>
         </div>
 
-        {/* Copyright and signature */}
+        {/* Copyright and signature - only keep one footer */}
         <div className="mt-6 pt-4 border-t border-white/10 flex flex-col md:flex-row items-center justify-between">
           <p className="text-foreground/60 text-sm">
             &copy; {currentYear} Plant Doc. All rights reserved.
@@ -161,34 +160,6 @@ const Footer = () => {
           </motion.p>
         </div>
       </div>
-      
-      {/* Decorative elements */}
-      <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-background to-transparent opacity-30"></div>
-      <motion.div 
-        className="absolute -bottom-10 -left-10 w-40 h-40 bg-plantDoc-primary/10 rounded-full blur-3xl"
-        animate={{ 
-          scale: [1, 1.2, 1],
-          opacity: [0.5, 0.7, 0.5],
-        }}
-        transition={{ 
-          duration: 8,
-          repeat: Infinity,
-          repeatType: "reverse"
-        }}
-      />
-      <motion.div 
-        className="absolute -bottom-20 -right-10 w-60 h-60 bg-accent/10 rounded-full blur-3xl"
-        animate={{ 
-          scale: [1, 1.1, 1],
-          opacity: [0.4, 0.6, 0.4],
-        }}
-        transition={{ 
-          duration: 10,
-          repeat: Infinity,
-          repeatType: "reverse",
-          delay: 2
-        }}
-      />
     </footer>
   );
 };

@@ -94,6 +94,15 @@
   ::-webkit-scrollbar-thumb {
     @apply bg-plantDoc-primary/50 hover:bg-plantDoc-primary/70 rounded-full;
   }
+  
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover, 
+  input:-webkit-autofill:focus {
+    -webkit-text-fill-color: white !important;
+    -webkit-box-shadow: 0 0 0px 1000px rgba(0, 0, 0, 0.5) inset;
+    transition: background-color 5000s ease-in-out 0s;
+    caret-color: white;
+  }
 }
 
 @layer utilities {
@@ -478,12 +487,7 @@ html {
 }
 
 .text-selection-popover {
-  transform: translateX(-50%) translateY(-10px);
-  transition: opacity 0.2s, transform 0.2s;
-}
-
-.text-selection-popover:hover {
-  transform: translateX(-50%) translateY(-12px);
+  display: none !important;
 }
 
 .bottom-nav {
@@ -513,14 +517,4 @@ html {
 
 :focus-visible {
   @apply outline-none ring-2 ring-plantDoc-primary ring-offset-2 ring-offset-background;
-}
-
-input:-webkit-autofill,
-input:-webkit-autofill:hover, 
-input:-webkit-autofill:focus {
-  -webkit-text-fill-color: var(--foreground);
-  -webkit-box-shadow: 0 0 0px 1000px transparent inset;
-  transition: background-color 5000s ease-in-out 0s;
-  backdrop-filter: none !important;
-  background-color: transparent !important;
 }
