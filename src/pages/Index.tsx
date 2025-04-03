@@ -118,88 +118,6 @@ const Index = () => {
           <ParallaxSection />
         </Suspense>
 
-        <section className="py-16">
-          <div className="container mx-auto px-4">
-            <motion.div 
-              className="text-center mb-12"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6 }}
-            >
-              <h2 className="text-3xl font-bold mb-4 text-gradient relative inline-block">
-                How Plant Doc Works
-                <div className="absolute -bottom-2 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-transparent via-plantDoc-primary to-transparent"></div>
-              </h2>
-              <p className="text-foreground/70 max-w-2xl mx-auto">
-                Our advanced AI technology helps you identify and treat plant diseases with just a photo.
-              </p>
-            </motion.div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <motion.div
-                whileHover={{ scale: 1.05, backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.6, delay: 0.1 }}
-                className="glass-card rounded-xl p-6 text-center group"
-              >
-                <motion.div 
-                  className="bg-plantDoc-primary/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:shadow-lg group-hover:shadow-plantDoc-primary/20"
-                  whileHover={{ scale: 1.1, backgroundColor: 'rgba(76, 175, 80, 0.4)' }}
-                >
-                  <ArrowUp className="text-plantDoc-primary h-8 w-8 group-hover:animate-bounce" />
-                </motion.div>
-                <h3 className="text-xl font-semibold mb-2 text-gradient">Upload a Photo</h3>
-                <p className="text-foreground/70">
-                  Take a clear picture of your plant showing the affected areas and upload it.
-                </p>
-              </motion.div>
-              
-              <motion.div
-                whileHover={{ scale: 1.05, backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="glass-card rounded-xl p-6 text-center group"
-              >
-                <motion.div 
-                  className="bg-plantDoc-primary/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:shadow-lg group-hover:shadow-plantDoc-primary/20"
-                  whileHover={{ scale: 1.1, backgroundColor: 'rgba(76, 175, 80, 0.4)' }}
-                >
-                  <Leaf className="text-plantDoc-primary h-8 w-8 group-hover:rotate-12 transition-transform duration-300" />
-                </motion.div>
-                <h3 className="text-xl font-semibold mb-2 text-gradient">Get Diagnosis</h3>
-                <p className="text-foreground/70">
-                  Our AI analyzes your plant's condition and identifies any diseases or issues.
-                </p>
-              </motion.div>
-              
-              <motion.div
-                whileHover={{ scale: 1.05, backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-                className="glass-card rounded-xl p-6 text-center group"
-              >
-                <motion.div 
-                  className="bg-plantDoc-primary/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:shadow-lg group-hover:shadow-plantDoc-primary/20"
-                  whileHover={{ scale: 1.1, backgroundColor: 'rgba(76, 175, 80, 0.4)' }}
-                >
-                  <Thermometer className="text-plantDoc-primary h-8 w-8 group-hover:animate-pulse" />
-                </motion.div>
-                <h3 className="text-xl font-semibold mb-2 text-gradient">Receive Treatment Plan</h3>
-                <p className="text-foreground/70">
-                  Get personalized recommendations for treatment, prevention, and care.
-                </p>
-              </motion.div>
-            </div>
-          </div>
-        </section>
-        
         <section className="py-16 relative">
           <div className="container mx-auto px-4">
             <motion.div 
@@ -363,7 +281,7 @@ const Index = () => {
         </section>
       </main>
       
-      <div className="fixed bottom-8 right-8 z-50">
+      <div className="fixed bottom-16 right-8 z-50">
         <Link to="/diagnose">
           <motion.div
             whileHover={{ scale: 1.1 }}
@@ -379,7 +297,7 @@ const Index = () => {
       
       <motion.button 
         onClick={scrollToTop} 
-        className={`fixed bottom-8 left-8 z-50 p-3 rounded-full glass-card ${
+        className={`fixed bottom-16 left-8 z-50 p-3 rounded-full glass-card ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'
         }`}
         whileHover={{ 
