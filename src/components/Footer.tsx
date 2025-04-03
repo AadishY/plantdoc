@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { Leaf, Heart, Github, Instagram } from "lucide-react";
@@ -26,8 +27,8 @@ const Footer = () => {
   return (
     <footer className="relative z-10 border-t border-white/10 backdrop-blur-xl bg-black/40 pb-safe">
       <div className="container mx-auto py-6 px-4">
-        {/* Main footer content */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+        {/* Simplified footer content */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
           <motion.div 
             className="space-y-4"
             initial="hidden"
@@ -59,43 +60,6 @@ const Footer = () => {
             <motion.p variants={item} className="text-foreground/70 text-sm max-w-xs">
               AI-powered plant disease diagnosis and treatment recommendations to help your plants thrive.
             </motion.p>
-            
-            <motion.div variants={item} className="flex space-x-4">
-              <motion.a
-                whileHover={{ y: -3 }}
-                href="https://github.com/AadishY/plantdoc"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-foreground/70 hover:text-plantDoc-primary transition-colors duration-200 group"
-              >
-                <motion.span 
-                  className="glass-card p-2 rounded-full inline-flex"
-                  whileHover={{ 
-                    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                    boxShadow: '0 0 10px rgba(76, 175, 80, 0.3)'
-                  }}
-                >
-                  <Github className="h-5 w-5 group-hover:rotate-12 transition-transform duration-300" />
-                </motion.span>
-              </motion.a>
-              <motion.a
-                whileHover={{ y: -3 }}
-                href="https://instagram.com/yo.akatsuki"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-foreground/70 hover:text-plantDoc-primary transition-colors duration-200 group"
-              >
-                <motion.span 
-                  className="glass-card p-2 rounded-full inline-flex"
-                  whileHover={{ 
-                    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                    boxShadow: '0 0 10px rgba(76, 175, 80, 0.3)'
-                  }}
-                >
-                  <Instagram className="h-5 w-5 group-hover:rotate-12 transition-transform duration-300" />
-                </motion.span>
-              </motion.a>
-            </motion.div>
           </motion.div>
 
           <motion.div 
@@ -145,19 +109,64 @@ const Footer = () => {
               </motion.li>
             </motion.ul>
           </motion.div>
-        </div>
-
-        {/* Copyright and signature - only keep one footer */}
-        <div className="mt-6 pt-4 border-t border-white/10 flex flex-col md:flex-row items-center justify-between">
-          <p className="text-foreground/60 text-sm">
-            &copy; {currentYear} Plant Doc. All rights reserved.
-          </p>
-          <motion.p 
-            className="text-foreground/60 text-sm mt-4 md:mt-0 flex items-center"
-            whileHover={{ color: 'rgba(255, 255, 255, 0.8)' }}
+          
+          <motion.div 
+            className="space-y-4"
+            initial="hidden"
+            whileInView="show"
+            variants={staggerChildren}
+            viewport={{ once: true, margin: "-100px" }}
           >
-            Made with <Heart className="h-3 w-3 text-plantDoc-danger mx-1 animate-pulse" /> by Aadish Kumar Yadav
-          </motion.p>
+            <motion.h3 variants={item} className="text-sm font-medium uppercase tracking-wider text-foreground/80">Connect</motion.h3>
+            <motion.div variants={item} className="flex space-x-4">
+              <motion.a
+                whileHover={{ y: -3 }}
+                href="https://github.com/AadishY/plantdoc"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-foreground/70 hover:text-plantDoc-primary transition-colors duration-200 group"
+              >
+                <motion.span 
+                  className="glass-card p-2 rounded-full inline-flex"
+                  whileHover={{ 
+                    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                    boxShadow: '0 0 10px rgba(76, 175, 80, 0.3)'
+                  }}
+                >
+                  <Github className="h-5 w-5 group-hover:rotate-12 transition-transform duration-300" />
+                </motion.span>
+              </motion.a>
+              <motion.a
+                whileHover={{ y: -3 }}
+                href="https://instagram.com/yo.akatsuki"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-foreground/70 hover:text-plantDoc-primary transition-colors duration-200 group"
+              >
+                <motion.span 
+                  className="glass-card p-2 rounded-full inline-flex"
+                  whileHover={{ 
+                    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                    boxShadow: '0 0 10px rgba(76, 175, 80, 0.3)'
+                  }}
+                >
+                  <Instagram className="h-5 w-5 group-hover:rotate-12 transition-transform duration-300" />
+                </motion.span>
+              </motion.a>
+            </motion.div>
+            
+            <motion.p 
+              variants={item}
+              className="text-foreground/60 text-sm flex items-center mt-8"
+              whileHover={{ color: 'rgba(255, 255, 255, 0.8)' }}
+            >
+              Made with <Heart className="h-3 w-3 text-plantDoc-danger mx-1 animate-pulse" /> by Aadish Kumar Yadav
+            </motion.p>
+            
+            <motion.p variants={item} className="text-foreground/60 text-sm">
+              &copy; {currentYear} Plant Doc. All rights reserved.
+            </motion.p>
+          </motion.div>
         </div>
       </div>
     </footer>

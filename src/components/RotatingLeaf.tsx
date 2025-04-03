@@ -37,7 +37,7 @@ const RotatingLeaf = () => {
   }, [controls1, controls2, controls3]);
 
   return (
-    <div className="relative">
+    <div className="relative w-72 h-72">
       <motion.div
         className="absolute top-0 left-0 w-full h-full flex items-center justify-center"
         initial={{ rotate: 0 }}
