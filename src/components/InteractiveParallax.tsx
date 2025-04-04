@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, useMotionValue } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 
 interface InteractiveParallaxProps {
   children: React.ReactNode;
@@ -11,15 +11,12 @@ interface InteractiveParallaxProps {
 const InteractiveParallax: React.FC<InteractiveParallaxProps> = ({ 
   children, 
   className = "", 
-  intensity = 10
+  intensity = 5 // Reduced intensity for better performance
 }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
   const [isHovering, setIsHovering] = useState(false);
   
-  // Simplified version with less motion for better performance
   return (
     <motion.div
-      ref={containerRef}
       className={`perspective-container ${className}`}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
@@ -34,7 +31,7 @@ const InteractiveParallax: React.FC<InteractiveParallaxProps> = ({
         }}
         whileHover={{
           scale: 1.02,
-          transition: { duration: 0.3 }
+          transition: { duration: 0.2 }
         }}
       >
         {children}

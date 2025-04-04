@@ -22,46 +22,28 @@ export const useScrollAnimation = <T extends HTMLElement>(options: ScrollOptions
     
     const element = ref.current;
     
-    // Use requestIdleCallback if available for better performance
-    const createObserver = () => {
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) {
-            setIsVisible(true);
-            if (once) {
-              observer.unobserve(element);
-            }
-          } else if (!once) {
-            setIsVisible(false);
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          if (once) {
+            observer.unobserve(element);
           }
-        },
-        { threshold, rootMargin }
-      );
-      
-      observer.observe(element);
-      return observer;
-    };
+        } else if (!once) {
+          setIsVisible(false);
+        }
+      },
+      { threshold, rootMargin }
+    );
     
-    let observer: IntersectionObserver;
-    
-    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-      const id = requestIdleCallback(() => {
-        observer = createObserver();
-      });
-      
-      return () => {
-        if (observer) observer.unobserve(element);
-        cancelIdleCallback(id);
-      };
-    } else {
-      observer = createObserver();
-      return () => observer.unobserve(element);
-    }
+    observer.observe(element);
+    return () => observer.unobserve(element);
   }, [threshold, once, rootMargin]);
   
   return [ref, isVisible];
 };
 
+// Simplified parallax scroll hook for better performance
 export const useParallaxScroll = (speed: number = 0.2): [RefObject<HTMLElement>, { y: number }] => {
   const ref = useRef<HTMLElement>(null);
   const [offset, setOffset] = useState(0);
@@ -69,33 +51,33 @@ export const useParallaxScroll = (speed: number = 0.2): [RefObject<HTMLElement>,
   useEffect(() => {
     let rafId: number;
     let lastScrollY = window.scrollY;
+    let ticking = false;
     
     const handleScroll = () => {
-      // Cancel any pending animation frame to avoid redundant calculations
-      if (rafId) {
-        cancelAnimationFrame(rafId);
-      }
+      lastScrollY = window.scrollY;
       
-      // Use requestAnimationFrame for smoother scrolling
-      rafId = requestAnimationFrame(() => {
-        if (!ref.current) return;
+      if (!ticking) {
+        rafId = requestAnimationFrame(() => {
+          if (!ref.current) return;
+          
+          const { top } = ref.current.getBoundingClientRect();
+          const windowHeight = window.innerHeight;
+          const viewportOffset = top - windowHeight;
+          const scrollOffset = Math.max(0, -viewportOffset * speed);
+          
+          if (Math.abs(scrollOffset - offset) > 2) {
+            setOffset(scrollOffset);
+          }
+          
+          ticking = false;
+        });
         
-        const { top } = ref.current.getBoundingClientRect();
-        const windowHeight = window.innerHeight;
-        
-        // Calculate how far into view the element is
-        const viewportOffset = top - windowHeight;
-        const scrollOffset = Math.max(0, -viewportOffset * speed);
-        
-        // Only update state if there's a significant change to reduce renders
-        if (Math.abs(scrollOffset - offset) > 1) {
-          setOffset(scrollOffset);
-        }
-      });
+        ticking = true;
+      }
     };
     
+    // Use passive event listener for better performance
     window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll(); // Initialize
     
     return () => {
       window.removeEventListener('scroll', handleScroll);
@@ -103,53 +85,50 @@ export const useParallaxScroll = (speed: number = 0.2): [RefObject<HTMLElement>,
         cancelAnimationFrame(rafId);
       }
     };
-  }, [speed, offset]);
+  }, [speed]);
   
   return [ref, { y: offset }];
 };
 
+// Optimized section tracking
 export const useActiveSection = (sections: string[], offset: number = 100): string | null => {
   const [activeSection, setActiveSection] = useState<string | null>(null);
   
   useEffect(() => {
     let rafId: number;
-    let throttleTimeout: number | null = null;
+    let ticking = false;
     
     const handleScroll = () => {
-      // Throttle scroll events
-      if (!throttleTimeout) {
-        throttleTimeout = window.setTimeout(() => {
-          throttleTimeout = null;
+      if (!ticking) {
+        rafId = requestAnimationFrame(() => {
+          const scrollPosition = window.scrollY + offset;
           
-          // Use requestAnimationFrame for smoother updates
-          rafId = requestAnimationFrame(() => {
-            const scrollPosition = window.scrollY + offset;
+          // Find the last section that's above the current scroll position
+          for (let i = sections.length - 1; i >= 0; i--) {
+            const section = document.getElementById(sections[i]);
+            if (!section) continue;
             
-            // Find the last section that's above the current scroll position
-            for (let i = sections.length - 1; i >= 0; i--) {
-              const section = document.getElementById(sections[i]);
-              if (!section) continue;
-              
-              if (section.offsetTop <= scrollPosition) {
-                if (activeSection !== sections[i]) {
-                  setActiveSection(sections[i]);
-                }
-                break;
+            if (section.offsetTop <= scrollPosition) {
+              if (activeSection !== sections[i]) {
+                setActiveSection(sections[i]);
               }
+              break;
             }
-          });
-        }, 100); // Throttle to 100ms
+          }
+          
+          ticking = false;
+        });
+        
+        ticking = true;
       }
     };
     
+    // Use passive event listener for better performance
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll(); // Initialize
     
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      if (throttleTimeout) {
-        window.clearTimeout(throttleTimeout);
-      }
       if (rafId) {
         cancelAnimationFrame(rafId);
       }

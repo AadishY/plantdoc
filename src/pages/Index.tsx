@@ -1,17 +1,20 @@
 
-import React, { useEffect, useState, useRef, lazy, Suspense } from 'react';
+import React, { useEffect, useState, lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
-import { Leaf, ArrowUp, Droplet, Thermometer, ChevronDown, ChevronUp, Zap, ShieldCheck, Upload } from 'lucide-react';
+import { Leaf, ArrowUp, Droplet, ChevronDown, ChevronUp, Zap, ShieldCheck, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { motion } from 'framer-motion';
-import DynamicBackground from '@/components/DynamicBackground';
 import AnimatedLoader from '@/components/ui/animated-loader';
-import { Card } from '@/components/ui/card';
 
-const ParallaxSection = lazy(() => import('@/components/ParallaxSection'));
-const RotatingLeaf = lazy(() => import('@/components/RotatingLeaf'));
+// Import components directly for better performance
+import RotatingLeaf from '@/components/RotatingLeaf';
+import ParallaxSection from '@/components/ParallaxSection';
+import TestimonialsSection from '@/components/TestimonialsSection';
+import CtaSection from '@/components/CtaSection';
+
+// Lazy load less critical components
 const Accordion = lazy(() => import('@/components/ui/accordion').then(module => ({ 
   default: module.Accordion 
 })));
@@ -26,7 +29,7 @@ const AccordionTrigger = lazy(() => import('@/components/ui/accordion').then(mod
 })));
 
 const ComponentLoader = () => (
-  <div className="w-full h-64 flex items-center justify-center">
+  <div className="w-full h-32 flex items-center justify-center">
     <AnimatedLoader size="md" color="primary" />
   </div>
 );
@@ -36,11 +39,18 @@ const Index = () => {
   const [isVisible, setIsVisible] = useState(false);
   
   useEffect(() => {
+    let ticking = false;
+    
     const handleScroll = () => {
-      requestAnimationFrame(() => {
-        setScrollY(window.scrollY);
-        setIsVisible(window.scrollY > 500);
-      });
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setScrollY(window.scrollY);
+          setIsVisible(window.scrollY > 500);
+          ticking = false;
+        });
+        
+        ticking = true;
+      }
     };
     
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -55,9 +65,7 @@ const Index = () => {
   };
   
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-muted/50 relative overflow-hidden">
-      <DynamicBackground />
-      
+    <div className="min-h-screen flex flex-col relative overflow-hidden">
       <Header />
       
       <main className="flex-1 relative z-10">
@@ -68,7 +76,7 @@ const Index = () => {
                 className="flex-1 text-center md:text-left"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
+                transition={{ duration: 0.5 }}
               >
                 <motion.div 
                   className="inline-flex items-center justify-center p-2 bg-plantDoc-primary/20 rounded-full mb-4"
@@ -103,14 +111,12 @@ const Index = () => {
                 </Link>
               </motion.div>
               <motion.div 
-                className="flex-1 flex justify-center md:justify-end h-72 relative"
+                className="flex-1 flex justify-center md:justify-end relative"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
               >
-                <Suspense fallback={<ComponentLoader />}>
-                  <RotatingLeaf />
-                </Suspense>
+                <RotatingLeaf />
               </motion.div>
             </div>
           </div>
@@ -122,8 +128,8 @@ const Index = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5 }}
               className="text-center mb-10"
             >
               <h2 className="text-3xl font-bold mb-3 text-gradient">How It Works</h2>
@@ -134,8 +140,8 @@ const Index = () => {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ delay: 0.3, duration: 0.6 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ delay: 0.1, duration: 0.5 }}
                 className="glass-card p-6 rounded-xl text-center relative"
                 whileHover={{ 
                   y: -10,
@@ -158,8 +164,8 @@ const Index = () => {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ delay: 0.45, duration: 0.6 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ delay: 0.2, duration: 0.5 }}
                 className="glass-card p-6 rounded-xl text-center relative"
                 whileHover={{ 
                   y: -10,
@@ -182,8 +188,8 @@ const Index = () => {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ delay: 0.6, duration: 0.6 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ delay: 0.3, duration: 0.5 }}
                 className="glass-card p-6 rounded-xl text-center relative"
                 whileHover={{ 
                   y: -10,
@@ -206,9 +212,13 @@ const Index = () => {
           </div>
         </section>
 
-        <Suspense fallback={<ComponentLoader />}>
-          <ParallaxSection />
-        </Suspense>
+        <ParallaxSection />
+
+        {/* Add new Testimonials section */}
+        <TestimonialsSection />
+
+        {/* Add new CTA section */}
+        <CtaSection />
 
         {/* Statistics Section */}
         <section className="py-16 relative overflow-hidden">
@@ -216,16 +226,16 @@ const Index = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5 }}
               className="max-w-4xl mx-auto"
             >
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.8 }}
                   whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true, margin: "-100px" }}
-                  transition={{ delay: 0.3, duration: 0.6 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ delay: 0.1, duration: 0.4 }}
                   className="glass-card p-6 rounded-xl text-center"
                   whileHover={{ backgroundColor: "rgba(0,0,0,0.5)" }}
                 >
@@ -236,8 +246,8 @@ const Index = () => {
                 <motion.div
                   initial={{ opacity: 0, scale: 0.8 }}
                   whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true, margin: "-100px" }}
-                  transition={{ delay: 0.4, duration: 0.6 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ delay: 0.2, duration: 0.4 }}
                   className="glass-card p-6 rounded-xl text-center"
                   whileHover={{ backgroundColor: "rgba(0,0,0,0.5)" }}
                 >
@@ -248,8 +258,8 @@ const Index = () => {
                 <motion.div
                   initial={{ opacity: 0, scale: 0.8 }}
                   whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true, margin: "-100px" }}
-                  transition={{ delay: 0.5, duration: 0.6 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ delay: 0.3, duration: 0.4 }}
                   className="glass-card p-6 rounded-xl text-center"
                   whileHover={{ backgroundColor: "rgba(0,0,0,0.5)" }}
                 >
@@ -260,8 +270,8 @@ const Index = () => {
                 <motion.div
                   initial={{ opacity: 0, scale: 0.8 }}
                   whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true, margin: "-100px" }}
-                  transition={{ delay: 0.6, duration: 0.6 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ delay: 0.4, duration: 0.4 }}
                   className="glass-card p-6 rounded-xl text-center"
                   whileHover={{ backgroundColor: "rgba(0,0,0,0.5)" }}
                 >
@@ -279,8 +289,8 @@ const Index = () => {
               className="text-center mb-12"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5 }}
             >
               <h2 className="text-3xl font-bold mb-4 text-gradient relative inline-block">
                 Frequently Asked Questions
@@ -295,8 +305,8 @@ const Index = () => {
               className="max-w-3xl mx-auto glass-card rounded-xl p-6 md:p-8"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5 }}
               whileHover={{ 
                 boxShadow: '0 0 30px rgba(76, 175, 80, 0.2)',
                 backgroundColor: 'rgba(0, 0, 0, 0.4)'
@@ -439,10 +449,10 @@ const Index = () => {
       <div className="fixed bottom-28 right-8 z-50">
         <Link to="/diagnose">
           <motion.div
-            whileHover={{ scale: 1.1 }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            <Button className="bg-gradient-to-r from-plantDoc-primary to-plantDoc-secondary text-white font-bold px-6 py-6 rounded-full shadow-xl hover:shadow-2xl hover:shadow-plantDoc-primary/30 group animate-pulse-glow">
+            <Button className="bg-gradient-to-r from-plantDoc-primary to-plantDoc-secondary text-white font-bold px-6 py-6 rounded-full shadow-xl hover:shadow-2xl hover:shadow-plantDoc-primary/30 group">
               <Leaf className="h-6 w-6 mr-2 group-hover:rotate-12 transition-transform" />
               <span className="text-lg">Diagnose Your Plant</span>
             </Button>
@@ -454,7 +464,7 @@ const Index = () => {
         onClick={scrollToTop} 
         className={`fixed bottom-28 left-8 z-50 p-3 rounded-full glass-card ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'
-        }`}
+        } transition-all duration-300`}
         whileHover={{ 
           scale: 1.1, 
           backgroundColor: 'rgba(0, 0, 0, 0.6)'
