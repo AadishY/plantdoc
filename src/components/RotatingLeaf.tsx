@@ -19,7 +19,7 @@ const RotatingLeaf = () => {
         }}
       >
         <motion.div 
-          className="w-80 h-80 md:w-96 md:h-96 relative rounded-full overflow-hidden border-2 border-plantDoc-primary/20"
+          className="w-72 h-72 md:w-80 md:h-80 relative rounded-full overflow-hidden border-2 border-plantDoc-primary/20"
           whileHover={{ rotate: 5 }}
           transition={{ duration: 0.5 }}
         >
@@ -28,8 +28,7 @@ const RotatingLeaf = () => {
             alt="Plant Growth"
             className="w-full h-full object-cover rounded-full"
           />
-          {/* Glassmorphic overlay */}
-          <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/10 backdrop-blur-sm"></div>
+          {/* Plain circle GIF without effects */}
         </motion.div>
       </motion.div>
     </div>
