@@ -1,13 +1,13 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Plant, Droplet, Sun, Wind, Thermometer, Cloud, Sprout } from 'lucide-react';
+import { Leaf, Droplet, Sun, Wind, Thermometer, Cloud, Sprout } from 'lucide-react';
 import { EnhancedCard } from '@/components/ui/enhanced-card';
 
 const featureItems = [
   {
     id: 1,
-    icon: <Plant />,
+    icon: <Leaf />,
     title: "Smart Diagnosis",
     description: "AI-powered analysis identifies plant issues with 95% accuracy using just a photo."
   },
