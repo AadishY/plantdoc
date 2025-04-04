@@ -1,33 +1,18 @@
 
-import React, { useRef, useEffect } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import React from 'react';
+import { motion } from 'framer-motion';
 import { Sparkles, Zap, Leaf, Shield, Heart, Cloud } from 'lucide-react';
 
 const ParallaxSection: React.FC = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start end", "end start"]
-  });
-
-  const y1 = useTransform(scrollYProgress, [0, 1], [0, -100]);
-  const y2 = useTransform(scrollYProgress, [0, 1], [0, -200]);
-  const y3 = useTransform(scrollYProgress, [0, 1], [0, -300]);
-  const opacity = useTransform(scrollYProgress, [0, 0.5, 1], [0, 1, 0]);
-  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.8, 1, 0.8]);
-  const rotate = useTransform(scrollYProgress, [0, 0.5, 1], [0, 10, 0]);
-
   return (
     <section 
-      ref={containerRef}
-      className="relative h-[100vh] overflow-hidden flex items-center justify-center"
+      className="relative py-20 overflow-hidden"
     >
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm -z-10"></div>
       
       {/* Background elements */}
       <motion.div 
         className="absolute top-20 left-[20%] w-40 h-40 bg-plantDoc-primary/20 rounded-full blur-3xl"
-        style={{ y: y1, rotate }}
         animate={{ 
           scale: [1, 1.2, 1],
           opacity: [0.5, 0.7, 0.5],
@@ -41,7 +26,6 @@ const ParallaxSection: React.FC = () => {
       
       <motion.div 
         className="absolute bottom-40 right-[30%] w-60 h-60 bg-accent/20 rounded-full blur-3xl"
-        style={{ y: y2, rotate: useTransform(rotate, val => -val) }}
         animate={{ 
           scale: [1, 1.1, 1],
           opacity: [0.4, 0.6, 0.4],
@@ -54,26 +38,8 @@ const ParallaxSection: React.FC = () => {
         }}
       />
       
-      <motion.div 
-        className="absolute top-[30%] right-[10%] w-32 h-32 bg-plantDoc-secondary/20 rounded-full blur-3xl"
-        style={{ y: y3 }}
-        animate={{ 
-          scale: [1, 1.3, 1],
-          opacity: [0.3, 0.5, 0.3],
-        }}
-        transition={{ 
-          duration: 7,
-          repeat: Infinity,
-          repeatType: "reverse",
-          delay: 1
-        }}
-      />
-      
       {/* Content */}
-      <motion.div 
-        className="container mx-auto text-center z-10 px-4"
-        style={{ opacity, scale }}
-      >
+      <div className="container mx-auto text-center z-10 px-4 py-16">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -103,104 +69,57 @@ const ParallaxSection: React.FC = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
           <motion.div 
-            className="glass-card p-6 rounded-xl text-center group"
+            className="glass-card p-6 rounded-xl text-center"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.8 }}
-            whileHover={{ 
-              y: -10,
-              scale: 1.03,
-              boxShadow: "0 20px 30px rgba(0,0,0,0.2)",
-              backgroundColor: "rgba(0,0,0,0.45)"
-            }}
           >
-            <motion.div 
-              className="w-16 h-16 mx-auto mb-4 bg-plantDoc-primary/20 rounded-full flex items-center justify-center"
-              whileHover={{ 
-                rotate: 360,
-                backgroundColor: "rgba(76,175,80,0.3)",
-                transition: { duration: 0.8 }
-              }}
-            >
+            <div className="w-16 h-16 mx-auto mb-4 bg-plantDoc-primary/20 rounded-full flex items-center justify-center">
               <Leaf className="h-8 w-8 text-plantDoc-primary" />
-            </motion.div>
+            </div>
             <h3 className="text-xl font-semibold mb-2">Smart Diagnosis</h3>
             <p className="text-foreground/70">Instantly identify plant diseases with a simple photo upload</p>
           </motion.div>
           
           <motion.div 
-            className="glass-card p-6 rounded-xl text-center group"
+            className="glass-card p-6 rounded-xl text-center"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6, duration: 0.8 }}
-            whileHover={{ 
-              y: -10,
-              scale: 1.03,
-              boxShadow: "0 20px 30px rgba(0,0,0,0.2)",
-              backgroundColor: "rgba(0,0,0,0.45)"
-            }}
           >
-            <motion.div 
-              className="w-16 h-16 mx-auto mb-4 bg-plantDoc-primary/20 rounded-full flex items-center justify-center"
-              whileHover={{ 
-                rotate: 360,
-                backgroundColor: "rgba(76,175,80,0.3)",
-                transition: { duration: 0.8 }
-              }}
-            >
+            <div className="w-16 h-16 mx-auto mb-4 bg-plantDoc-primary/20 rounded-full flex items-center justify-center">
               <Zap className="h-8 w-8 text-plantDoc-primary" />
-            </motion.div>
+            </div>
             <h3 className="text-xl font-semibold mb-2">Personalized Care</h3>
             <p className="text-foreground/70">Get tailored treatment plans specific to your plant's needs</p>
           </motion.div>
           
           <motion.div 
-            className="glass-card p-6 rounded-xl text-center group"
+            className="glass-card p-6 rounded-xl text-center"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7, duration: 0.8 }}
-            whileHover={{ 
-              y: -10,
-              scale: 1.03,
-              boxShadow: "0 20px 30px rgba(0,0,0,0.2)",
-              backgroundColor: "rgba(0,0,0,0.45)"
-            }}
           >
-            <motion.div 
-              className="w-16 h-16 mx-auto mb-4 bg-plantDoc-primary/20 rounded-full flex items-center justify-center"
-              whileHover={{ 
-                rotate: 360,
-                backgroundColor: "rgba(76,175,80,0.3)",
-                transition: { duration: 0.8 }
-              }}
-            >
+            <div className="w-16 h-16 mx-auto mb-4 bg-plantDoc-primary/20 rounded-full flex items-center justify-center">
               <Sparkles className="h-8 w-8 text-plantDoc-primary" />
-            </motion.div>
+            </div>
             <h3 className="text-xl font-semibold mb-2">Expert Recommendations</h3>
             <p className="text-foreground/70">Discover the perfect plants for your living space and environment</p>
           </motion.div>
         </div>
         
         {/* Added more features section */}
-        <div className="mt-20 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+        <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
           <motion.div 
-            className="glass-card p-6 rounded-xl group flex items-start"
+            className="glass-card p-6 rounded-xl flex items-start"
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ delay: 0.8, duration: 0.8 }}
-            whileHover={{ 
-              scale: 1.02,
-              boxShadow: "0 15px 25px rgba(0,0,0,0.2)",
-              backgroundColor: "rgba(0,0,0,0.5)"
-            }}
           >
-            <motion.div 
-              className="w-12 h-12 mr-4 bg-plantDoc-primary/20 rounded-full flex items-center justify-center shrink-0"
-              whileHover={{ rotate: 15 }}
-            >
+            <div className="w-12 h-12 mr-4 bg-plantDoc-primary/20 rounded-full flex items-center justify-center shrink-0">
               <Shield className="h-6 w-6 text-plantDoc-primary" />
-            </motion.div>
+            </div>
             <div className="text-left">
               <h3 className="text-lg font-semibold mb-2">Disease Prevention</h3>
               <p className="text-foreground/70">Learn proactive strategies to keep your plants healthy and prevent common diseases before they start.</p>
@@ -208,23 +127,15 @@ const ParallaxSection: React.FC = () => {
           </motion.div>
           
           <motion.div 
-            className="glass-card p-6 rounded-xl group flex items-start"
+            className="glass-card p-6 rounded-xl flex items-start"
             initial={{ opacity: 0, x: 20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ delay: 0.9, duration: 0.8 }}
-            whileHover={{ 
-              scale: 1.02,
-              boxShadow: "0 15px 25px rgba(0,0,0,0.2)",
-              backgroundColor: "rgba(0,0,0,0.5)"
-            }}
           >
-            <motion.div 
-              className="w-12 h-12 mr-4 bg-plantDoc-primary/20 rounded-full flex items-center justify-center shrink-0"
-              whileHover={{ rotate: 15 }}
-            >
+            <div className="w-12 h-12 mr-4 bg-plantDoc-primary/20 rounded-full flex items-center justify-center shrink-0">
               <Heart className="h-6 w-6 text-plantDoc-primary" />
-            </motion.div>
+            </div>
             <div className="text-left">
               <h3 className="text-lg font-semibold mb-2">Plant Health Monitoring</h3>
               <p className="text-foreground/70">Track your plant's health over time with our intelligent monitoring system, helping you detect issues early.</p>
@@ -232,23 +143,15 @@ const ParallaxSection: React.FC = () => {
           </motion.div>
           
           <motion.div 
-            className="glass-card p-6 rounded-xl group flex items-start"
+            className="glass-card p-6 rounded-xl flex items-start"
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ delay: 1.0, duration: 0.8 }}
-            whileHover={{ 
-              scale: 1.02,
-              boxShadow: "0 15px 25px rgba(0,0,0,0.2)",
-              backgroundColor: "rgba(0,0,0,0.5)"
-            }}
           >
-            <motion.div 
-              className="w-12 h-12 mr-4 bg-plantDoc-primary/20 rounded-full flex items-center justify-center shrink-0"
-              whileHover={{ rotate: 15 }}
-            >
+            <div className="w-12 h-12 mr-4 bg-plantDoc-primary/20 rounded-full flex items-center justify-center shrink-0">
               <Cloud className="h-6 w-6 text-plantDoc-primary" />
-            </motion.div>
+            </div>
             <div className="text-left">
               <h3 className="text-lg font-semibold mb-2">Climate-Specific Advice</h3>
               <p className="text-foreground/70">Get customized care instructions based on your local climate and growing conditions for optimal plant growth.</p>
@@ -256,30 +159,22 @@ const ParallaxSection: React.FC = () => {
           </motion.div>
           
           <motion.div 
-            className="glass-card p-6 rounded-xl group flex items-start"
+            className="glass-card p-6 rounded-xl flex items-start"
             initial={{ opacity: 0, x: 20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ delay: 1.1, duration: 0.8 }}
-            whileHover={{ 
-              scale: 1.02,
-              boxShadow: "0 15px 25px rgba(0,0,0,0.2)",
-              backgroundColor: "rgba(0,0,0,0.5)"
-            }}
           >
-            <motion.div 
-              className="w-12 h-12 mr-4 bg-plantDoc-primary/20 rounded-full flex items-center justify-center shrink-0"
-              whileHover={{ rotate: 15 }}
-            >
+            <div className="w-12 h-12 mr-4 bg-plantDoc-primary/20 rounded-full flex items-center justify-center shrink-0">
               <Sparkles className="h-6 w-6 text-plantDoc-primary" />
-            </motion.div>
+            </div>
             <div className="text-left">
               <h3 className="text-lg font-semibold mb-2">Seasonal Care Calendar</h3>
               <p className="text-foreground/70">Follow our seasonal care guidelines to ensure your plants receive the right attention at the right time throughout the year.</p>
             </div>
           </motion.div>
         </div>
-      </motion.div>
+      </div>
     </section>
   );
 };
