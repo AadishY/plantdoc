@@ -6,6 +6,7 @@ import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import AnimatedLoader from '@/components/ui/animated-loader';
+import DynamicBackground from '@/components/DynamicBackground';
 
 const ComponentLoader = () => (
   <div className="flex items-center justify-center h-32">
@@ -15,7 +16,8 @@ const ComponentLoader = () => (
 
 const AboutPage = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-muted/50">
+    <div className="min-h-screen flex flex-col">
+      <DynamicBackground />
       <Header />
       
       <main className="flex-1 py-12 container mx-auto px-4">

@@ -1,16 +1,19 @@
 
-import { Suspense, lazy, useEffect } from 'react';
+import { Suspense, lazy } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { Toaster } from '@/components/ui/toaster';
 import AnimatedLoader from '@/components/ui/animated-loader';
+import DynamicBackground from '@/components/DynamicBackground';
 
 // Lazily load components for better performance
 const TextHighlighter = lazy(() => import('@/components/TextHighlighter'));
 const FixedMobileNav = lazy(() => import('@/components/FixedMobileNav'));
 
-// Lazily load pages for better performance
-const Index = lazy(() => import('@/pages/Index'));
+// Preload critical pages
+import Index from '@/pages/Index';
+
+// Lazily load less frequently accessed pages
 const DiagnosePage = lazy(() => import('@/pages/DiagnosePage'));
 const RecommendPage = lazy(() => import('@/pages/RecommendPage'));
 const AboutPage = lazy(() => import('@/pages/AboutPage'));
@@ -24,46 +27,34 @@ const PageLoading = () => (
 );
 
 function App() {
-  // Preload critical components when idle
-  useEffect(() => {
-    if ('requestIdleCallback' in window) {
-      const idleCallback = window.requestIdleCallback(() => {
-        // Preload components likely to be used
-        const preloadComponents = async () => {
-          // Preload the Index page since it's the most common entry point
-          const indexModule = import('@/pages/Index');
-          
-          // After a short delay, preload other components
-          setTimeout(() => {
-            import('@/components/TextHighlighter');
-            import('@/components/FixedMobileNav');
-          }, 1000);
-        };
-        
-        preloadComponents();
-      });
-      
-      return () => {
-        if ('cancelIdleCallback' in window) {
-          window.cancelIdleCallback(idleCallback);
-        }
-      };
-    }
-  }, []);
-
   return (
     <ThemeProvider defaultTheme="dark" storageKey="plantdoc-theme">
-      <Suspense fallback={<PageLoading />}>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/diagnose" element={<DiagnosePage />} />
-          <Route path="/recommend" element={<RecommendPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Suspense>
+      {/* Apply DynamicBackground to all pages */}
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/diagnose" element={
+          <Suspense fallback={<PageLoading />}>
+            <DiagnosePage />
+          </Suspense>
+        } />
+        <Route path="/recommend" element={
+          <Suspense fallback={<PageLoading />}>
+            <RecommendPage />
+          </Suspense>
+        } />
+        <Route path="/about" element={
+          <Suspense fallback={<PageLoading />}>
+            <AboutPage />
+          </Suspense>
+        } />
+        <Route path="*" element={
+          <Suspense fallback={<PageLoading />}>
+            <NotFound />
+          </Suspense>
+        } />
+      </Routes>
       
-      {/* Global Components - lazy loaded for better initial page load */}
+      {/* Global Components */}
       <Suspense fallback={null}>
         <FixedMobileNav />
         <TextHighlighter />

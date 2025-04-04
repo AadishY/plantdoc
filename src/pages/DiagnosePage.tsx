@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { Leaf, Upload, Loader2, AlertOctagon } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import DynamicBackground from '@/components/DynamicBackground';
 import UploadComponent from '@/components/UploadComponent';
 import ResultComponent from '@/components/ResultComponent';
 import AboutPlant from '@/components/AboutPlant';
@@ -78,7 +79,8 @@ const DiagnosePage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-muted/50">
+    <div className="min-h-screen flex flex-col">
+      <DynamicBackground />
       <Header />
       
       <main className="flex-1 py-8 md:py-12 container mx-auto px-4">

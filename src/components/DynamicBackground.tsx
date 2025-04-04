@@ -17,8 +17,8 @@ const DynamicBackground = () => {
   const isMobile = useIsMobile();
   const [mounted, setMounted] = useState(false);
   
-  // Generate fewer blobs on mobile to improve performance
-  const blobCount = isMobile ? 4 : 8;
+  // Generate fewer blobs on mobile to improve performance (reduced for optimization)
+  const blobCount = isMobile ? 2 : 4;
   
   // Create randomized blobs with memoization
   const [blobs, setBlobs] = useState<BackgroundBlob[]>([]);
@@ -33,12 +33,10 @@ const DynamicBackground = () => {
           id: i,
           x: `${Math.random() * 100}%`,
           y: `${Math.random() * 100}%`,
-          size: `${isMobile ? 150 + Math.random() * 150 : 200 + Math.random() * 300}px`,
-          color: i % 3 === 0 
-            ? 'from-plantDoc-primary/30 to-plantDoc-secondary/20' 
-            : i % 3 === 1 
-              ? 'from-plantDoc-secondary/20 to-plantDoc-primary/10'
-              : 'from-accent/20 to-plantDoc-primary/10',
+          size: `${isMobile ? 100 + Math.random() * 100 : 150 + Math.random() * 200}px`, // Reduced size for performance
+          color: i % 2 === 0 
+            ? 'from-plantDoc-primary/20 to-plantDoc-secondary/10' 
+            : 'from-plantDoc-secondary/20 to-plantDoc-primary/10',
           delay: i * 0.5,
           duration: 15 + Math.random() * 10
         });
@@ -49,7 +47,7 @@ const DynamicBackground = () => {
     }
   }, [isMobile, mounted]);
   
-  // Optimize rendering with useCallback
+  // Optimize rendering
   const renderBlobs = () => {
     return blobs.map((blob) => (
       <motion.div 
@@ -63,9 +61,8 @@ const DynamicBackground = () => {
           opacity: 0.3
         }}
         animate={{
-          x: [0, 30, -20, 10, 0],
-          y: [0, -20, 10, -5, 0],
-          scale: [1, 1.05, 0.98, 1.02, 1],
+          x: [0, 20, -10, 0],
+          y: [0, -10, 5, 0],
         }}
         transition={{
           duration: blob.duration,
@@ -81,7 +78,7 @@ const DynamicBackground = () => {
   if (!mounted) return null;
   
   return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+    <div className="fixed inset-0 overflow-hidden pointer-events-none z-[-1]">
       {renderBlobs()}
       
       {/* Enhanced background with darker overlay */}
