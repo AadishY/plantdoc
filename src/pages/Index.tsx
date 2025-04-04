@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import { Leaf, ArrowUp, ChevronUp, Zap, ShieldCheck, Upload } from 'lucide-react';
@@ -7,6 +8,15 @@ import Footer from '@/components/Footer';
 import { motion } from 'framer-motion';
 import AnimatedLoader from '@/components/ui/animated-loader';
 import { useIsMobile } from '@/hooks/use-mobile';
+import RotatingLeaf from '@/components/RotatingLeaf';
+import FeatureHighlights from '@/components/FeatureHighlights';
+import CtaSection from '@/components/CtaSection';
+import { 
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent
+} from '@/components/ui/accordion';
 
 const ComponentLoader = () => (
   <div className="w-full h-32 flex items-center justify-center">
