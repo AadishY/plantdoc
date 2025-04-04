@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface InteractiveParallaxProps {
   children: React.ReactNode;
@@ -11,9 +12,15 @@ interface InteractiveParallaxProps {
 const InteractiveParallax: React.FC<InteractiveParallaxProps> = ({ 
   children, 
   className = "", 
-  intensity = 5 // Reduced intensity for better performance
+  intensity = 3 // Further reduced intensity for better performance
 }) => {
   const [isHovering, setIsHovering] = useState(false);
+  const isMobile = useIsMobile();
+  
+  // Don't apply effects on mobile for better performance
+  if (isMobile) {
+    return <div className={className}>{children}</div>;
+  }
   
   return (
     <motion.div
@@ -21,7 +28,7 @@ const InteractiveParallax: React.FC<InteractiveParallaxProps> = ({
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
       style={{
-        perspective: 1000,
+        perspective: 800,
         transformStyle: "preserve-3d",
       }}
     >
