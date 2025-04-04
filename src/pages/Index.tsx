@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import { Leaf, ArrowUp, ChevronUp, Zap, ShieldCheck, Upload } from 'lucide-react';
@@ -7,25 +6,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { motion } from 'framer-motion';
 import AnimatedLoader from '@/components/ui/animated-loader';
-
-// Import components directly for better performance
-import RotatingLeaf from '@/components/RotatingLeaf';
-import CtaSection from '@/components/CtaSection';
-import FeatureHighlights from '@/components/FeatureHighlights';
-
-// Lazy load less critical components
-const Accordion = lazy(() => import('@/components/ui/accordion').then(module => ({ 
-  default: module.Accordion 
-})));
-const AccordionContent = lazy(() => import('@/components/ui/accordion').then(module => ({ 
-  default: module.AccordionContent 
-})));
-const AccordionItem = lazy(() => import('@/components/ui/accordion').then(module => ({ 
-  default: module.AccordionItem 
-})));
-const AccordionTrigger = lazy(() => import('@/components/ui/accordion').then(module => ({ 
-  default: module.AccordionTrigger 
-})));
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const ComponentLoader = () => (
   <div className="w-full h-32 flex items-center justify-center">
@@ -36,6 +17,7 @@ const ComponentLoader = () => (
 const Index = () => {
   const [scrollY, setScrollY] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
+  const isMobile = useIsMobile();
   
   useEffect(() => {
     const handleScroll = () => {
@@ -82,7 +64,7 @@ const Index = () => {
                   <Leaf className="h-6 w-6 text-plantDoc-primary" />
                 </motion.div>
                 <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gradient relative">
-                  AI-Powered Plant Disease Diagnosis
+                  Plant Care Reimagined
                   <div className="absolute -bottom-2 left-0 md:w-1/3 h-0.5 bg-gradient-to-r from-plantDoc-primary to-transparent"></div>
                 </h1>
                 <p className="text-lg text-foreground/70 mb-8 md:max-w-xl">
@@ -308,22 +290,22 @@ const Index = () => {
         </section>
       </main>
       
-      {/* Responsive floating button - improved for mobile */}
-      <div className="fixed bottom-6 md:bottom-28 right-4 md:right-8 z-50">
-        <Link to="/diagnose">
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Button className="glass-button bg-gradient-to-r from-plantDoc-primary to-plantDoc-secondary text-white font-bold px-4 md:px-6 py-3 md:py-6 rounded-full shadow-xl hover:shadow-2xl hover:shadow-plantDoc-primary/30 group">
-              <Leaf className="h-5 w-5 mr-2 group-hover:rotate-12 transition-transform" />
-              <span className="text-sm md:text-lg">Diagnose Plant</span>
-            </Button>
-          </motion.div>
-        </Link>
-      </div>
+      {!isMobile && (
+        <div className="fixed bottom-6 md:bottom-28 right-4 md:right-8 z-50">
+          <Link to="/diagnose">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Button className="glass-button bg-gradient-to-r from-plantDoc-primary to-plantDoc-secondary text-white font-bold px-4 md:px-6 py-3 md:py-6 rounded-full shadow-xl hover:shadow-2xl hover:shadow-plantDoc-primary/30 group">
+                <Leaf className="h-5 w-5 mr-2 group-hover:rotate-12 transition-transform" />
+                <span className="text-sm md:text-lg">Diagnose Plant</span>
+              </Button>
+            </motion.div>
+          </Link>
+        </div>
+      )}
       
-      {/* Scroll to top button - improved for mobile */}
       <motion.button 
         onClick={scrollToTop} 
         className={`fixed bottom-6 md:bottom-28 left-4 md:left-8 z-50 p-2 md:p-3 rounded-full glass-card ${
