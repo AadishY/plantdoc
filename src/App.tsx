@@ -30,6 +30,8 @@ function App() {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="plantdoc-theme">
       {/* Apply DynamicBackground to all pages */}
+      <DynamicBackground />
+      
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/diagnose" element={

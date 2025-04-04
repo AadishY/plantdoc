@@ -17,8 +17,8 @@ const DynamicBackground = () => {
   const isMobile = useIsMobile();
   const [mounted, setMounted] = useState(false);
   
-  // Generate fewer blobs on mobile to improve performance (reduced for optimization)
-  const blobCount = isMobile ? 2 : 4;
+  // Generate fewer blobs on mobile to improve performance
+  const blobCount = isMobile ? 2 : 3;
   
   // Create randomized blobs with memoization
   const [blobs, setBlobs] = useState<BackgroundBlob[]>([]);
@@ -33,19 +33,19 @@ const DynamicBackground = () => {
           id: i,
           x: `${Math.random() * 100}%`,
           y: `${Math.random() * 100}%`,
-          size: `${isMobile ? 100 + Math.random() * 100 : 150 + Math.random() * 200}px`, // Reduced size for performance
+          size: `${isMobile ? 80 + Math.random() * 80 : 120 + Math.random() * 150}px`, // Reduced size for performance
           color: i % 2 === 0 
             ? 'from-plantDoc-primary/20 to-plantDoc-secondary/10' 
             : 'from-plantDoc-secondary/20 to-plantDoc-primary/10',
-          delay: i * 0.5,
-          duration: 15 + Math.random() * 10
+          delay: i * 0.3,
+          duration: 10 + Math.random() * 5
         });
       }
       
       setBlobs(newBlobs);
       setMounted(true);
     }
-  }, [isMobile, mounted]);
+  }, [isMobile, mounted, blobCount]);
   
   // Optimize rendering
   const renderBlobs = () => {
@@ -58,11 +58,11 @@ const DynamicBackground = () => {
           top: blob.y,
           width: blob.size,
           height: blob.size,
-          opacity: 0.3
+          opacity: 0.25
         }}
         animate={{
-          x: [0, 20, -10, 0],
-          y: [0, -10, 5, 0],
+          x: [0, 15, -5, 0],
+          y: [0, -5, 2, 0],
         }}
         transition={{
           duration: blob.duration,
@@ -82,7 +82,7 @@ const DynamicBackground = () => {
       {renderBlobs()}
       
       {/* Enhanced background with darker overlay */}
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm -z-10"></div>
+      <div className="absolute inset-0 bg-black/75 backdrop-blur-sm -z-10"></div>
       
       {/* Grid pattern for more modern look */}
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMxQTIwMkMiIGZpbGwtb3BhY2l0eT0iMC4wNCI+PHBhdGggZD0iTTM2IDM0aDR2MWgtNHYtMXptMC0zaC00djFoNHYtMXptMC0yaC00djFoNHYtMXptLTYgMWgtNHYxaDR2LTF6TTEyIDEyaDR2MWgtNHYtMXptMC0zaC00djFoNHYtMXptMC0yaC00djFoNHYtMXptLTYgMWgtNHYxaDR2LTF6TTM2IDEyaDR2MWgtNHYtMXptMC0zaC00djFoNHYtMXptMC0yaC00djFoNHYtMXptLTYgMWgtNHYxaDR2LTF6TTEyIDM0aDR2MWgtNHYtMXptMC0zaC00djFoNHYtMXptMC0yaC00djFoNHYtMXptLTYgMWgtNHYxaDR2LTF6Ij48L3BhdGg+PC9nPjwvZz48L3N2Zz4=')] opacity-10"></div>
