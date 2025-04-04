@@ -55,7 +55,7 @@ const DynamicBackground = () => {
     }
   }, [isMobile, mounted, blobCount]);
   
-  // Optimize rendering
+  // Optimize rendering with dynamic movement
   const renderBlobs = () => {
     return blobs.map((blob) => (
       <motion.div 
@@ -69,15 +69,18 @@ const DynamicBackground = () => {
           opacity: 0.4
         }}
         animate={{
-          x: [0, 15, -5, 0],
-          y: [0, -5, 2, 0],
+          x: [0, 30, -20, 15, -10, 0],
+          y: [0, -15, 10, -20, 5, 0],
+          scale: [1, 1.1, 0.95, 1.05, 0.98, 1],
+          opacity: [0.4, 0.5, 0.35, 0.45, 0.4],
         }}
         transition={{
           duration: blob.duration,
           repeat: Infinity,
           repeatType: "reverse",
           delay: blob.delay,
-          ease: "easeInOut"
+          ease: "easeInOut",
+          times: [0, 0.2, 0.4, 0.6, 0.8, 1]
         }}
       />
     ));
@@ -99,13 +102,67 @@ const DynamicBackground = () => {
       {/* Radial gradient overlay for depth */}
       <div className="absolute inset-0 bg-radial-gradient from-transparent via-transparent to-background/90 pointer-events-none"></div>
       
-      {/* Extra glassmorphic glows */}
-      <div className="absolute top-1/3 -left-10 w-80 h-80 bg-plantDoc-primary/10 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-1/3 -right-10 w-96 h-96 bg-plantDoc-secondary/10 rounded-full blur-3xl"></div>
+      {/* Extra glassmorphic glows with animation */}
+      <motion.div 
+        className="absolute top-1/3 -left-10 w-80 h-80 bg-plantDoc-primary/10 rounded-full blur-3xl"
+        animate={{
+          x: [0, 30, -20, 10, 0],
+          opacity: [0.2, 0.3, 0.15, 0.25, 0.2],
+        }}
+        transition={{
+          duration: 15,
+          repeat: Infinity,
+          repeatType: "reverse",
+          ease: "easeInOut"
+        }}
+      />
+      <motion.div 
+        className="absolute bottom-1/3 -right-10 w-96 h-96 bg-plantDoc-secondary/10 rounded-full blur-3xl"
+        animate={{
+          x: [0, -40, 20, -15, 0],
+          opacity: [0.2, 0.25, 0.15, 0.3, 0.2],
+        }}
+        transition={{
+          duration: 18,
+          repeat: Infinity,
+          repeatType: "reverse",
+          ease: "easeInOut",
+          delay: 2
+        }}
+      />
       
-      {/* Additional glowing orbs */}
-      <div className="absolute top-2/3 left-1/4 w-60 h-60 bg-plantDoc-accent/10 rounded-full blur-3xl opacity-60"></div>
-      <div className="absolute bottom-3/4 right-1/3 w-48 h-48 bg-green-400/10 rounded-full blur-3xl opacity-50"></div>
+      {/* Additional glowing orbs with motion */}
+      <motion.div 
+        className="absolute top-2/3 left-1/4 w-60 h-60 bg-plantDoc-accent/10 rounded-full blur-3xl opacity-60"
+        animate={{
+          y: [0, -30, 15, -10, 0],
+          scale: [1, 1.1, 0.9, 1.05, 1],
+          opacity: [0.6, 0.7, 0.5, 0.65, 0.6],
+        }}
+        transition={{
+          duration: 12,
+          repeat: Infinity,
+          repeatType: "reverse",
+          ease: "easeInOut",
+          delay: 1
+        }}
+      />
+      <motion.div 
+        className="absolute bottom-3/4 right-1/3 w-48 h-48 bg-green-400/10 rounded-full blur-3xl opacity-50"
+        animate={{
+          y: [0, 20, -15, 25, 0],
+          x: [0, 15, -10, 5, 0],
+          scale: [1, 1.15, 0.95, 1.05, 1],
+          opacity: [0.5, 0.6, 0.4, 0.55, 0.5],
+        }}
+        transition={{
+          duration: 14,
+          repeat: Infinity,
+          repeatType: "reverse",
+          ease: "easeInOut",
+          delay: 3
+        }}
+      />
     </div>
   );
 };

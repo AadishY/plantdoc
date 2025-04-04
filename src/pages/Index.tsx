@@ -11,6 +11,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import RotatingLeaf from '@/components/RotatingLeaf';
 import FeatureHighlights from '@/components/FeatureHighlights';
 import CtaSection from '@/components/CtaSection';
+import ParallaxSection from '@/components/ParallaxSection';
 import { 
   Accordion,
   AccordionItem,
@@ -74,7 +75,7 @@ const Index = () => {
                   <Leaf className="h-6 w-6 text-plantDoc-primary" />
                 </motion.div>
                 <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gradient relative">
-                  Plant Care Reimagined
+                  Plant Doc
                   <div className="absolute -bottom-2 left-0 md:w-1/3 h-0.5 bg-gradient-to-r from-plantDoc-primary to-transparent"></div>
                 </h1>
                 <p className="text-lg text-foreground/70 mb-8 md:max-w-xl">
@@ -105,6 +106,9 @@ const Index = () => {
             </div>
           </div>
         </section>
+
+        {/* Plant Care Reimagined Section */}
+        <ParallaxSection />
 
         {/* How It Works Section */}
         <section className="py-12 md:py-16 relative">
