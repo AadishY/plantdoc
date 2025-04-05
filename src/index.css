@@ -158,37 +158,50 @@
   .glass-tooltip {
     @apply bg-black/70 backdrop-blur-md border border-white/10;
   }
-  
-  .glass-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-white/20 hover:bg-white/30;
+
+  .hover-glow-green {
+    @apply relative;
+    &::after {
+      content: '';
+      @apply absolute inset-0 opacity-0 rounded-md bg-plantDoc-primary/20 blur-sm transition-opacity duration-300;
+      z-index: -1;
+    }
+    &:hover::after {
+      @apply opacity-100;
+    }
   }
   
-  .glass-scrollbar::-webkit-scrollbar-track {
-    @apply bg-black/10;
+  .hover-border-gradient {
+    @apply relative border border-transparent bg-clip-padding;
+    &::before {
+      content: '';
+      @apply absolute inset-0 rounded-md bg-gradient-to-tr from-plantDoc-primary/50 via-plantDoc-accent/30 to-plantDoc-secondary/50 opacity-0 transition-opacity duration-300 -z-10;
+    }
+    &:hover::before {
+      @apply opacity-100;
+    }
+  }
+  
+  .text-glow {
+    text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+  }
+  
+  .hover-text-glow {
+    @apply transition-all duration-300;
+    &:hover {
+      text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+    }
+  }
+  
+  .card-hover-3d {
+    @apply transition-transform duration-300 backface-hidden;
+    transform: perspective(1000px) rotateX(0) rotateY(0);
+    
+    &:hover {
+      transform: perspective(1000px) rotateX(2deg) rotateY(2deg);
+    }
   }
 
-  .frost-panel {
-    @apply bg-white/5 backdrop-blur-xl border border-white/15 rounded-lg shadow-xl transition-all duration-300;
-  }
-  
-  .frost-panel-dark {
-    @apply bg-black/50 backdrop-blur-2xl border border-white/10 rounded-lg shadow-2xl transition-all duration-300;
-  }
-  
-  .glassmorphic-card {
-    @apply relative overflow-hidden bg-white/5 backdrop-blur-2xl border border-white/15 rounded-xl shadow-2xl;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2), inset 0 0 2px 1px rgba(255, 255, 255, 0.05);
-  }
-  
-  .glassmorphic-card::before {
-    content: '';
-    @apply absolute inset-0 pointer-events-none bg-gradient-to-br from-white/10 to-transparent opacity-50 -z-10;
-  }
-
-  .hover-scale {
-    @apply transition-transform duration-300 hover:scale-105;
-  }
-  
   .hover-glow {
     @apply transition-all duration-300 hover:shadow-[0_0_15px_rgba(76,175,80,0.5)];
   }
@@ -321,11 +334,11 @@
   }
 
   .frost-panel {
-    @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-lg shadow-xl;
+    @apply bg-white/5 backdrop-blur-xl border border-white/15 rounded-lg shadow-xl transition-all duration-300;
   }
   
   .frost-panel-dark {
-    @apply bg-black/40 backdrop-blur-xl border border-white/5 rounded-lg shadow-2xl;
+    @apply bg-black/50 backdrop-blur-2xl border border-white/10 rounded-lg shadow-2xl transition-all duration-300;
   }
 
   .gradient-border {
