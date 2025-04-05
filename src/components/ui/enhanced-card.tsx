@@ -12,10 +12,9 @@ interface EnhancedCardProps extends HTMLAttributes<HTMLDivElement> {
   isInteractive?: boolean;
   isFrosted?: boolean;
   intensity?: number;
-  hoverEffect?: "scale" | "lift" | "glow" | "both" | "fancy" | "pulse" | "smooth" | string;
-  glassIntensity?: "light" | "medium" | "intense" | "neo" | "crystal" | "frost" | string;
+  hoverEffect?: "scale" | "lift" | "glow" | "both" | "fancy" | string;
+  glassIntensity?: "light" | "medium" | "intense" | "neo" | string;
   borderGlow?: boolean;
-  accentColor?: string;
 }
 
 const EnhancedCard = forwardRef<HTMLDivElement, EnhancedCardProps>(({
@@ -28,28 +27,23 @@ const EnhancedCard = forwardRef<HTMLDivElement, EnhancedCardProps>(({
   hoverEffect,
   glassIntensity,
   borderGlow,
-  accentColor = "plantDoc-primary",
   children,
   ...props
 }, ref) => {
   const getHoverClass = () => {
     switch (hoverEffect) {
       case "scale":
-        return "transition-transform duration-300 hover:scale-[1.02]";
+        return "hover-grow";
       case "lift":
-        return "transition-all duration-300 hover:-translate-y-1";
+        return "hover-float";
       case "glow":
         return "transition-all duration-300 hover:shadow-lg hover:shadow-plantDoc-primary/20";
       case "both":
-        return "transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-plantDoc-primary/20";
+        return "hover-float hover:shadow-lg hover:shadow-plantDoc-primary/20";
       case "fancy":
         return "transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-lg hover:shadow-plantDoc-primary/30 hover:border-plantDoc-primary/30";
-      case "pulse":
-        return "hover:animate-pulse transition-all duration-300";
-      case "smooth":
-        return "transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-lg hover:shadow-plantDoc-secondary/20";
       default:
-        return isHoverable ? "transition-all duration-300 hover:scale-[1.01] hover:shadow-md" : "";
+        return isHoverable ? "hover-pop hover:shadow-lg" : "";
     }
   };
 
@@ -60,23 +54,14 @@ const EnhancedCard = forwardRef<HTMLDivElement, EnhancedCardProps>(({
       case "light":
         return "bg-white/5 backdrop-blur-md border border-white/10";
       case "medium":
-        return "bg-white/10 backdrop-blur-md border border-white/20";
+        return "glass-card";
       case "intense":
-        return "bg-black/40 backdrop-blur-xl border border-white/10";
+        return "glass-card-intense";
       case "neo":
-        return "bg-black/30 backdrop-blur-xl border border-white/5 shadow-inner shadow-white/5";
-      case "crystal":
-        return "bg-gradient-to-br from-white/10 to-black/20 backdrop-blur-xl border border-white/10";
-      case "frost":
-        return "bg-white/15 backdrop-blur-xl border border-white/30 shadow-inner shadow-white/5";
+        return "neo-glass";
       default:
-        return isFrosted ? "bg-white/10 backdrop-blur-md border border-white/20" : "";
+        return isFrosted ? "glass-card" : "";
     }
-  };
-
-  const getBorderGlowClass = () => {
-    if (!borderGlow) return "";
-    return `ring-1 ring-${accentColor}/20 hover:ring-${accentColor}/30 hover:ring-2`;
   };
   
   const cardContent = (
@@ -97,8 +82,8 @@ const EnhancedCard = forwardRef<HTMLDivElement, EnhancedCardProps>(({
         className={cn(
           getHoverClass(),
           getGlassClass(),
-          getBorderGlowClass(),
           isRaised && "shadow-lg",
+          borderGlow && "hover:border-plantDoc-primary/30",
           className
         )}
         {...props}
@@ -106,7 +91,7 @@ const EnhancedCard = forwardRef<HTMLDivElement, EnhancedCardProps>(({
         {/* Static glow overlay for better performance */}
         {hoverEffect === "glow" && (
           <div 
-            className="absolute inset-0 opacity-0 group-hover:opacity-100 pointer-events-none bg-gradient-to-tr from-plantDoc-primary/10 to-transparent rounded-xl transition-opacity duration-300"
+            className="absolute inset-0 opacity-0 pointer-events-none bg-gradient-to-tr from-plantDoc-primary/10 to-transparent rounded-xl transition-opacity duration-300 hover:opacity-100"
             style={{
               mixBlendMode: 'overlay',
             }}

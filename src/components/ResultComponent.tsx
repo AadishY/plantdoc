@@ -1,8 +1,9 @@
+
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Droplet, Thermometer, Leaf, Info, Shield, AlertTriangle, Zap } from 'lucide-react';
+import { Droplet, Thermometer, Leaf, Info, Shield, AlertTriangle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { DiagnosisResult } from '@/types/diagnosis';
 import { motion } from 'framer-motion';
@@ -32,21 +33,20 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ result }) => {
     return Math.round(confidence);
   };
 
-  // Animation variants - optimized for performance
+  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.15,
-        delayChildren: 0.1
+        staggerChildren: 0.2
       }
     }
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 10 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } }
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
   };
 
   return (
@@ -58,12 +58,7 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ result }) => {
     >
       {/* Disease Diagnosis Card */}
       <motion.div variants={itemVariants}>
-        <EnhancedCard 
-          hoverEffect="smooth" 
-          glassIntensity="crystal"
-          accentColor="plantDoc-primary"
-          borderGlow
-        >
+        <EnhancedCard hoverEffect="both">
           <EnhancedCardHeader className="pb-2">
             <EnhancedCardTitle className="text-xl flex items-center">
               <Info className="h-5 w-5 mr-2 text-plantDoc-primary" />
@@ -75,11 +70,8 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ result }) => {
           </EnhancedCardHeader>
           <EnhancedCardContent className="p-6">
             <div className="space-y-4">
-              <div className="bg-gradient-to-r from-plantDoc-primary/20 to-transparent p-4 rounded-lg">
-                <h3 className="text-lg font-medium flex items-center">
-                  <Zap className="h-4 w-4 mr-2 text-plantDoc-primary" />
-                  {result.disease.name}
-                </h3>
+              <div>
+                <h3 className="text-lg font-medium">{result.disease.name}</h3>
                 <div className="flex items-center gap-3 mt-3">
                   <span className="text-sm text-foreground/70">Confidence:</span>
                   <div className="flex-1">
@@ -88,10 +80,7 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ result }) => {
                       animate={{ width: '100%' }}
                       transition={{ duration: 0.8, ease: "easeOut" }}
                     >
-                      <Progress value={getConfidencePercentage(result.disease.confidence)} 
-                        className="h-2 bg-white/10" 
-                        indicatorClassName="bg-gradient-to-r from-plantDoc-primary to-plantDoc-secondary"
-                      />
+                      <Progress value={getConfidencePercentage(result.disease.confidence)} className="h-2" />
                     </motion.div>
                   </div>
                   <span className="text-sm font-medium">{result.disease.confidence}%</span>
@@ -101,7 +90,7 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ result }) => {
               <div className="mt-2 flex items-center">
                 <span className="text-sm text-foreground/70 mr-2">Severity:</span>
                 <motion.span 
-                  className={`text-sm font-medium px-3 py-1 rounded-full text-white flex items-center gap-1 ${getSeverityColor(result.disease.severity)}`}
+                  className={`text-sm font-medium px-2 py-0.5 rounded-full text-white flex items-center gap-1 ${getSeverityColor(result.disease.severity)}`}
                   initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ duration: 0.3, delay: 0.5 }}
@@ -117,24 +106,19 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ result }) => {
 
       {/* Treatment & Prevention Card */}
       <motion.div variants={itemVariants}>
-        <EnhancedCard 
-          hoverEffect="smooth" 
-          glassIntensity="crystal"
-          accentColor="plantDoc-secondary"
-          borderGlow
-        >
+        <EnhancedCard hoverEffect="both">
           <EnhancedCardHeader>
             <EnhancedCardTitle className="text-xl flex items-center">
-              <Leaf className="h-5 w-5 mr-2 text-plantDoc-secondary" />
+              <Leaf className="h-5 w-5 mr-2 text-plantDoc-primary" />
               Treatment & Prevention
             </EnhancedCardTitle>
           </EnhancedCardHeader>
           <CardContent className="p-0">
             <Tabs defaultValue="treatment" className="w-full">
               <TabsList className="w-full grid grid-cols-3 rounded-none bg-muted/50 p-0 h-12">
-                <TabsTrigger value="treatment" className="rounded-none data-[state=active]:bg-plantDoc-primary/20 data-[state=active]:text-foreground">Treatment</TabsTrigger>
-                <TabsTrigger value="causes" className="rounded-none data-[state=active]:bg-plantDoc-primary/20 data-[state=active]:text-foreground">Causes</TabsTrigger>
-                <TabsTrigger value="prevention" className="rounded-none data-[state=active]:bg-plantDoc-primary/20 data-[state=active]:text-foreground">Prevention</TabsTrigger>
+                <TabsTrigger value="treatment" className="rounded-none data-[state=active]:bg-plantDoc-primary/20">Treatment</TabsTrigger>
+                <TabsTrigger value="causes" className="rounded-none data-[state=active]:bg-plantDoc-primary/20">Causes</TabsTrigger>
+                <TabsTrigger value="prevention" className="rounded-none data-[state=active]:bg-plantDoc-primary/20">Prevention</TabsTrigger>
               </TabsList>
               <div className="p-6">
                 <TabsContent value="treatment" className="mt-0">
@@ -147,12 +131,12 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ result }) => {
                     {result.treatment.steps.map((step, index) => (
                       <motion.li 
                         key={index} 
-                        className="flex items-start gap-2 backdrop-blur-sm bg-black/10 p-3 rounded-lg hover:bg-gradient-to-r hover:from-black/20 hover:to-black/10 transition-all duration-300"
+                        className="flex items-start gap-2 backdrop-blur-sm bg-black/10 p-3 rounded-lg hover:bg-black/20 transition-all duration-300"
                         variants={itemVariants}
                         whileHover={{ x: 5 }}
                       >
                         <motion.div 
-                          className="w-6 h-6 rounded-full bg-gradient-to-br from-plantDoc-primary/50 to-plantDoc-secondary/30 flex-shrink-0 flex items-center justify-center mt-0.5"
+                          className="w-5 h-5 rounded-full bg-plantDoc-primary/20 flex-shrink-0 flex items-center justify-center mt-0.5"
                           whileHover={{ backgroundColor: 'rgba(76, 175, 80, 0.4)', scale: 1.1 }}
                         >
                           <span className="text-xs font-medium">{index+1}</span>
@@ -162,7 +146,6 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ result }) => {
                     ))}
                   </motion.ul>
                 </TabsContent>
-                
                 <TabsContent value="causes" className="mt-0">
                   <motion.ul 
                     className="space-y-2 list-none"
@@ -173,12 +156,12 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ result }) => {
                     {result.causes?.map((cause, index) => (
                       <motion.li 
                         key={index} 
-                        className="flex items-start gap-2 backdrop-blur-sm bg-black/10 p-3 rounded-lg hover:bg-gradient-to-r hover:from-black/20 hover:to-black/10 transition-all duration-300"
+                        className="flex items-start gap-2 backdrop-blur-sm bg-black/10 p-3 rounded-lg hover:bg-black/20 transition-all duration-300"
                         variants={itemVariants}
                         whileHover={{ x: 5 }}
                       >
                         <motion.div 
-                          className="w-6 h-6 rounded-full bg-gradient-to-br from-plantDoc-primary/50 to-plantDoc-secondary/30 flex-shrink-0 flex items-center justify-center mt-0.5"
+                          className="w-5 h-5 rounded-full bg-plantDoc-primary/20 flex-shrink-0 flex items-center justify-center mt-0.5"
                           whileHover={{ backgroundColor: 'rgba(76, 175, 80, 0.4)', scale: 1.1 }}
                         >
                           <Shield className="h-3 w-3 text-plantDoc-primary" />
@@ -198,12 +181,12 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ result }) => {
                     {result.treatment.prevention.map((tip, index) => (
                       <motion.li 
                         key={index} 
-                        className="flex items-start gap-2 backdrop-blur-sm bg-black/10 p-3 rounded-lg hover:bg-gradient-to-r hover:from-black/20 hover:to-black/10 transition-all duration-300"
+                        className="flex items-start gap-2 backdrop-blur-sm bg-black/10 p-3 rounded-lg hover:bg-black/20 transition-all duration-300"
                         variants={itemVariants}
                         whileHover={{ x: 5 }}
                       >
                         <motion.div 
-                          className="w-6 h-6 rounded-full bg-gradient-to-br from-plantDoc-primary/50 to-plantDoc-secondary/30 flex-shrink-0 flex items-center justify-center mt-0.5"
+                          className="w-5 h-5 rounded-full bg-plantDoc-primary/20 flex-shrink-0 flex items-center justify-center mt-0.5"
                           whileHover={{ backgroundColor: 'rgba(76, 175, 80, 0.4)', scale: 1.1 }}
                         >
                           <Shield className="h-3 w-3 text-plantDoc-primary" />
@@ -223,15 +206,10 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ result }) => {
       <div className="grid md:grid-cols-2 gap-6">
         {/* Fertilizer Recommendation Card */}
         <motion.div variants={itemVariants}>
-          <EnhancedCard 
-            hoverEffect="smooth" 
-            glassIntensity="frost"
-            borderGlow
-            accentColor="plantDoc-accent"
-          >
+          <EnhancedCard hoverEffect="both">
             <EnhancedCardHeader>
               <EnhancedCardTitle className="text-xl flex items-center">
-                <Droplet className="h-5 w-5 mr-2 text-plantDoc-accent" />
+                <Droplet className="h-5 w-5 mr-2 text-plantDoc-primary" />
                 Fertilizer Recommendation
               </EnhancedCardTitle>
             </EnhancedCardHeader>
@@ -243,11 +221,11 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ result }) => {
                   animate={{ x: 0, opacity: 1 }}
                   transition={{ delay: 0.3 }}
                 >
-                  <div className="w-2 h-2 rounded-full bg-gradient-to-r from-plantDoc-primary to-plantDoc-accent"></div>
+                  <div className="w-2 h-2 rounded-full bg-plantDoc-primary"></div>
                   <h3 className="font-medium">Recommended:</h3>
                 </motion.div>
                 <motion.p 
-                  className="text-foreground/80 pl-4 backdrop-blur-sm bg-gradient-to-r from-plantDoc-accent/10 to-black/10 p-3 rounded-lg hover:from-plantDoc-accent/15 hover:to-black/15 transition-all duration-300"
+                  className="text-foreground/80 pl-4 backdrop-blur-sm bg-black/10 p-3 rounded-lg hover:bg-black/20 transition-all duration-300"
                   initial={{ y: 10, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.4 }}
@@ -263,11 +241,11 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ result }) => {
                   animate={{ x: 0, opacity: 1 }}
                   transition={{ delay: 0.5 }}
                 >
-                  <div className="w-2 h-2 rounded-full bg-gradient-to-r from-plantDoc-primary to-plantDoc-accent"></div>
+                  <div className="w-2 h-2 rounded-full bg-plantDoc-primary"></div>
                   <h3 className="font-medium">Application:</h3>
                 </motion.div>
                 <motion.p 
-                  className="text-foreground/80 pl-4 backdrop-blur-sm bg-gradient-to-r from-plantDoc-accent/10 to-black/10 p-3 rounded-lg hover:from-plantDoc-accent/15 hover:to-black/15 transition-all duration-300"
+                  className="text-foreground/80 pl-4 backdrop-blur-sm bg-black/10 p-3 rounded-lg hover:bg-black/20 transition-all duration-300"
                   initial={{ y: 10, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.6 }}
@@ -281,12 +259,7 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ result }) => {
 
         {/* Care Recommendations Card */}
         <motion.div variants={itemVariants}>
-          <EnhancedCard 
-            hoverEffect="smooth" 
-            glassIntensity="frost"
-            borderGlow
-            accentColor="plantDoc-primary"
-          >
+          <EnhancedCard hoverEffect="both">
             <EnhancedCardHeader>
               <EnhancedCardTitle className="text-xl flex items-center">
                 <Thermometer className="h-5 w-5 mr-2 text-plantDoc-primary" />
@@ -303,15 +276,15 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ result }) => {
                 {result.care_recommendations.map((tip, index) => (
                   <motion.li 
                     key={index} 
-                    className="flex items-start gap-2 backdrop-blur-sm bg-gradient-to-r from-plantDoc-primary/10 to-black/10 p-3 rounded-lg hover:from-plantDoc-primary/15 hover:to-black/15 transition-all duration-300"
+                    className="flex items-start gap-2 backdrop-blur-sm bg-black/10 p-3 rounded-lg hover:bg-black/20 transition-all duration-300"
                     variants={itemVariants}
                     whileHover={{ x: 5 }}
                   >
                     <motion.div 
-                      className="w-6 h-6 rounded-full bg-gradient-to-br from-plantDoc-primary/40 to-plantDoc-secondary/20 flex-shrink-0 flex items-center justify-center mt-0.5"
-                      whileHover={{ scale: 1.1 }}
+                      className="w-5 h-5 rounded-full bg-plantDoc-primary/20 flex-shrink-0 flex items-center justify-center mt-0.5"
+                      whileHover={{ backgroundColor: 'rgba(76, 175, 80, 0.4)', scale: 1.1 }}
                     >
-                      <Leaf className="h-3 w-3 text-white" />
+                      <Leaf className="h-3 w-3 text-plantDoc-primary" />
                     </motion.div>
                     <span>{tip}</span>
                   </motion.li>
