@@ -1,5 +1,5 @@
 
-import React, { forwardRef, HTMLAttributes } from 'react';
+import React, { forwardRef, HTMLAttributes, useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './card';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
@@ -12,8 +12,8 @@ interface EnhancedCardProps extends HTMLAttributes<HTMLDivElement> {
   isInteractive?: boolean;
   isFrosted?: boolean;
   intensity?: number;
-  hoverEffect?: "scale" | "lift" | "glow" | "both" | "fancy" | string;
-  glassIntensity?: "light" | "medium" | "intense" | string;
+  hoverEffect?: "scale" | "lift" | "glow" | "both" | "fancy" | "fluid" | string;
+  glassIntensity?: "light" | "medium" | "intense" | "neo" | string;
   borderGlow?: boolean;
 }
 
@@ -23,27 +23,47 @@ const EnhancedCard = forwardRef<HTMLDivElement, EnhancedCardProps>(({
   isRaised = false,
   isInteractive = false,
   isFrosted = false,
-  intensity = 10,
+  intensity = 8,
   hoverEffect,
   glassIntensity,
   borderGlow,
   children,
   ...props
 }, ref) => {
+  // State for tracking mouse position for fluid effect
+  const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 });
+  
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (hoverEffect === "fluid") {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      setMousePosition({ x, y });
+      
+      // Update CSS variables for the hover-glow-enhanced effect
+      if (e.currentTarget) {
+        e.currentTarget.style.setProperty("--x", `${x}%`);
+        e.currentTarget.style.setProperty("--y", `${y}%`);
+      }
+    }
+  };
+
   const getHoverClass = () => {
     switch (hoverEffect) {
       case "scale":
-        return "transition-all duration-300 hover:scale-[1.02]";
+        return "hover-grow";
       case "lift":
-        return "transition-all duration-300 hover:-translate-y-1";
+        return "hover-float";
       case "glow":
         return "transition-all duration-300 hover:shadow-lg hover:shadow-plantDoc-primary/20";
       case "both":
-        return "transition-all duration-300 hover:-translate-y-1 hover:scale-[1.01] hover:shadow-lg hover:shadow-plantDoc-primary/20";
+        return "hover-float hover:shadow-lg hover:shadow-plantDoc-primary/20";
       case "fancy":
         return "transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-lg hover:shadow-plantDoc-primary/30 hover:border-plantDoc-primary/30";
+      case "fluid":
+        return "hover-glow-enhanced";
       default:
-        return isHoverable ? "transition-all duration-300 hover:-translate-y-1 hover:shadow-lg" : "";
+        return isHoverable ? "hover-pop hover:shadow-lg" : "";
     }
   };
 
@@ -54,9 +74,11 @@ const EnhancedCard = forwardRef<HTMLDivElement, EnhancedCardProps>(({
       case "light":
         return "bg-white/5 backdrop-blur-md border border-white/10";
       case "medium":
-        return "glassmorphic-card";
+        return "glass-card";
       case "intense":
         return "glass-card-intense";
+      case "neo":
+        return "neo-glass";
       default:
         return isFrosted ? "glass-card" : "";
     }
@@ -74,6 +96,7 @@ const EnhancedCard = forwardRef<HTMLDivElement, EnhancedCardProps>(({
           : undefined
       }
       className="w-full h-full"
+      onMouseMove={handleMouseMove}
     >
       <Card
         ref={ref}
@@ -82,10 +105,21 @@ const EnhancedCard = forwardRef<HTMLDivElement, EnhancedCardProps>(({
           getGlassClass(),
           isRaised && "shadow-lg",
           borderGlow && "hover:border-plantDoc-primary/30",
+          hoverEffect === "fluid" && "overflow-hidden",
           className
         )}
         {...props}
       >
+        {/* Fluid glow effect overlay */}
+        {hoverEffect === "fluid" && (
+          <div 
+            className="absolute inset-0 pointer-events-none opacity-0 hover:opacity-100 transition-opacity duration-300"
+            style={{
+              background: `radial-gradient(circle at ${mousePosition.x}% ${mousePosition.y}%, rgba(76, 175, 80, 0.15) 0%, rgba(76, 175, 80, 0) 60%)`,
+            }}
+          />
+        )}
+        
         {children}
       </Card>
     </motion.div>
