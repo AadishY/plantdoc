@@ -5,39 +5,8 @@ import { Sparkles, Zap, Leaf, Shield, Heart, Cloud } from 'lucide-react';
 
 const ParallaxSection: React.FC = () => {
   return (
-    <section 
-      className="relative py-20 overflow-hidden bg-black/70 backdrop-blur-sm"
-    >
-      {/* Background elements */}
-      <motion.div 
-        className="absolute top-20 left-[20%] w-40 h-40 bg-plantDoc-primary/20 rounded-full blur-3xl"
-        animate={{ 
-          scale: [1, 1.2, 1],
-          opacity: [0.5, 0.7, 0.5],
-        }}
-        transition={{ 
-          duration: 8,
-          repeat: Infinity,
-          repeatType: "reverse"
-        }}
-      />
-      
-      <motion.div 
-        className="absolute bottom-40 right-[30%] w-60 h-60 bg-accent/20 rounded-full blur-3xl"
-        animate={{ 
-          scale: [1, 1.1, 1],
-          opacity: [0.4, 0.6, 0.4],
-        }}
-        transition={{ 
-          duration: 10,
-          repeat: Infinity,
-          repeatType: "reverse",
-          delay: 1
-        }}
-      />
-      
-      {/* Content */}
-      <div className="container mx-auto text-center z-10 px-4 py-16">
+    <section className="relative py-16 md:py-20 overflow-hidden">
+      <div className="container mx-auto text-center z-10 px-4 py-12 md:py-16">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -106,69 +75,73 @@ const ParallaxSection: React.FC = () => {
           </motion.div>
         </div>
         
-        {/* Added more features section */}
+        {/* Features section with improved glass morphism effect */}
         <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
           <motion.div 
-            className="glass-card p-6 rounded-xl flex items-start"
+            className="frost-panel p-6 rounded-xl flex items-start"
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-50px" }}
             transition={{ delay: 0.4, duration: 0.5 }}
+            whileHover={{ scale: 1.02, boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)" }}
           >
-            <div className="w-12 h-12 mr-4 bg-plantDoc-primary/20 rounded-full flex items-center justify-center shrink-0">
+            <div className="w-12 h-12 mr-4 bg-plantDoc-primary/30 rounded-full flex items-center justify-center shrink-0">
               <Shield className="h-6 w-6 text-plantDoc-primary" />
             </div>
             <div className="text-left">
               <h3 className="text-lg font-semibold mb-2">Disease Prevention</h3>
-              <p className="text-foreground/70">Learn proactive strategies to keep your plants healthy and prevent common diseases before they start.</p>
+              <p className="text-foreground/80">Learn proactive strategies to keep your plants healthy and prevent common diseases before they start.</p>
             </div>
           </motion.div>
           
           <motion.div 
-            className="glass-card p-6 rounded-xl flex items-start"
+            className="frost-panel p-6 rounded-xl flex items-start"
             initial={{ opacity: 0, x: 20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-50px" }}
             transition={{ delay: 0.45, duration: 0.5 }}
+            whileHover={{ scale: 1.02, boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)" }}
           >
-            <div className="w-12 h-12 mr-4 bg-plantDoc-primary/20 rounded-full flex items-center justify-center shrink-0">
+            <div className="w-12 h-12 mr-4 bg-plantDoc-primary/30 rounded-full flex items-center justify-center shrink-0">
               <Heart className="h-6 w-6 text-plantDoc-primary" />
             </div>
             <div className="text-left">
               <h3 className="text-lg font-semibold mb-2">Plant Health Monitoring</h3>
-              <p className="text-foreground/70">Track your plant's health over time with our intelligent monitoring system, helping you detect issues early.</p>
+              <p className="text-foreground/80">Track your plant's health over time with our intelligent monitoring system, helping you detect issues early.</p>
             </div>
           </motion.div>
           
           <motion.div 
-            className="glass-card p-6 rounded-xl flex items-start"
+            className="frost-panel p-6 rounded-xl flex items-start"
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-50px" }}
             transition={{ delay: 0.5, duration: 0.5 }}
+            whileHover={{ scale: 1.02, boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)" }}
           >
-            <div className="w-12 h-12 mr-4 bg-plantDoc-primary/20 rounded-full flex items-center justify-center shrink-0">
+            <div className="w-12 h-12 mr-4 bg-plantDoc-primary/30 rounded-full flex items-center justify-center shrink-0">
               <Cloud className="h-6 w-6 text-plantDoc-primary" />
             </div>
             <div className="text-left">
               <h3 className="text-lg font-semibold mb-2">Climate-Specific Advice</h3>
-              <p className="text-foreground/70">Get customized care instructions based on your local climate and growing conditions for optimal plant growth.</p>
+              <p className="text-foreground/80">Get customized care instructions based on your local climate and growing conditions for optimal plant growth.</p>
             </div>
           </motion.div>
           
           <motion.div 
-            className="glass-card p-6 rounded-xl flex items-start"
+            className="frost-panel p-6 rounded-xl flex items-start"
             initial={{ opacity: 0, x: 20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-50px" }}
             transition={{ delay: 0.55, duration: 0.5 }}
+            whileHover={{ scale: 1.02, boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)" }}
           >
-            <div className="w-12 h-12 mr-4 bg-plantDoc-primary/20 rounded-full flex items-center justify-center shrink-0">
+            <div className="w-12 h-12 mr-4 bg-plantDoc-primary/30 rounded-full flex items-center justify-center shrink-0">
               <Sparkles className="h-6 w-6 text-plantDoc-primary" />
             </div>
             <div className="text-left">
               <h3 className="text-lg font-semibold mb-2">Seasonal Care Calendar</h3>
-              <p className="text-foreground/70">Follow our seasonal care guidelines to ensure your plants receive the right attention at the right time throughout the year.</p>
+              <p className="text-foreground/80">Follow our seasonal care guidelines to ensure your plants receive the right attention at the right time throughout the year.</p>
             </div>
           </motion.div>
         </div>

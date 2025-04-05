@@ -12,9 +12,8 @@ interface EnhancedCardProps extends HTMLAttributes<HTMLDivElement> {
   isInteractive?: boolean;
   isFrosted?: boolean;
   intensity?: number;
-  // Add the missing props that are used in various components
-  hoverEffect?: string;
-  glassIntensity?: string;
+  hoverEffect?: "scale" | "lift" | "glow" | "both" | string;
+  glassIntensity?: "light" | "medium" | "intense" | string;
   borderGlow?: boolean;
 }
 
@@ -31,16 +30,44 @@ const EnhancedCard = forwardRef<HTMLDivElement, EnhancedCardProps>(({
   children,
   ...props
 }, ref) => {
+  const getHoverClass = () => {
+    switch (hoverEffect) {
+      case "scale":
+        return "transition-all duration-300 hover:scale-[1.02]";
+      case "lift":
+        return "transition-all duration-300 hover:-translate-y-1";
+      case "glow":
+        return "transition-all duration-300 hover:shadow-lg hover:shadow-plantDoc-primary/20";
+      case "both":
+        return "transition-all duration-300 hover:-translate-y-1 hover:scale-[1.01] hover:shadow-lg hover:shadow-plantDoc-primary/20";
+      default:
+        return isHoverable ? "transition-all duration-300 hover:-translate-y-1 hover:shadow-lg" : "";
+    }
+  };
+
+  const getGlassClass = () => {
+    if (!isFrosted && !glassIntensity) return "";
+    
+    switch (glassIntensity) {
+      case "light":
+        return "bg-white/5 backdrop-blur-md border border-white/10";
+      case "medium":
+        return "glassmorphic-card";
+      case "intense":
+        return "glass-card-intense";
+      default:
+        return isFrosted ? "glass-card" : "";
+    }
+  };
+  
   const cardContent = (
     <Card
       ref={ref}
       className={cn(
-        isHoverable && "transition-all duration-300 hover:-translate-y-1 hover:shadow-lg",
+        getHoverClass(),
+        getGlassClass(),
         isRaised && "shadow-lg",
-        isFrosted && "glass-card",
-        hoverEffect,
-        glassIntensity === 'intense' && "glass-card-intense",
-        borderGlow && "hover-glow",
+        borderGlow && "hover:border-plantDoc-primary/30",
         className
       )}
       {...props}

@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 import { EnhancedCard, EnhancedCardHeader, EnhancedCardTitle, EnhancedCardContent } from '@/components/ui/enhanced-card';
+import { Leaf, Info, MapPin, Zap } from 'lucide-react';
 
 interface AboutPlantProps {
   plantData: {
@@ -32,9 +32,16 @@ const AboutPlant = ({ plantData }: AboutPlantProps) => {
   };
   
   return (
-    <EnhancedCard hoverEffect="both">
-      <EnhancedCardHeader className="border-b border-white/10">
-        <EnhancedCardTitle className="text-xl text-center">About This Plant</EnhancedCardTitle>
+    <EnhancedCard 
+      hoverEffect="both" 
+      glassIntensity="medium"
+      className="overflow-hidden"
+    >
+      <EnhancedCardHeader className="border-b border-white/10 bg-black/20">
+        <EnhancedCardTitle className="text-xl text-center flex items-center justify-center gap-2">
+          <Leaf className="h-5 w-5 text-plantDoc-primary" />
+          About This Plant
+        </EnhancedCardTitle>
       </EnhancedCardHeader>
       <EnhancedCardContent className="p-5">
         <motion.div 
@@ -43,36 +50,54 @@ const AboutPlant = ({ plantData }: AboutPlantProps) => {
           initial="hidden"
           animate="visible"
         >
-          <motion.div variants={itemVariants}>
-            <h3 className="text-md font-medium text-plantDoc-primary mb-1">Description</h3>
+          <motion.div 
+            variants={itemVariants}
+            className="glassmorphic-card p-4 overflow-hidden"
+          >
+            <div className="flex items-center gap-2 text-md font-medium text-plantDoc-primary mb-3">
+              <Info className="h-4 w-4" />
+              <h3>Description</h3>
+            </div>
             <motion.p 
-              className="text-foreground/80 backdrop-blur-sm bg-black/10 p-3 rounded-lg"
-              whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.3)', x: 5 }}
+              className="text-foreground/90 backdrop-blur-sm bg-black/10 p-3 rounded-lg border border-white/5"
+              whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.3)', x: 5, borderColor: 'rgba(255, 255, 255, 0.1)' }}
               transition={{ duration: 0.2 }}
             >
               {plantData.description}
             </motion.p>
           </motion.div>
           
-          <motion.div variants={itemVariants}>
-            <h3 className="text-md font-medium text-plantDoc-primary mb-1">Origin</h3>
+          <motion.div 
+            variants={itemVariants}
+            className="glassmorphic-card p-4 overflow-hidden"
+          >
+            <div className="flex items-center gap-2 text-md font-medium text-plantDoc-primary mb-3">
+              <MapPin className="h-4 w-4" />
+              <h3>Origin</h3>
+            </div>
             <motion.p 
-              className="text-foreground/80 backdrop-blur-sm bg-black/10 p-3 rounded-lg"
-              whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.3)', x: 5 }}
+              className="text-foreground/90 backdrop-blur-sm bg-black/10 p-3 rounded-lg border border-white/5"
+              whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.3)', x: 5, borderColor: 'rgba(255, 255, 255, 0.1)' }}
               transition={{ duration: 0.2 }}
             >
               {plantData.origin}
             </motion.p>
           </motion.div>
           
-          <motion.div variants={itemVariants}>
-            <h3 className="text-md font-medium text-plantDoc-primary mb-1">Common Uses</h3>
-            <ul className="list-disc pl-5 space-y-2">
+          <motion.div 
+            variants={itemVariants}
+            className="glassmorphic-card p-4 overflow-hidden"
+          >
+            <div className="flex items-center gap-2 text-md font-medium text-plantDoc-primary mb-3">
+              <Zap className="h-4 w-4" />
+              <h3>Common Uses</h3>
+            </div>
+            <ul className="space-y-2">
               {plantData.common_uses.map((use, index) => (
                 <motion.li 
                   key={index} 
-                  className="text-foreground/80 backdrop-blur-sm bg-black/10 p-3 rounded-lg"
-                  whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.3)', x: 5 }}
+                  className="text-foreground/90 backdrop-blur-sm bg-black/10 p-3 rounded-lg border border-white/5"
+                  whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.3)', x: 5, borderColor: 'rgba(255, 255, 255, 0.1)' }}
                   transition={{ duration: 0.2 }}
                   variants={itemVariants}
                 >
@@ -82,11 +107,17 @@ const AboutPlant = ({ plantData }: AboutPlantProps) => {
             </ul>
           </motion.div>
           
-          <motion.div variants={itemVariants}>
-            <h3 className="text-md font-medium text-plantDoc-primary mb-1">Growing Conditions</h3>
+          <motion.div 
+            variants={itemVariants}
+            className="glassmorphic-card p-4 overflow-hidden"
+          >
+            <div className="flex items-center gap-2 text-md font-medium text-plantDoc-primary mb-3">
+              <Leaf className="h-4 w-4" />
+              <h3>Growing Conditions</h3>
+            </div>
             <motion.p 
-              className="text-foreground/80 backdrop-blur-sm bg-black/10 p-3 rounded-lg"
-              whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.3)', x: 5 }}
+              className="text-foreground/90 backdrop-blur-sm bg-black/10 p-3 rounded-lg border border-white/5"
+              whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.3)', x: 5, borderColor: 'rgba(255, 255, 255, 0.1)' }}
               transition={{ duration: 0.2 }}
             >
               {plantData.growing_conditions}

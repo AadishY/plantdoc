@@ -18,7 +18,7 @@ const DynamicBackground = () => {
   const [mounted, setMounted] = useState(false);
   
   // Generate more blobs for enhanced background effect
-  const blobCount = isMobile ? 3 : 6;
+  const blobCount = isMobile ? 4 : 8;
   
   // Create randomized blobs with memoization
   const [blobs, setBlobs] = useState<BackgroundBlob[]>([]);
@@ -30,12 +30,14 @@ const DynamicBackground = () => {
       
       // Enhanced colors with more variety and intensity for stronger glow effect
       const colors = [
-        'from-plantDoc-primary/20 to-plantDoc-secondary/10',
-        'from-plantDoc-secondary/20 to-plantDoc-primary/10',
-        'from-plantDoc-accent/15 to-plantDoc-primary/10',
-        'from-plantDoc-primary/15 to-plantDoc-accent/10',
-        'from-green-400/15 to-blue-500/5',
-        'from-blue-400/15 to-green-500/5'
+        'from-plantDoc-primary/30 to-plantDoc-secondary/20',
+        'from-plantDoc-secondary/30 to-plantDoc-primary/20',
+        'from-plantDoc-accent/25 to-plantDoc-primary/15',
+        'from-plantDoc-primary/25 to-plantDoc-accent/15',
+        'from-green-400/25 to-blue-500/15',
+        'from-blue-400/25 to-green-500/15',
+        'from-plantDoc-accent/30 to-green-400/20',
+        'from-plantDoc-primary/35 to-plantDoc-accent/25'
       ];
       
       for (let i = 0; i < blobCount; i++) {
@@ -43,10 +45,10 @@ const DynamicBackground = () => {
           id: i,
           x: `${Math.random() * 100}%`,
           y: `${Math.random() * 100}%`,
-          size: `${isMobile ? 120 + Math.random() * 120 : 200 + Math.random() * 250}px`,
+          size: `${isMobile ? 150 + Math.random() * 150 : 250 + Math.random() * 300}px`,
           color: colors[i % colors.length],
-          delay: i * 0.2,
-          duration: 8 + Math.random() * 4
+          delay: i * 0.3,
+          duration: 10 + Math.random() * 5
         });
       }
       
@@ -55,24 +57,24 @@ const DynamicBackground = () => {
     }
   }, [isMobile, mounted, blobCount]);
   
-  // Optimize rendering with dynamic movement
+  // Enhanced blob rendering with more pronounced movement
   const renderBlobs = () => {
     return blobs.map((blob) => (
       <motion.div 
         key={blob.id}
-        className={`absolute rounded-full bg-gradient-to-r ${blob.color} blur-3xl`}
+        className={`absolute rounded-full bg-gradient-to-r ${blob.color} blur-[100px]`}
         style={{ 
           left: blob.x,
           top: blob.y,
           width: blob.size,
           height: blob.size,
-          opacity: 0.4
+          opacity: 0.6
         }}
         animate={{
-          x: [0, 30, -20, 15, -10, 0],
-          y: [0, -15, 10, -20, 5, 0],
-          scale: [1, 1.1, 0.95, 1.05, 0.98, 1],
-          opacity: [0.4, 0.5, 0.35, 0.45, 0.4],
+          x: [0, 50, -30, 20, -15, 0],
+          y: [0, -30, 20, -25, 10, 0],
+          scale: [1, 1.2, 0.9, 1.1, 0.95, 1],
+          opacity: [0.6, 0.7, 0.5, 0.65, 0.55, 0.6],
         }}
         transition={{
           duration: blob.duration,
@@ -94,7 +96,7 @@ const DynamicBackground = () => {
       {renderBlobs()}
       
       {/* Enhanced glassmorphic background with stronger gradient overlay */}
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-md -z-10"></div>
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-lg -z-10"></div>
       
       {/* Subtle grid pattern for more depth */}
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMxQTIwMkMiIGZpbGwtb3BhY2l0eT0iMC4wNCI+PHBhdGggZD0iTTM2IDM0aDR2MWgtNHYtMXptMC0zaC00djFoNHYtMXptMC0yaC00djFoNHYtMXptLTYgMWgtNHYxaDR2LTF6TTEyIDEyaDR2MWgtNHYtMXptMC0zaC00djFoNHYtMXptMC0yaC00djFoNHYtMXptLTYgMWgtNHYxaDR2LTF6TTM2IDEyaDR2MWgtNHYtMXptMC0zaC00djFoNHYtMXptMC0yaC00djFoNHYtMXptLTYgMWgtNHYxaDR2LTF6TTEyIDM0aDR2MWgtNHYtMXptMC0zaC00djFoNHYtMXptMC0yaC00djFoNHYtMXptLTYgMWgtNHYxaDR2LTF6Ij48L3BhdGg+PC9nPjwvZz48L3N2Zz4=')] opacity-15"></div>
@@ -102,28 +104,28 @@ const DynamicBackground = () => {
       {/* Radial gradient overlay for depth */}
       <div className="absolute inset-0 bg-radial-gradient from-transparent via-transparent to-background/90 pointer-events-none"></div>
       
-      {/* Extra glassmorphic glows with animation */}
+      {/* Enhanced glassmorphic glows with more pronounced animation */}
       <motion.div 
-        className="absolute top-1/3 -left-10 w-80 h-80 bg-plantDoc-primary/10 rounded-full blur-3xl"
+        className="absolute top-1/4 -left-20 w-[500px] h-[500px] bg-plantDoc-primary/20 rounded-full blur-[100px]"
         animate={{
-          x: [0, 30, -20, 10, 0],
-          opacity: [0.2, 0.3, 0.15, 0.25, 0.2],
+          x: [0, 40, -30, 20, 0],
+          opacity: [0.3, 0.4, 0.2, 0.35, 0.3],
         }}
         transition={{
-          duration: 15,
+          duration: 18,
           repeat: Infinity,
           repeatType: "reverse",
           ease: "easeInOut"
         }}
       />
       <motion.div 
-        className="absolute bottom-1/3 -right-10 w-96 h-96 bg-plantDoc-secondary/10 rounded-full blur-3xl"
+        className="absolute bottom-1/4 -right-20 w-[600px] h-[600px] bg-plantDoc-secondary/20 rounded-full blur-[100px]"
         animate={{
-          x: [0, -40, 20, -15, 0],
-          opacity: [0.2, 0.25, 0.15, 0.3, 0.2],
+          x: [0, -50, 30, -20, 0],
+          opacity: [0.3, 0.35, 0.2, 0.4, 0.3],
         }}
         transition={{
-          duration: 18,
+          duration: 20,
           repeat: Infinity,
           repeatType: "reverse",
           ease: "easeInOut",
@@ -131,16 +133,16 @@ const DynamicBackground = () => {
         }}
       />
       
-      {/* Additional glowing orbs with motion */}
+      {/* Additional larger glowing orbs with enhanced motion */}
       <motion.div 
-        className="absolute top-2/3 left-1/4 w-60 h-60 bg-plantDoc-accent/10 rounded-full blur-3xl opacity-60"
+        className="absolute top-2/3 left-1/4 w-[400px] h-[400px] bg-plantDoc-accent/15 rounded-full blur-[120px] opacity-70"
         animate={{
-          y: [0, -30, 15, -10, 0],
-          scale: [1, 1.1, 0.9, 1.05, 1],
-          opacity: [0.6, 0.7, 0.5, 0.65, 0.6],
+          y: [0, -50, 25, -20, 0],
+          scale: [1, 1.2, 0.9, 1.1, 1],
+          opacity: [0.7, 0.8, 0.6, 0.75, 0.7],
         }}
         transition={{
-          duration: 12,
+          duration: 15,
           repeat: Infinity,
           repeatType: "reverse",
           ease: "easeInOut",
@@ -148,15 +150,15 @@ const DynamicBackground = () => {
         }}
       />
       <motion.div 
-        className="absolute bottom-3/4 right-1/3 w-48 h-48 bg-green-400/10 rounded-full blur-3xl opacity-50"
+        className="absolute bottom-3/4 right-1/3 w-[350px] h-[350px] bg-green-400/15 rounded-full blur-[120px] opacity-60"
         animate={{
-          y: [0, 20, -15, 25, 0],
-          x: [0, 15, -10, 5, 0],
-          scale: [1, 1.15, 0.95, 1.05, 1],
-          opacity: [0.5, 0.6, 0.4, 0.55, 0.5],
+          y: [0, 40, -25, 35, 0],
+          x: [0, 25, -15, 10, 0],
+          scale: [1, 1.25, 0.9, 1.15, 1],
+          opacity: [0.6, 0.7, 0.5, 0.65, 0.6],
         }}
         transition={{
-          duration: 14,
+          duration: 17,
           repeat: Infinity,
           repeatType: "reverse",
           ease: "easeInOut",

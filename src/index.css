@@ -132,7 +132,7 @@
   }
 
   .glass-card {
-    @apply bg-black/30 backdrop-blur-xl border border-white/10 shadow-lg transition-all duration-300 hover:bg-black/40 hover:shadow-xl hover:border-white/20;
+    @apply bg-black/30 backdrop-blur-xl border border-white/15 shadow-lg transition-all duration-300 hover:bg-black/40 hover:shadow-xl hover:border-white/25;
   }
   
   .glass-card-intense {
@@ -165,6 +165,24 @@
   
   .glass-scrollbar::-webkit-scrollbar-track {
     @apply bg-black/10;
+  }
+
+  .frost-panel {
+    @apply bg-white/5 backdrop-blur-xl border border-white/15 rounded-lg shadow-xl transition-all duration-300;
+  }
+  
+  .frost-panel-dark {
+    @apply bg-black/50 backdrop-blur-2xl border border-white/10 rounded-lg shadow-2xl transition-all duration-300;
+  }
+  
+  .glassmorphic-card {
+    @apply relative overflow-hidden bg-white/5 backdrop-blur-2xl border border-white/15 rounded-xl shadow-2xl;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2), inset 0 0 2px 1px rgba(255, 255, 255, 0.05);
+  }
+  
+  .glassmorphic-card::before {
+    content: '';
+    @apply absolute inset-0 pointer-events-none bg-gradient-to-br from-white/10 to-transparent opacity-50 -z-10;
   }
 
   .hover-scale {
@@ -301,7 +319,7 @@
   .ripple:active::after {
     @apply animate-ripple;
   }
-  
+
   .frost-panel {
     @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-lg shadow-xl;
   }
