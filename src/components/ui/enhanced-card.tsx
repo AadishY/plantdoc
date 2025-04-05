@@ -12,7 +12,7 @@ interface EnhancedCardProps extends HTMLAttributes<HTMLDivElement> {
   isInteractive?: boolean;
   isFrosted?: boolean;
   intensity?: number;
-  hoverEffect?: "scale" | "lift" | "glow" | "both" | string;
+  hoverEffect?: "scale" | "lift" | "glow" | "both" | "fancy" | string;
   glassIntensity?: "light" | "medium" | "intense" | string;
   borderGlow?: boolean;
 }
@@ -40,6 +40,8 @@ const EnhancedCard = forwardRef<HTMLDivElement, EnhancedCardProps>(({
         return "transition-all duration-300 hover:shadow-lg hover:shadow-plantDoc-primary/20";
       case "both":
         return "transition-all duration-300 hover:-translate-y-1 hover:scale-[1.01] hover:shadow-lg hover:shadow-plantDoc-primary/20";
+      case "fancy":
+        return "transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-lg hover:shadow-plantDoc-primary/30 hover:border-plantDoc-primary/30";
       default:
         return isHoverable ? "transition-all duration-300 hover:-translate-y-1 hover:shadow-lg" : "";
     }
@@ -61,19 +63,32 @@ const EnhancedCard = forwardRef<HTMLDivElement, EnhancedCardProps>(({
   };
   
   const cardContent = (
-    <Card
-      ref={ref}
-      className={cn(
-        getHoverClass(),
-        getGlassClass(),
-        isRaised && "shadow-lg",
-        borderGlow && "hover:border-plantDoc-primary/30",
-        className
-      )}
-      {...props}
+    <motion.div
+      whileHover={
+        hoverEffect === "fancy" 
+          ? { 
+              scale: 1.02, 
+              y: -5, 
+              transition: { duration: 0.3 } 
+            } 
+          : undefined
+      }
+      className="w-full h-full"
     >
-      {children}
-    </Card>
+      <Card
+        ref={ref}
+        className={cn(
+          getHoverClass(),
+          getGlassClass(),
+          isRaised && "shadow-lg",
+          borderGlow && "hover:border-plantDoc-primary/30",
+          className
+        )}
+        {...props}
+      >
+        {children}
+      </Card>
+    </motion.div>
   );
   
   if (isInteractive) {

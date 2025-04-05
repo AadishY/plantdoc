@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -16,28 +16,46 @@ type BackgroundBlob = {
 const DynamicBackground = () => {
   const isMobile = useIsMobile();
   const [mounted, setMounted] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const backgroundRef = useRef<HTMLDivElement>(null);
   
-  // Generate more blobs for enhanced background effect
-  const blobCount = isMobile ? 4 : 8;
+  // Generate fewer blobs for better performance
+  const blobCount = isMobile ? 3 : 6;
   
   // Create randomized blobs with memoization
   const [blobs, setBlobs] = useState<BackgroundBlob[]>([]);
+  
+  // Handle mouse movement for the glow effect
+  useEffect(() => {
+    if (!isMobile) {
+      const handleMouseMove = (e: MouseEvent) => {
+        const { clientX, clientY } = e;
+        setMousePosition({ 
+          x: clientX, 
+          y: clientY 
+        });
+      };
+
+      window.addEventListener('mousemove', handleMouseMove);
+      return () => {
+        window.removeEventListener('mousemove', handleMouseMove);
+      };
+    }
+  }, [isMobile]);
   
   useEffect(() => {
     // Only generate blobs once on component mount
     if (!mounted) {
       const newBlobs: BackgroundBlob[] = [];
       
-      // Enhanced colors with more variety and intensity for stronger glow effect
+      // Enhanced colors with more variety but slightly lower intensity
       const colors = [
-        'from-plantDoc-primary/30 to-plantDoc-secondary/20',
-        'from-plantDoc-secondary/30 to-plantDoc-primary/20',
-        'from-plantDoc-accent/25 to-plantDoc-primary/15',
-        'from-plantDoc-primary/25 to-plantDoc-accent/15',
-        'from-green-400/25 to-blue-500/15',
-        'from-blue-400/25 to-green-500/15',
-        'from-plantDoc-accent/30 to-green-400/20',
-        'from-plantDoc-primary/35 to-plantDoc-accent/25'
+        'from-plantDoc-primary/20 to-plantDoc-secondary/15',
+        'from-plantDoc-secondary/25 to-plantDoc-primary/15',
+        'from-plantDoc-accent/20 to-plantDoc-primary/10',
+        'from-plantDoc-primary/20 to-plantDoc-accent/10',
+        'from-green-400/20 to-blue-500/10',
+        'from-blue-400/20 to-green-500/10',
       ];
       
       for (let i = 0; i < blobCount; i++) {
@@ -48,7 +66,7 @@ const DynamicBackground = () => {
           size: `${isMobile ? 150 + Math.random() * 150 : 250 + Math.random() * 300}px`,
           color: colors[i % colors.length],
           delay: i * 0.3,
-          duration: 10 + Math.random() * 5
+          duration: 20 + Math.random() * 10 // Slower movement for better performance
         });
       }
       
@@ -62,19 +80,18 @@ const DynamicBackground = () => {
     return blobs.map((blob) => (
       <motion.div 
         key={blob.id}
-        className={`absolute rounded-full bg-gradient-to-r ${blob.color} blur-[100px]`}
+        className={`absolute rounded-full bg-gradient-to-r ${blob.color} blur-[120px] opacity-50`}
         style={{ 
           left: blob.x,
           top: blob.y,
           width: blob.size,
           height: blob.size,
-          opacity: 0.6
         }}
         animate={{
           x: [0, 50, -30, 20, -15, 0],
           y: [0, -30, 20, -25, 10, 0],
-          scale: [1, 1.2, 0.9, 1.1, 0.95, 1],
-          opacity: [0.6, 0.7, 0.5, 0.65, 0.55, 0.6],
+          scale: [1, 1.1, 0.95, 1.05, 0.98, 1],
+          opacity: [0.5, 0.6, 0.45, 0.55, 0.5, 0.5],
         }}
         transition={{
           duration: blob.duration,
@@ -92,77 +109,58 @@ const DynamicBackground = () => {
   if (!mounted) return null;
   
   return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none z-[-1]">
+    <div ref={backgroundRef} className="fixed inset-0 overflow-hidden pointer-events-none z-[-1]">
       {renderBlobs()}
       
-      {/* Enhanced glassmorphic background with stronger gradient overlay */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-lg -z-10"></div>
+      {/* Mouse-following glow effect */}
+      {!isMobile && (
+        <motion.div 
+          className="absolute rounded-full bg-gradient-to-r from-plantDoc-accent/15 to-plantDoc-primary/10 blur-[150px] opacity-70"
+          style={{ 
+            width: 400, 
+            height: 400,
+            x: mousePosition.x - 200,
+            y: mousePosition.y - 200,
+            transition: 'transform 0.2s cubic-bezier(0.33, 1, 0.68, 1)',
+          }}
+        />
+      )}
       
-      {/* Subtle grid pattern for more depth */}
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMxQTIwMkMiIGZpbGwtb3BhY2l0eT0iMC4wNCI+PHBhdGggZD0iTTM2IDM0aDR2MWgtNHYtMXptMC0zaC00djFoNHYtMXptMC0yaC00djFoNHYtMXptLTYgMWgtNHYxaDR2LTF6TTEyIDEyaDR2MWgtNHYtMXptMC0zaC00djFoNHYtMXptMC0yaC00djFoNHYtMXptLTYgMWgtNHYxaDR2LTF6TTM2IDEyaDR2MWgtNHYtMXptMC0zaC00djFoNHYtMXptMC0yaC00djFoNHYtMXptLTYgMWgtNHYxaDR2LTF6TTEyIDM0aDR2MWgtNHYtMXptMC0zaC00djFoNHYtMXptMC0yaC00djFoNHYtMXptLTYgMWgtNHYxaDR2LTF6Ij48L3BhdGg+PC9nPjwvZz48L3N2Zz4=')] opacity-15"></div>
+      {/* Enhanced glassmorphic background with subtle gradient overlay */}
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-md -z-10"></div>
       
-      {/* Radial gradient overlay for depth */}
-      <div className="absolute inset-0 bg-radial-gradient from-transparent via-transparent to-background/90 pointer-events-none"></div>
+      {/* Subtle grid pattern for more depth - opacity reduced */}
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMxQTIwMkMiIGZpbGwtb3BhY2l0eT0iMC4wNCI+PHBhdGggZD0iTTM2IDM0aDR2MWgtNHYtMXptMC0zaC00djFoNHYtMXptMC0yaC00djFoNHYtMXptLTYgMWgtNHYxaDR2LTF6TTEyIDEyaDR2MWgtNHYtMXptMC0zaC00djFoNHYtMXptMC0yaC00djFoNHYtMXptLTYgMWgtNHYxaDR2LTF6TTM2IDEyaDR2MWgtNHYtMXptMC0zaC00djFoNHYtMXptMC0yaC00djFoNHYtMXptLTYgMWgtNHYxaDR2LTF6TTEyIDM0aDR2MWgtNHYtMXptMC0zaC00djFoNHYtMXptMC0yaC00djFoNHYtMXptLTYgMWgtNHYxaDR2LTF6Ij48L3BhdGg+PC9nPjwvZz48L3N2Zz4=')] opacity-10"></div>
       
-      {/* Enhanced glassmorphic glows with more pronounced animation */}
+      {/* Radial gradient overlay for depth - slightly reduced opacity */}
+      <div className="absolute inset-0 bg-radial-gradient from-transparent via-transparent to-background/70 pointer-events-none"></div>
+      
+      {/* Enhanced glassmorphic glows with more optimized animation */}
       <motion.div 
-        className="absolute top-1/4 -left-20 w-[500px] h-[500px] bg-plantDoc-primary/20 rounded-full blur-[100px]"
+        className="absolute top-1/4 -left-20 w-[500px] h-[500px] bg-plantDoc-primary/15 rounded-full blur-[150px]"
         animate={{
           x: [0, 40, -30, 20, 0],
-          opacity: [0.3, 0.4, 0.2, 0.35, 0.3],
+          opacity: [0.2, 0.3, 0.15, 0.25, 0.2],
         }}
         transition={{
-          duration: 18,
+          duration: 25,
           repeat: Infinity,
           repeatType: "reverse",
           ease: "easeInOut"
         }}
       />
       <motion.div 
-        className="absolute bottom-1/4 -right-20 w-[600px] h-[600px] bg-plantDoc-secondary/20 rounded-full blur-[100px]"
+        className="absolute bottom-1/4 -right-20 w-[600px] h-[600px] bg-plantDoc-secondary/15 rounded-full blur-[150px]"
         animate={{
           x: [0, -50, 30, -20, 0],
-          opacity: [0.3, 0.35, 0.2, 0.4, 0.3],
+          opacity: [0.2, 0.25, 0.15, 0.3, 0.2],
         }}
         transition={{
-          duration: 20,
+          duration: 30,
           repeat: Infinity,
           repeatType: "reverse",
           ease: "easeInOut",
           delay: 2
-        }}
-      />
-      
-      {/* Additional larger glowing orbs with enhanced motion */}
-      <motion.div 
-        className="absolute top-2/3 left-1/4 w-[400px] h-[400px] bg-plantDoc-accent/15 rounded-full blur-[120px] opacity-70"
-        animate={{
-          y: [0, -50, 25, -20, 0],
-          scale: [1, 1.2, 0.9, 1.1, 1],
-          opacity: [0.7, 0.8, 0.6, 0.75, 0.7],
-        }}
-        transition={{
-          duration: 15,
-          repeat: Infinity,
-          repeatType: "reverse",
-          ease: "easeInOut",
-          delay: 1
-        }}
-      />
-      <motion.div 
-        className="absolute bottom-3/4 right-1/3 w-[350px] h-[350px] bg-green-400/15 rounded-full blur-[120px] opacity-60"
-        animate={{
-          y: [0, 40, -25, 35, 0],
-          x: [0, 25, -15, 10, 0],
-          scale: [1, 1.25, 0.9, 1.15, 1],
-          opacity: [0.6, 0.7, 0.5, 0.65, 0.6],
-        }}
-        transition={{
-          duration: 17,
-          repeat: Infinity,
-          repeatType: "reverse",
-          ease: "easeInOut",
-          delay: 3
         }}
       />
     </div>
