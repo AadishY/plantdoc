@@ -16,14 +16,12 @@ const InteractiveParallax: React.FC<InteractiveParallaxProps> = ({
 }) => {
   const [rotateX, setRotateX] = useState(0);
   const [rotateY, setRotateY] = useState(0);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const ref = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   
-  // Performance optimization - use requestAnimationFrame for better performance
-  const rafRef = useRef<number | null>(null);
-  const lastMoveTime = useRef<number>(0);
-  const FPS_LIMIT = 30; // Limit to 30 FPS for better performance
-  const FRAME_MIN_TIME = 1000 / FPS_LIMIT;
+  // Performance optimization - throttle mouse move events
+  const throttleRef = useRef<number | null>(null);
   
   // Don't apply effects on mobile for better performance
   if (isMobile) {
@@ -31,31 +29,28 @@ const InteractiveParallax: React.FC<InteractiveParallaxProps> = ({
   }
   
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!ref.current) return;
+    if (!ref.current || throttleRef.current) return;
     
-    const now = performance.now();
-    const elapsed = now - lastMoveTime.current;
-    
-    // Throttle based on requestAnimationFrame and FPS limit
-    if (elapsed > FRAME_MIN_TIME) {
-      lastMoveTime.current = now;
+    // Add throttling for better performance
+    throttleRef.current = window.setTimeout(() => {
+      throttleRef.current = null;
       
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-      }
+      const rect = ref.current!.getBoundingClientRect();
       
-      rafRef.current = requestAnimationFrame(() => {
-        const rect = ref.current!.getBoundingClientRect();
-        
-        // Calculate position from center of element (in percentages)
-        const x = (e.clientX - rect.left - rect.width / 2) / (rect.width / 2);
-        const y = (e.clientY - rect.top - rect.height / 2) / (rect.height / 2);
-        
-        // Apply rotation based on mouse position and intensity
-        setRotateX(-y * intensity);
-        setRotateY(x * intensity);
+      // Calculate position from center of element (in percentages)
+      const x = (e.clientX - rect.left - rect.width / 2) / (rect.width / 2);
+      const y = (e.clientY - rect.top - rect.height / 2) / (rect.height / 2);
+      
+      // Apply rotation based on mouse position and intensity
+      setRotateX(-y * intensity);
+      setRotateY(x * intensity);
+      
+      // Track mouse position for glow effect
+      setMousePosition({ 
+        x: e.clientX - rect.left, 
+        y: e.clientY - rect.top 
       });
-    }
+    }, 16); // 16ms throttle (matches 60fps)
   };
   
   const handleMouseLeave = () => {
@@ -64,11 +59,11 @@ const InteractiveParallax: React.FC<InteractiveParallaxProps> = ({
     setRotateY(0);
   };
   
-  // Clean up any pending animation frames
+  // Clean up any pending timeouts
   useEffect(() => {
     return () => {
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
+      if (throttleRef.current) {
+        clearTimeout(throttleRef.current);
       }
     };
   }, []);
@@ -97,7 +92,7 @@ const InteractiveParallax: React.FC<InteractiveParallaxProps> = ({
           transition: { duration: 0.2 }
         }}
       >
-        {/* Fixed position subtle glow effect - optimized */}
+        {/* Fixed position subtle glow effect - not mouse following */}
         <div
           className="absolute pointer-events-none inset-0 rounded-xl bg-plantDoc-primary/10 blur-[60px] opacity-60"
           style={{
