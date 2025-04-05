@@ -50,7 +50,7 @@ const InteractiveParallax: React.FC<InteractiveParallaxProps> = ({
         x: e.clientX - rect.left, 
         y: e.clientY - rect.top 
       });
-    }, 10); // 10ms throttle
+    }, 16); // 16ms throttle (matches 60fps)
   };
   
   const handleMouseLeave = () => {
@@ -71,7 +71,7 @@ const InteractiveParallax: React.FC<InteractiveParallaxProps> = ({
   return (
     <motion.div
       ref={ref}
-      className={`perspective-container relative will-change-auto ${className}`}
+      className={`perspective-container relative ${className}`}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       style={{
@@ -84,22 +84,20 @@ const InteractiveParallax: React.FC<InteractiveParallaxProps> = ({
           transformStyle: "preserve-3d",
           rotateX: rotateX,
           rotateY: rotateY,
-          transition: "transform 0.15s ease-out", // Faster for more responsive feel
+          transition: "transform 0.2s ease-out", 
         }}
         initial={{ scale: 1 }}
         whileHover={{ 
-          scale: 1.01, // Subtler scale effect
+          scale: 1.01, 
           transition: { duration: 0.2 }
         }}
       >
-        {/* Mouse-following subtle glow effect */}
-        <motion.div
-          className="absolute pointer-events-none w-[150px] h-[150px] rounded-full bg-plantDoc-primary/15 blur-[80px] opacity-70 gpu-accelerate"
-          animate={{
-            x: mousePosition.x - 75,
-            y: mousePosition.y - 75
+        {/* Fixed position subtle glow effect - not mouse following */}
+        <div
+          className="absolute pointer-events-none inset-0 rounded-xl bg-plantDoc-primary/10 blur-[60px] opacity-60"
+          style={{
+            transform: `translate3d(0, 0, 0)`, // Force GPU acceleration
           }}
-          transition={{ type: 'tween', ease: 'easeOut', duration: 0.1 }} // Faster for more responsive feel
         />
         
         {children}

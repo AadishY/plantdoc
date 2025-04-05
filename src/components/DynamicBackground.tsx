@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState, useRef } from 'react';
-import { motion, useAnimation } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 type BackgroundBlob = {
@@ -16,47 +16,13 @@ type BackgroundBlob = {
 const DynamicBackground = () => {
   const isMobile = useIsMobile();
   const [mounted, setMounted] = useState(false);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const backgroundRef = useRef<HTMLDivElement>(null);
-  const fluidGlowControls = useAnimation();
   
   // Generate fewer blobs for better performance
   const blobCount = isMobile ? 3 : 5;
   
   // Create randomized blobs with memoization
   const [blobs, setBlobs] = useState<BackgroundBlob[]>([]);
-  
-  // Handle mouse movement for the fluid glow effect
-  useEffect(() => {
-    if (!isMobile) {
-      const handleMouseMove = (e: MouseEvent) => {
-        const { clientX, clientY } = e;
-        
-        // Update mouse position state
-        setMousePosition({ 
-          x: clientX, 
-          y: clientY 
-        });
-        
-        // Animate the fluid glow with a slight delay for smooth effect
-        fluidGlowControls.start({
-          x: clientX - 300, // Center the glow on cursor
-          y: clientY - 300,
-          transition: {
-            type: 'spring',
-            damping: 30,
-            stiffness: 50,
-            mass: 0.5
-          }
-        });
-      };
-
-      window.addEventListener('mousemove', handleMouseMove);
-      return () => {
-        window.removeEventListener('mousemove', handleMouseMove);
-      };
-    }
-  }, [isMobile, fluidGlowControls]);
   
   useEffect(() => {
     // Only generate blobs once on component mount
@@ -120,29 +86,63 @@ const DynamicBackground = () => {
     ));
   };
   
+  // Fixed ambient glow effects that don't rely on mouse movement
+  const renderAmbientGlows = () => {
+    return (
+      <>
+        <motion.div 
+          className="absolute top-1/4 -left-20 w-[500px] h-[500px] bg-plantDoc-primary/12 rounded-full blur-[150px]"
+          animate={{
+            x: [0, 40, -30, 20, 0],
+            opacity: [0.15, 0.22, 0.12, 0.18, 0.15],
+          }}
+          transition={{
+            duration: 25,
+            repeat: Infinity,
+            repeatType: "reverse",
+            ease: "easeInOut"
+          }}
+        />
+        <motion.div 
+          className="absolute bottom-1/4 -right-20 w-[600px] h-[600px] bg-plantDoc-secondary/12 rounded-full blur-[150px]"
+          animate={{
+            x: [0, -50, 30, -20, 0],
+            opacity: [0.15, 0.2, 0.12, 0.22, 0.15],
+          }}
+          transition={{
+            duration: 30,
+            repeat: Infinity,
+            repeatType: "reverse",
+            ease: "easeInOut",
+            delay: 2
+          }}
+        />
+        <motion.div 
+          className="absolute top-2/3 left-1/3 w-[400px] h-[400px] bg-plantDoc-accent/10 rounded-full blur-[120px]"
+          animate={{
+            x: [0, 30, -20, 15, 0],
+            y: [0, -20, 15, -10, 0],
+            opacity: [0.12, 0.18, 0.1, 0.15, 0.12],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            repeatType: "reverse",
+            ease: "easeInOut",
+            delay: 5
+          }}
+        />
+      </>
+    );
+  };
+  
   // Only render if component is mounted (client-side) to prevent hydration issues
   if (!mounted) return null;
   
   return (
     <div ref={backgroundRef} className="fixed inset-0 overflow-hidden pointer-events-none z-[-1]">
       {renderBlobs()}
-      
-      {/* Fluid mouse-following glow effect */}
-      {!isMobile && (
-        <motion.div 
-          className="absolute rounded-full bg-gradient-to-r from-plantDoc-primary/15 via-plantDoc-accent/12 to-plantDoc-secondary/10 blur-[180px]"
-          style={{ 
-            width: 600, 
-            height: 600,
-          }}
-          animate={fluidGlowControls}
-          initial={{ 
-            x: window.innerWidth / 2 - 300, 
-            y: window.innerHeight / 2 - 300,
-            opacity: 0.5 
-          }}
-        />
-      )}
+      {renderAmbientGlows()}
       
       {/* Enhanced glassmorphic background with subtle gradient overlay */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-md -z-10"></div>
@@ -152,35 +152,6 @@ const DynamicBackground = () => {
       
       {/* Radial gradient overlay for depth - slightly reduced opacity */}
       <div className="absolute inset-0 bg-radial-gradient from-transparent via-transparent to-background/70 pointer-events-none"></div>
-      
-      {/* Enhanced glassmorphic glows with more optimized animation */}
-      <motion.div 
-        className="absolute top-1/4 -left-20 w-[500px] h-[500px] bg-plantDoc-primary/12 rounded-full blur-[150px]"
-        animate={{
-          x: [0, 40, -30, 20, 0],
-          opacity: [0.15, 0.22, 0.12, 0.18, 0.15],
-        }}
-        transition={{
-          duration: 25,
-          repeat: Infinity,
-          repeatType: "reverse",
-          ease: "easeInOut"
-        }}
-      />
-      <motion.div 
-        className="absolute bottom-1/4 -right-20 w-[600px] h-[600px] bg-plantDoc-secondary/12 rounded-full blur-[150px]"
-        animate={{
-          x: [0, -50, 30, -20, 0],
-          opacity: [0.15, 0.2, 0.12, 0.22, 0.15],
-        }}
-        transition={{
-          duration: 30,
-          repeat: Infinity,
-          repeatType: "reverse",
-          ease: "easeInOut",
-          delay: 2
-        }}
-      />
     </div>
   );
 };
