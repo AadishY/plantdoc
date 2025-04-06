@@ -10,7 +10,7 @@ const ParallaxSection: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.5 }}
+          transition={{ duration: 0.3 }}
           className="inline-flex items-center justify-center p-3 bg-plantDoc-primary/20 rounded-full mb-6"
         >
           <Sparkles className="h-8 w-8 text-plantDoc-primary" />
@@ -20,7 +20,7 @@ const ParallaxSection: React.FC = () => {
           className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-gradient"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15, duration: 0.5 }}
+          transition={{ duration: 0.3 }}
         >
           Plant Care Reimagined
         </motion.h2>
@@ -29,7 +29,7 @@ const ParallaxSection: React.FC = () => {
           className="text-xl md:text-2xl text-foreground/80 max-w-2xl mx-auto mb-8"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
+          transition={{ duration: 0.3 }}
         >
           Experience the future of plant health with our cutting-edge AI technology
         </motion.p>
@@ -39,7 +39,7 @@ const ParallaxSection: React.FC = () => {
             className="glass-card p-6 rounded-xl text-center"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25, duration: 0.5 }}
+            transition={{ duration: 0.3, delay: 0.05 }}
           >
             <div className="w-16 h-16 mx-auto mb-4 bg-plantDoc-primary/20 rounded-full flex items-center justify-center">
               <Leaf className="h-8 w-8 text-plantDoc-primary" />
@@ -52,7 +52,7 @@ const ParallaxSection: React.FC = () => {
             className="glass-card p-6 rounded-xl text-center"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
           >
             <div className="w-16 h-16 mx-auto mb-4 bg-plantDoc-primary/20 rounded-full flex items-center justify-center">
               <Zap className="h-8 w-8 text-plantDoc-primary" />
@@ -65,7 +65,7 @@ const ParallaxSection: React.FC = () => {
             className="glass-card p-6 rounded-xl text-center"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.35, duration: 0.5 }}
+            transition={{ duration: 0.3, delay: 0.15 }}
           >
             <div className="w-16 h-16 mx-auto mb-4 bg-plantDoc-primary/20 rounded-full flex items-center justify-center">
               <Sparkles className="h-8 w-8 text-plantDoc-primary" />
@@ -82,7 +82,7 @@ const ParallaxSection: React.FC = () => {
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-50px" }}
-            transition={{ delay: 0.4, duration: 0.5 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
             whileHover={{ scale: 1.02, boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)" }}
           >
             <div className="w-12 h-12 mr-4 bg-plantDoc-primary/30 rounded-full flex items-center justify-center shrink-0">
