@@ -12,7 +12,7 @@ interface InteractiveParallaxProps {
 const InteractiveParallax: React.FC<InteractiveParallaxProps> = ({ 
   children, 
   className = "", 
-  intensity = 4
+  intensity = 3 // Reduced default intensity for better performance
 }) => {
   const [rotateX, setRotateX] = useState(0);
   const [rotateY, setRotateY] = useState(0);
@@ -20,15 +20,21 @@ const InteractiveParallax: React.FC<InteractiveParallaxProps> = ({
   const ref = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const rafRef = useRef<number | null>(null);
+  const lastMoveTime = useRef<number>(0);
   
   // Don't apply effects on mobile for better performance
   if (isMobile) {
     return <div className={className}>{children}</div>;
   }
   
-  // Optimized handler using requestAnimationFrame
+  // Optimized handler using requestAnimationFrame and throttling
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!ref.current || rafRef.current) return;
+    
+    // Throttle updates to once per 16ms (approx 60fps) for performance
+    const now = Date.now();
+    if (now - lastMoveTime.current < 16) return;
+    lastMoveTime.current = now;
     
     rafRef.current = requestAnimationFrame(() => {
       rafRef.current = null;
@@ -39,14 +45,14 @@ const InteractiveParallax: React.FC<InteractiveParallaxProps> = ({
       const x = (e.clientX - rect.left - rect.width / 2) / (rect.width / 2);
       const y = (e.clientY - rect.top - rect.height / 2) / (rect.height / 2);
       
-      // Apply rotation based on mouse position and intensity
+      // Apply rotation based on mouse position and intensity - limited for better performance
       setRotateX(-y * intensity);
       setRotateY(x * intensity);
       
       // Track mouse position for glow effect
       setMousePosition({ 
-        x: e.clientX - rect.left, 
-        y: e.clientY - rect.top 
+        x: Math.min(Math.max(0, e.clientX - rect.left), rect.width), 
+        y: Math.min(Math.max(0, e.clientY - rect.top), rect.height)
       });
     });
   }, [intensity]);
@@ -82,7 +88,7 @@ const InteractiveParallax: React.FC<InteractiveParallaxProps> = ({
           transformStyle: "preserve-3d",
           rotateX: rotateX,
           rotateY: rotateY,
-          transition: "transform 0.2s ease-out", 
+          transition: "transform 0.3s ease-out", 
         }}
         initial={{ scale: 1 }}
         whileHover={{ 
@@ -90,9 +96,9 @@ const InteractiveParallax: React.FC<InteractiveParallaxProps> = ({
           transition: { duration: 0.2 }
         }}
       >
-        {/* Enhanced glow effect */}
+        {/* Enhanced glow effect - more performance friendly */}
         <div
-          className="absolute pointer-events-none inset-0 rounded-xl bg-plantDoc-primary/20 blur-[60px] opacity-60"
+          className="absolute pointer-events-none inset-0 rounded-xl bg-plantDoc-primary/15 blur-[40px] opacity-60"
           style={{
             transform: `translate3d(0, 0, 0)`, // Force GPU acceleration
           }}
