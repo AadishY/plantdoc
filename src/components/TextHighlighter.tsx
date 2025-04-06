@@ -1,9 +1,9 @@
+import React, { useState, useEffect, useCallback, memo } from 'react';
 
-import React from 'react';
-
-const TextHighlighter: React.FC = () => {
-  // Component now does nothing as requested
+const TextHighlighter: React.FC = memo(() => {
   return null;
-};
+});
+
+TextHighlighter.displayName = 'TextHighlighter';
 
 export default TextHighlighter;
