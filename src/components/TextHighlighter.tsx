@@ -1,35 +1,40 @@
 
 import React, { useState, useEffect, useCallback, memo } from 'react';
 import { motion } from 'framer-motion';
+import { useDeviceOptimizer } from '@/hooks/use-mobile';
 
 const TextHighlighter: React.FC = memo(() => {
   const [isVisible, setIsVisible] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
+  const { shouldUseEffects } = useDeviceOptimizer();
   
-  // Only activate on desktop - mobile has worse performance
+  // Only run on desktop devices
   useEffect(() => {
-    // Check if it's not a mobile device
-    if (window.innerWidth >= 768) {
-      setIsVisible(true);
-      
-      // Throttle function to improve performance
-      let lastRun = 0;
-      const throttleTime = 10; // ms between updates
-      
-      const handleMouseMove = (e: MouseEvent) => {
-        const now = performance.now();
-        if (now - lastRun < throttleTime) return;
-        
-        lastRun = now;
-        requestAnimationFrame(() => {
-          setPosition({ x: e.clientX, y: e.clientY });
-        });
-      };
-      
-      window.addEventListener('mousemove', handleMouseMove, { passive: true });
-      return () => window.removeEventListener('mousemove', handleMouseMove);
+    // Skip entirely on mobile devices
+    if (!shouldUseEffects) {
+      setIsVisible(false);
+      return;
     }
-  }, []);
+    
+    setIsVisible(true);
+    
+    // Throttle function to improve performance
+    let lastRun = 0;
+    const throttleTime = 10; // ms between updates
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      const now = performance.now();
+      if (now - lastRun < throttleTime) return;
+      
+      lastRun = now;
+      requestAnimationFrame(() => {
+        setPosition({ x: e.clientX, y: e.clientY });
+      });
+    };
+    
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [shouldUseEffects]);
   
   if (!isVisible) return null;
   

@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useDeviceOptimizer } from '@/hooks/use-mobile';
 
 interface InteractiveParallaxProps {
   children: React.ReactNode;
@@ -18,12 +18,12 @@ const InteractiveParallax: React.FC<InteractiveParallaxProps> = ({
   const [rotateY, setRotateY] = useState(0);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const ref = useRef<HTMLDivElement>(null);
-  const isMobile = useIsMobile();
+  const { shouldUseEffects } = useDeviceOptimizer();
   const rafRef = useRef<number | null>(null);
   const lastMoveTime = useRef<number>(0);
   
   // Don't apply effects on mobile for better performance
-  if (isMobile) {
+  if (!shouldUseEffects) {
     return <div className={className}>{children}</div>;
   }
   

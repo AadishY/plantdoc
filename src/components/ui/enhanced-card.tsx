@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import InteractiveParallax from '@/components/InteractiveParallax';
+import { useDeviceOptimizer } from '@/hooks/use-mobile';
 
 interface EnhancedCardProps extends HTMLAttributes<HTMLDivElement> {
   className?: string;
@@ -30,7 +31,12 @@ const EnhancedCard = forwardRef<HTMLDivElement, EnhancedCardProps>(({
   children,
   ...props
 }, ref) => {
+  const { shouldUseHover, shouldUseEffects } = useDeviceOptimizer();
+  
   const getHoverClass = () => {
+    // No hover effects on mobile for better performance
+    if (!shouldUseHover) return "";
+    
     switch (hoverEffect) {
       case "scale":
         return "hover-grow";
@@ -50,6 +56,11 @@ const EnhancedCard = forwardRef<HTMLDivElement, EnhancedCardProps>(({
   const getGlassClass = () => {
     if (!isFrosted && !glassIntensity) return "";
     
+    // Simplified glass effect on mobile
+    if (!shouldUseEffects) {
+      return "bg-black/40 border border-white/10";
+    }
+    
     switch (glassIntensity) {
       case "light":
         return "bg-white/5 backdrop-blur-md border border-white/10";
@@ -65,45 +76,69 @@ const EnhancedCard = forwardRef<HTMLDivElement, EnhancedCardProps>(({
   };
   
   const cardContent = (
-    <motion.div
-      whileHover={
-        hoverEffect === "fancy" 
-          ? { 
-              scale: 1.02, 
-              y: -5, 
-              transition: { duration: 0.3 } 
-            } 
-          : undefined
-      }
-      className="w-full h-full"
-    >
-      <Card
-        ref={ref}
-        className={cn(
-          getHoverClass(),
-          getGlassClass(),
-          isRaised && "shadow-lg",
-          borderGlow && "hover:border-plantDoc-primary/30",
-          className
-        )}
-        {...props}
-      >
-        {/* Static glow overlay for better performance */}
-        {hoverEffect === "glow" && (
-          <div 
-            className="absolute inset-0 opacity-0 pointer-events-none bg-gradient-to-tr from-plantDoc-primary/10 to-transparent rounded-xl transition-opacity duration-300 hover:opacity-100"
-            style={{
-              mixBlendMode: 'overlay',
-            }}
-          />
-        )}
-        
-        {children}
-      </Card>
-    </motion.div>
+    <div className="w-full h-full">
+      {shouldUseHover && hoverEffect === "fancy" ? (
+        <motion.div
+          whileHover={{ 
+            scale: 1.02, 
+            y: -5, 
+            transition: { duration: 0.3 } 
+          }}
+          className="w-full h-full"
+        >
+          <Card
+            ref={ref}
+            className={cn(
+              getHoverClass(),
+              getGlassClass(),
+              isRaised && "shadow-lg",
+              borderGlow && shouldUseHover && "hover:border-plantDoc-primary/30",
+              className
+            )}
+            {...props}
+          >
+            {/* Static glow overlay - only on desktop */}
+            {shouldUseEffects && hoverEffect === "glow" && (
+              <div 
+                className="absolute inset-0 opacity-0 pointer-events-none bg-gradient-to-tr from-plantDoc-primary/10 to-transparent rounded-xl transition-opacity duration-300 hover:opacity-100"
+                style={{
+                  mixBlendMode: 'overlay',
+                }}
+              />
+            )}
+            
+            {children}
+          </Card>
+        </motion.div>
+      ) : (
+        <Card
+          ref={ref}
+          className={cn(
+            getHoverClass(),
+            getGlassClass(),
+            isRaised && "shadow-lg",
+            borderGlow && shouldUseHover && "hover:border-plantDoc-primary/30",
+            className
+          )}
+          {...props}
+        >
+          {/* Static glow overlay - only on desktop */}
+          {shouldUseEffects && hoverEffect === "glow" && (
+            <div 
+              className="absolute inset-0 opacity-0 pointer-events-none bg-gradient-to-tr from-plantDoc-primary/10 to-transparent rounded-xl transition-opacity duration-300 hover:opacity-100"
+              style={{
+                mixBlendMode: 'overlay',
+              }}
+            />
+          )}
+          
+          {children}
+        </Card>
+      )}
+    </div>
   );
   
-  if (isInteractive) {
+  if (isInteractive && shouldUseEffects) {
     return (
       <InteractiveParallax intensity={intensity}>
         {cardContent}

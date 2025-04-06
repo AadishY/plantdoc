@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useDeviceOptimizer } from '@/hooks/use-mobile';
 
 type BackgroundBlob = {
   id: number;
@@ -14,12 +14,12 @@ type BackgroundBlob = {
 };
 
 const DynamicBackground = () => {
-  const isMobile = useIsMobile();
+  const { shouldUseComplexBG, deviceType } = useDeviceOptimizer();
   const [mounted, setMounted] = useState(false);
   const backgroundRef = useRef<HTMLDivElement>(null);
   
-  // Generate fewer blobs for better performance but with more vibrant colors
-  const blobCount = isMobile ? 2 : 4;
+  // Generate fewer blobs and simpler effects on mobile
+  const blobCount = shouldUseComplexBG ? 4 : 2;
   
   // Create randomized blobs with memoization
   const [blobs, setBlobs] = useState<BackgroundBlob[]>([]);
@@ -43,20 +43,22 @@ const DynamicBackground = () => {
           id: i,
           x: `${Math.random() * 100}%`,
           y: `${Math.random() * 100}%`,
-          // More focused glows with slightly smaller size
-          size: `${isMobile ? 130 + Math.random() * 100 : 180 + Math.random() * 200}px`,
+          // Different size strategy for mobile vs desktop
+          size: shouldUseComplexBG
+            ? `${180 + Math.random() * 200}px`
+            : `${120 + Math.random() * 80}px`,
           color: colors[i % colors.length],
           delay: i * 0.3,
-          duration: 25 + Math.random() * 15
+          duration: shouldUseComplexBG ? 25 + Math.random() * 15 : 35 // Slower animation on mobile for less CPU usage
         });
       }
       
       setBlobs(newBlobs);
       setMounted(true);
     }
-  }, [isMobile, mounted, blobCount]);
+  }, [shouldUseComplexBG, mounted, blobCount]);
   
-  // Optimized blob rendering with more balanced size and opacity
+  // Optimized blob rendering with different strategies for mobile/desktop
   const renderBlobs = useCallback(() => {
     return blobs.map((blob) => (
       <motion.div 
@@ -68,11 +70,14 @@ const DynamicBackground = () => {
           width: blob.size,
           height: blob.size,
         }}
-        animate={{
+        animate={shouldUseComplexBG ? {
           x: [0, 40, -25, 15, -10, 0],
           y: [0, -25, 15, -20, 8, 0],
           scale: [1, 1.08, 0.97, 1.04, 0.99, 1],
           opacity: [0.6, 0.7, 0.5, 0.65, 0.6, 0.6],
+        } : {
+          // Simplified animation for mobile
+          opacity: [0.5, 0.6, 0.5],
         }}
         transition={{
           duration: blob.duration,
@@ -80,14 +85,28 @@ const DynamicBackground = () => {
           repeatType: "reverse",
           delay: blob.delay,
           ease: "easeInOut",
-          times: [0, 0.2, 0.4, 0.6, 0.8, 1]
+          // Simplified timing for mobile
+          times: shouldUseComplexBG ? [0, 0.2, 0.4, 0.6, 0.8, 1] : [0, 0.5, 1]
         }}
       />
     ));
-  }, [blobs]);
+  }, [blobs, shouldUseComplexBG]);
   
-  // Enhanced ambient glow effects with slightly increased intensity
+  // Enhanced ambient glow effects with conditional rendering for mobile
   const renderAmbientGlows = useCallback(() => {
+    // Simplified glows on mobile
+    if (!shouldUseComplexBG) {
+      return (
+        <>
+          {/* Single simple glow for mobile */}
+          <div 
+            className="absolute inset-0 bg-gradient-radial from-plantDoc-primary/10 via-transparent to-transparent opacity-40"
+          />
+        </>
+      );
+    }
+    
+    // Full effect on desktop
     return (
       <>
         {/* Left top glow */}
@@ -167,7 +186,7 @@ const DynamicBackground = () => {
         />
       </>
     );
-  }, []);
+  }, [shouldUseComplexBG]);
   
   // Only render if component is mounted (client-side) to prevent hydration issues
   if (!mounted) return null;
@@ -180,14 +199,18 @@ const DynamicBackground = () => {
       {/* Enhanced glassmorphic background with subtle gradient overlay */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-md -z-10"></div>
       
-      {/* Subtle grid pattern for more depth */}
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMxQTIwMkMiIGZpbGwtb3BhY2l0eT0iMC4wNCI+PHBhdGggZD0iTTM2IDM0aDR2MWgtNHYtMXptMC0zaC00djFoNHYtMXptMC0yaC00djFoNHYtMXptLTYgMWgtNHYxaDR2LTF6TTEyIDEyaDR2MWgtNHYtMXptMC0zaC00djFoNHYtMXptMC0yaC00djFoNHYtMXptLTYgMWgtNHYxaDR2LTF6TTM2IDEyaDR2MWgtNHYtMXptMC0zaC00djFoNHYtMXptMC0yaC00djFoNHYtMXptLTYgMWgtNHYxaDR2LTF6TTEyIDM0aDR2MWgtNHYtMXptMC0zaC00djFoNHYtMXptMC0yaC00djFoNHYtMXptLTYgMWgtNHYxaDR2LTF6Ij48L3BhdGg+PC9nPjwvZz48L3N2Zz4=')] opacity-10"></div>
+      {/* Conditional grid pattern for more depth - only on desktop */}
+      {shouldUseComplexBG && (
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMxQTIwMkMiIGZpbGwtb3BhY2l0eT0iMC4wNCI+PHBhdGggZD0iTTM2IDM0aDR2MWgtNHYtMXptMC0zaC00djFoNHYtMXptMC0yaC00djFoNHYtMXptLTYgMWgtNHYxaDR2LTF6TTEyIDEyaDR2MWgtNHYtMXptMC0zaC00djFoNHYtMXptMC0yaC00djFoNHYtMXptLTYgMWgtNHYxaDR2LTF6TTM2IDEyaDR2MWgtNHYtMXptMC0zaC00djFoNHYtMXptMC0yaC00djFoNHYtMXptLTYgMWgtNHYxaDR2LTF6TTEyIDM0aDR2MWgtNHYtMXptMC0zaC00djFoNHYtMXptMC0yaC00djFoNHYtMXptLTYgMWgtNHYxaDR2LTF6Ij48L3BhdGg+PC9nPjwvZz48L3N2Zz4=')] opacity-10"></div>
+      )}
       
-      {/* Improved radial gradient overlay with glass effect */}
-      <div className="absolute inset-0 bg-gradient-radial from-transparent via-transparent to-background/90 opacity-80 pointer-events-none"></div>
+      {/* Improved radial gradient overlay with glass effect - simplified on mobile */}
+      <div className={`absolute inset-0 bg-gradient-radial from-transparent via-transparent to-background/${shouldUseComplexBG ? '90' : '70'} opacity-${shouldUseComplexBG ? '80' : '60'} pointer-events-none`}></div>
       
-      {/* Subtle glassmorphism layer */}
-      <div className="absolute inset-0 backdrop-blur-[2px] bg-black/5 pointer-events-none"></div>
+      {/* Subtle glassmorphism layer - only on desktop */}
+      {shouldUseComplexBG && (
+        <div className="absolute inset-0 backdrop-blur-[2px] bg-black/5 pointer-events-none"></div>
+      )}
     </div>
   );
 };
