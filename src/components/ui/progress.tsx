@@ -32,7 +32,7 @@ const Progress = React.forwardRef<
       {/* Add subtle animated glow effect only on desktop */}
       {shouldUseEffects && (
         <div 
-          className="absolute inset-y-0 left-0 w-full scale-x-110 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-50"
+          className="absolute inset-y-0 left-0 w-full scale-x-110 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-50 will-change-auto"
           style={{
             animation: shouldUseEffects ? 'shimmer 2s infinite' : 'none',
             transform: `translateX(-100%) translateX(${value || 0}%)`,

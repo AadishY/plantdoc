@@ -47,28 +47,51 @@ export function useBreakpoint() {
       else setBreakpoint('2xl')
     }
 
+    // Set size initially
     handleResize()
-    window.addEventListener('resize', handleResize)
+    
+    // Use passive event listeners for better performance
+    window.addEventListener('resize', handleResize, { passive: true })
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
   return breakpoint
 }
 
-// New hook to simplify conditional rendering based on device
+// Enhanced hook to simplify conditional rendering based on device capabilities
 export function useDeviceOptimizer() {
   const isMobile = useIsMobile()
+  const [isLowPowerDevice, setIsLowPowerDevice] = useState(false)
+  
+  useEffect(() => {
+    // Check for low power devices by testing hardware concurrency
+    // This is an approximation - low core count often indicates limited GPU/processing power
+    const hasLimitedCores = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4
+    
+    // Check for devices with potentially weak GPU
+    const userAgent = navigator.userAgent.toLowerCase()
+    const isBudgetDevice = /sm-|moto g|redmi|honor|nokia|alcatel|huawei p[1-3]|mediapad/i.test(userAgent)
+    
+    // Detect older devices
+    const isOlderIOS = /iphone os ([1-9]|1[0-2])_/i.test(userAgent) // iOS 12 or below
+    const isOlderAndroid = /android [1-7]\./i.test(userAgent) // Android 7 or below
+    
+    // Set power class based on all factors
+    setIsLowPowerDevice(hasLimitedCores || isBudgetDevice || isOlderIOS || isOlderAndroid)
+  }, [])
   
   return {
     // Should render heavy animations
-    shouldAnimate: !isMobile,
+    shouldAnimate: !isMobile && !isLowPowerDevice,
     // Should use interactive effects
-    shouldUseEffects: !isMobile,
+    shouldUseEffects: !isMobile && !isLowPowerDevice,
     // Should use hover effects
     shouldUseHover: !isMobile,
     // Should use complex backgrounds
-    shouldUseComplexBG: !isMobile,
+    shouldUseComplexBG: !isMobile && !isLowPowerDevice,
     // Current device type
-    deviceType: isMobile ? 'mobile' : 'desktop'
+    deviceType: isMobile ? 'mobile' : 'desktop',
+    // Is this a low power device
+    isLowPower: isLowPowerDevice
   }
 }

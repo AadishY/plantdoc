@@ -75,7 +75,7 @@ const InteractiveParallax: React.FC<InteractiveParallaxProps> = ({
   return (
     <motion.div
       ref={ref}
-      className={`perspective-container relative ${className}`}
+      className={`perspective-container relative will-change-auto ${className}`}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       style={{
@@ -88,20 +88,17 @@ const InteractiveParallax: React.FC<InteractiveParallaxProps> = ({
           transformStyle: "preserve-3d",
           rotateX: rotateX,
           rotateY: rotateY,
-          transition: "transform 0.3s ease-out", 
+          transition: "transform 0.2s ease-out", 
         }}
         initial={{ scale: 1 }}
         whileHover={{ 
           scale: 1.01, 
-          transition: { duration: 0.2 }
+          transition: { duration: 0.15 }
         }}
       >
         {/* Enhanced glow effect - more performance friendly */}
         <div
-          className="absolute pointer-events-none inset-0 rounded-xl bg-plantDoc-primary/15 blur-[40px] opacity-60"
-          style={{
-            transform: `translate3d(0, 0, 0)`, // Force GPU acceleration
-          }}
+          className="absolute pointer-events-none inset-0 rounded-xl bg-plantDoc-primary/12 blur-[35px] opacity-60 gpu-accelerate"
         />
         
         {children}
