@@ -9,9 +9,13 @@ export function useIsMobile() {
   const [isMobile, setIsMobile] = useState<boolean | undefined>(undefined)
 
   useEffect(() => {
-    // Handler to call on window resize
+    // Check for mobile devices using both screen size and user agent (more reliable)
     function handleResize() {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+      const isMobileBySize = window.innerWidth < MOBILE_BREAKPOINT
+      const isMobileByAgent = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+      
+      // Consider it mobile if either check returns true
+      setIsMobile(isMobileBySize || isMobileByAgent)
     }
     
     // Set size initially
@@ -49,4 +53,22 @@ export function useBreakpoint() {
   }, [])
 
   return breakpoint
+}
+
+// New hook to simplify conditional rendering based on device
+export function useDeviceOptimizer() {
+  const isMobile = useIsMobile()
+  
+  return {
+    // Should render heavy animations
+    shouldAnimate: !isMobile,
+    // Should use interactive effects
+    shouldUseEffects: !isMobile,
+    // Should use hover effects
+    shouldUseHover: !isMobile,
+    // Should use complex backgrounds
+    shouldUseComplexBG: !isMobile,
+    // Current device type
+    deviceType: isMobile ? 'mobile' : 'desktop'
+  }
 }
