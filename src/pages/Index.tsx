@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import { Leaf, ArrowUp, ChevronUp, Zap, ShieldCheck, Upload } from 'lucide-react';
@@ -8,7 +7,6 @@ import Footer from '@/components/Footer';
 import { motion } from 'framer-motion';
 import AnimatedLoader from '@/components/ui/animated-loader';
 import { useIsMobile } from '@/hooks/use-mobile';
-import RotatingLeaf from '@/components/RotatingLeaf';
 import FeatureHighlights from '@/components/FeatureHighlights';
 import CtaSection from '@/components/CtaSection';
 import ParallaxSection from '@/components/ParallaxSection';
@@ -56,13 +54,13 @@ const Index = () => {
       <main className="flex-1 relative z-10">
         <section className="py-16 md:py-24">
           <div className="container mx-auto px-4">
-            <div className="flex flex-col md:flex-row items-center gap-8 md:gap-16">
-              <motion.div 
-                className="flex-1 text-center md:text-left"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-              >
+            <motion.div 
+              className="flex justify-center items-center text-center max-w-3xl mx-auto"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <div>
                 <motion.div 
                   className="inline-flex items-center justify-center p-2 bg-plantDoc-primary/20 rounded-full mb-4 glass-card"
                   whileHover={{ 
@@ -74,15 +72,15 @@ const Index = () => {
                 >
                   <Leaf className="h-6 w-6 text-plantDoc-primary" />
                 </motion.div>
-                <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gradient relative">
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-gradient relative">
                   Plant Doc
-                  <div className="absolute -bottom-2 left-0 md:w-1/3 h-0.5 bg-gradient-to-r from-plantDoc-primary to-transparent"></div>
+                  <div className="absolute -bottom-2 left-0 right-0 mx-auto w-1/3 h-0.5 bg-gradient-to-r from-plantDoc-primary to-transparent"></div>
                 </h1>
-                <p className="text-lg text-foreground/70 mb-8 md:max-w-xl">
+                <p className="text-lg md:text-xl text-foreground/70 mb-8 max-w-xl mx-auto">
                   Upload a photo of your plant and get instant diagnosis, treatment recommendations, 
                   and care tips to help your plants thrive.
                 </p>
-                <Link to="/diagnose">
+                <Link to="/diagnose" className="inline-block">
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
                     <Button className="glass-button bg-gradient-to-r from-plantDoc-primary to-plantDoc-secondary text-white font-medium px-8 py-6 text-lg rounded-full hover:shadow-xl transition-all duration-300 hover:shadow-plantDoc-primary/30 group">
                       <span className="mr-2">Diagnose Your Plant</span>
@@ -94,30 +92,63 @@ const Index = () => {
                     </Button>
                   </motion.div>
                 </Link>
-              </motion.div>
-              <motion.div 
-                className="flex-1 flex justify-center md:justify-end relative"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-              >
-                <RotatingLeaf />
-              </motion.div>
-            </div>
+              </div>
+            </motion.div>
+            
+            <motion.div 
+              className="mt-16 flex justify-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6, duration: 0.5 }}
+            >
+              <div className="flex space-x-2 opacity-60">
+                <motion.div 
+                  animate={{ y: [0, -4, 0] }}
+                  transition={{ 
+                    duration: 1.5, 
+                    repeat: Infinity,
+                    repeatType: "loop",
+                    ease: "easeInOut",
+                    delay: 0
+                  }}
+                  className="w-2 h-2 rounded-full bg-plantDoc-primary"
+                />
+                <motion.div 
+                  animate={{ y: [0, -4, 0] }}
+                  transition={{ 
+                    duration: 1.5, 
+                    repeat: Infinity,
+                    repeatType: "loop",
+                    ease: "easeInOut",
+                    delay: 0.2
+                  }}
+                  className="w-2 h-2 rounded-full bg-plantDoc-primary"
+                />
+                <motion.div 
+                  animate={{ y: [0, -4, 0] }}
+                  transition={{ 
+                    duration: 1.5, 
+                    repeat: Infinity,
+                    repeatType: "loop",
+                    ease: "easeInOut",
+                    delay: 0.4
+                  }}
+                  className="w-2 h-2 rounded-full bg-plantDoc-primary"
+                />
+              </div>
+            </motion.div>
           </div>
         </section>
 
-        {/* Plant Care Reimagined Section */}
         <ParallaxSection />
 
-        {/* How It Works Section */}
         <section className="py-12 md:py-16 relative">
           <div className="container mx-auto px-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.4 }}
+              transition={{ duration: 0.3 }}
               className="text-center mb-10"
             >
               <h2 className="text-3xl font-bold mb-3 text-gradient">How It Works</h2>
@@ -176,20 +207,17 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Feature Highlights instead of Testimonials */}
         <FeatureHighlights />
 
-        {/* CTA section */}
         <CtaSection />
 
-        {/* Statistics Section */}
         <section className="py-16 relative overflow-hidden">
           <div className="container mx-auto px-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.4 }}
+              transition={{ duration: 0.3 }}
               className="max-w-4xl mx-auto"
             >
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">

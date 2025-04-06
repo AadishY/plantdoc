@@ -12,8 +12,15 @@ const TextHighlighter: React.FC = memo(() => {
     if (window.innerWidth >= 768) {
       setIsVisible(true);
       
+      // Throttle function to improve performance
+      let lastRun = 0;
+      const throttleTime = 10; // ms between updates
+      
       const handleMouseMove = (e: MouseEvent) => {
-        // Use requestAnimationFrame for better performance
+        const now = performance.now();
+        if (now - lastRun < throttleTime) return;
+        
+        lastRun = now;
         requestAnimationFrame(() => {
           setPosition({ x: e.clientX, y: e.clientY });
         });

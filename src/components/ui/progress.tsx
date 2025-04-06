@@ -35,13 +35,13 @@ const Progress = React.forwardRef<
       }}
     />
     
-    <style jsx>{`
+    <style dangerouslySetInnerHTML={{ __html: `
       @keyframes shimmer {
         100% {
           transform: translateX(100%) translateX(${value || 0}%);
         }
       }
-    `}</style>
+    `}} />
   </ProgressPrimitive.Root>
 ))
 Progress.displayName = ProgressPrimitive.Root.displayName
