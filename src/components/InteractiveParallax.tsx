@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -12,28 +12,26 @@ interface InteractiveParallaxProps {
 const InteractiveParallax: React.FC<InteractiveParallaxProps> = ({ 
   children, 
   className = "", 
-  intensity = 4  // Reduced default intensity for subtlety
+  intensity = 4
 }) => {
   const [rotateX, setRotateX] = useState(0);
   const [rotateY, setRotateY] = useState(0);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const ref = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
-  
-  // Performance optimization - throttle mouse move events
-  const throttleRef = useRef<number | null>(null);
+  const rafRef = useRef<number | null>(null);
   
   // Don't apply effects on mobile for better performance
   if (isMobile) {
     return <div className={className}>{children}</div>;
   }
   
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!ref.current || throttleRef.current) return;
+  // Optimized handler using requestAnimationFrame
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!ref.current || rafRef.current) return;
     
-    // Add throttling for better performance
-    throttleRef.current = window.setTimeout(() => {
-      throttleRef.current = null;
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
       
       const rect = ref.current!.getBoundingClientRect();
       
@@ -50,20 +48,20 @@ const InteractiveParallax: React.FC<InteractiveParallaxProps> = ({
         x: e.clientX - rect.left, 
         y: e.clientY - rect.top 
       });
-    }, 16); // 16ms throttle (matches 60fps)
-  };
+    });
+  }, [intensity]);
   
-  const handleMouseLeave = () => {
+  const handleMouseLeave = useCallback(() => {
     // Reset position when mouse leaves with a smooth transition
     setRotateX(0);
     setRotateY(0);
-  };
+  }, []);
   
-  // Clean up any pending timeouts
+  // Clean up any pending animation frames
   useEffect(() => {
     return () => {
-      if (throttleRef.current) {
-        clearTimeout(throttleRef.current);
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
       }
     };
   }, []);
@@ -92,9 +90,9 @@ const InteractiveParallax: React.FC<InteractiveParallaxProps> = ({
           transition: { duration: 0.2 }
         }}
       >
-        {/* Fixed position subtle glow effect - not mouse following */}
+        {/* Enhanced glow effect */}
         <div
-          className="absolute pointer-events-none inset-0 rounded-xl bg-plantDoc-primary/10 blur-[60px] opacity-60"
+          className="absolute pointer-events-none inset-0 rounded-xl bg-plantDoc-primary/20 blur-[60px] opacity-60"
           style={{
             transform: `translate3d(0, 0, 0)`, // Force GPU acceleration
           }}
