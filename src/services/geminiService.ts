@@ -1,9 +1,8 @@
-
 import { API_CONFIG } from '@/config/api.config';
 
 // Base URL and headers for API requests
 const baseUrl = API_CONFIG.BASE_URL;
-const apiKey = API_CONFIG.GEMINI_API_KEY;
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
 // Function to make a request to the Gemini API
 const makeGeminiRequest = async (model: string, prompt: string, image?: string) => {

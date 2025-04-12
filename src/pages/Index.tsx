@@ -222,9 +222,9 @@ const Index = () => {
             >
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 {[
-                  { value: "500+", label: "Plant Species" },
+                  { value: "5000+", label: "Plant Species" },
                   { value: "95%", label: "Accuracy Rate" },
-                  { value: "200+", label: "Disease Types" },
+                  { value: "2000+", label: "Disease Types" },
                   { value: "24/7", label: "Availability" }
                 ].map((stat, index) => (
                   <motion.div

@@ -70,7 +70,7 @@ const ParallaxSection: React.FC = () => {
             <div className="w-16 h-16 mx-auto mb-4 bg-plantDoc-primary/20 rounded-full flex items-center justify-center">
               <Sparkles className="h-8 w-8 text-plantDoc-primary" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Expert Recommendations</h3>
+            <h3 className="text-xl font-semibold mb-2">Expert AI Recommendations</h3>
             <p className="text-foreground/70">Discover the perfect plants for your living space and environment</p>
           </motion.div>
         </div>
