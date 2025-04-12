@@ -3,6 +3,12 @@ import { PlantRecommendation, GrowingConditions } from '@/types/recommendation';
 import { toast } from "sonner";
 import { API_CONFIG } from "@/config/api.config";
 
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+
+if (!apiKey) {
+  console.error('VITE_GEMINI_API_KEY is not set. Please check your environment variables.');
+}
+
 // Function to prepare image for API
 const prepareImageForAPI = async (imageFile: File): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -94,7 +100,7 @@ Return only the JSON output with no additional text or commentary.
 
     // Direct request to Gemini API
     const response = await fetch(
-      `${API_CONFIG.BASE_URL}/models/${API_CONFIG.DIAGNOSIS_MODEL}:generateContent?key=${API_CONFIG.GEMINI_API_KEY}`,
+      `${API_CONFIG.BASE_URL}/models/${API_CONFIG.DIAGNOSIS_MODEL}:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: {
@@ -228,7 +234,7 @@ export const getClimateDatabByLocation = async (country: string, state: string, 
 
     // Direct request to Gemini API
     const response = await fetch(
-      `${API_CONFIG.BASE_URL}/models/${API_CONFIG.CLIMATE_MODEL}:generateContent?key=${API_CONFIG.GEMINI_API_KEY}`,
+      `${API_CONFIG.BASE_URL}/models/${API_CONFIG.CLIMATE_MODEL}:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: {
@@ -332,7 +338,7 @@ export const getPlantRecommendations = async (conditions: GrowingConditions): Pr
 
     // Direct request to Gemini API
     const response = await fetch(
-      `${API_CONFIG.BASE_URL}/models/${API_CONFIG.RECOMMENDATION_MODEL}:generateContent?key=${API_CONFIG.GEMINI_API_KEY}`,
+      `${API_CONFIG.BASE_URL}/models/${API_CONFIG.RECOMMENDATION_MODEL}:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: {
