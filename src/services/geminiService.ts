@@ -4,6 +4,9 @@ import { API_CONFIG } from '@/config/api.config';
 const baseUrl = API_CONFIG.BASE_URL;
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
+if (!apiKey) {
+  console.error('VITE_GEMINI_API_KEY is not set. Please check your environment variables.');
+}
 // Function to make a request to the Gemini API
 const makeGeminiRequest = async (model: string, prompt: string, image?: string) => {
   // Prepare the basic content parts
