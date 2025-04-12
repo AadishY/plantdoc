@@ -40,7 +40,7 @@ const CtaSection: React.FC = () => {
                     "Instant disease diagnosis with 95% accuracy",
                     "Personalized treatment plans for your plants",
                     "Regular care reminders and seasonal tips",
-                    "Expert recommendations for your growing environment"
+                    "Expert AI recommendations for your growing environment"
                   ].map((item, index) => (
                     <li key={index} className="flex items-center">
                       <CircleCheck className="h-5 w-5 text-plantDoc-primary mr-2 shrink-0" />
