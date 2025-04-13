@@ -1,4 +1,3 @@
-
 import React, { forwardRef, HTMLAttributes } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './card';
 import { cn } from '@/lib/utils';
@@ -98,7 +97,7 @@ const EnhancedCard = forwardRef<HTMLDivElement, EnhancedCardProps>(({
             {...props}
           >
             {/* Static glow overlay - only on desktop */}
-            {shouldUseEffects && hoverEffect === "glow" && (
+            {shouldUseEffects && hoverEffect === "fancy" && (
               <div 
                 className="absolute inset-0 opacity-0 pointer-events-none bg-gradient-to-tr from-plantDoc-primary/10 to-transparent rounded-xl transition-opacity duration-300 hover:opacity-100"
                 style={{
