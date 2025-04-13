@@ -196,7 +196,7 @@ const RecommendPage: React.FC = () => {
                     
                     <div className="space-y-2">
                       <Label htmlFor="care-level" className="flex items-center gap-2">
-                        <Plant className="h-4 w-4 text-primary" />
+                        <Sprout className="h-4 w-4 text-primary" />
                         Care Level
                       </Label>
                       <Select value={careLevel} onValueChange={setCareLevel}>
