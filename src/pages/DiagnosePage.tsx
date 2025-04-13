@@ -1,166 +1,177 @@
 
-import React, { useState, useRef } from 'react';
-import { toast } from 'sonner';
-import { Leaf, Upload, Loader2, AlertOctagon } from 'lucide-react';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import DynamicBackground from '@/components/DynamicBackground';
-import UploadComponent from '@/components/UploadComponent';
-import ResultComponent from '@/components/ResultComponent';
-import AboutPlant from '@/components/AboutPlant';
-import { diagnosePlant } from '@/services/api';
-import { DiagnosisResult } from '@/types/diagnosis';
-import { Button } from '@/components/ui/button';
+import React, { useState, useCallback } from "react";
+import { motion } from "framer-motion";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+import { GeminiService } from "@/services/geminiService";
+import UploadComponent from "@/components/UploadComponent";
+import ResultComponent from "@/components/ResultComponent";
+import { Leaf, Upload, AlertCircle } from "lucide-react";
 
-const DiagnosePage = () => {
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+// Import types
+import type { DiagnosisResult } from "@/types/diagnosis";
+
+const DiagnosePage: React.FC = () => {
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [diagnosisResult, setDiagnosisResult] = useState<DiagnosisResult | null>(null);
-  const [isValidPlant, setIsValidPlant] = useState(true);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setSelectedImage(file);
-      setPreviewUrl(URL.createObjectURL(file));
-      setDiagnosisResult(null);
-      setIsValidPlant(true);
-    }
-  };
+  const handleFileUpload = useCallback((file: File, preview: string) => {
+    setImageFile(file);
+    setImagePreview(preview);
+    setError(null);
+    // Reset previous results when a new image is uploaded
+    setDiagnosisResult(null);
+  }, []);
 
-  const handleDrop = (acceptedFiles: File[]) => {
-    if (acceptedFiles && acceptedFiles.length > 0) {
-      const file = acceptedFiles[0];
-      setSelectedImage(file);
-      setPreviewUrl(URL.createObjectURL(file));
-      setDiagnosisResult(null);
-      setIsValidPlant(true);
-    }
-  };
-
-  const handleDiagnose = async () => {
-    if (!selectedImage) {
-      toast.error('Please upload an image first');
+  const handleDiagnose = useCallback(async () => {
+    if (!imageFile) {
+      toast({
+        title: "No image selected",
+        description: "Please upload an image of your plant first.",
+        variant: "destructive",
+      });
       return;
     }
-    
+
     setIsLoading(true);
+    setError(null);
+
     try {
-      const result = await diagnosePlant(selectedImage);
+      const result = await GeminiService.diagnosePlant(imageFile);
       
-      // Check if the diagnosis found a plant or if it's an invalid image
-      if (result.disease.name.toLowerCase().includes("no disease") || 
-          result.disease.name.toLowerCase().includes("not a plant") ||
-          result.disease.name.toLowerCase().includes("unable to identify")) {
-        setIsValidPlant(false);
-        toast.error("This doesn't appear to be a plant image. Please upload a clear image of a plant.");
-      } else {
-        setDiagnosisResult(result);
-        toast.success('Diagnosis complete!');
+      if (!result) {
+        throw new Error("Failed to analyze the plant. Please try again.");
       }
-    } catch (error) {
-      console.error('Diagnosis error:', error);
-      toast.error('Failed to diagnose the plant. Please try again.');
+      
+      setDiagnosisResult(result);
+      toast({
+        title: "Analysis Complete",
+        description: "Your plant has been successfully analyzed.",
+      });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+      setError(errorMessage);
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      console.error("Diagnosis error:", err);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [imageFile, toast]);
 
-  const handleReset = () => {
-    setSelectedImage(null);
-    setPreviewUrl(null);
+  const handleReset = useCallback(() => {
+    setImageFile(null);
+    setImagePreview("");
     setDiagnosisResult(null);
-    setIsValidPlant(true);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
+    setError(null);
+  }, []);
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <DynamicBackground />
-      <Header />
-      
-      <main className="flex-1 py-8 md:py-12 container mx-auto px-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8 animate-enter">
-            <div className="inline-flex items-center justify-center p-2 bg-plantDoc-primary/20 rounded-full mb-4">
-              <Leaf className="h-6 w-6 text-plantDoc-primary" />
-            </div>
-            <h1 className="text-3xl md:text-4xl font-bold mb-2">Plant Diagnosis</h1>
-            <p className="text-foreground/70 max-w-md mx-auto">
-              Upload a photo of your plant to diagnose diseases and get treatment recommendations
-            </p>
-          </div>
-          
-          <div className="w-full relative">
-            <UploadComponent 
-              onImageChange={handleImageChange}
-              onDrop={handleDrop}
-              previewUrl={previewUrl}
-              isLoading={isLoading}
-              fileInputRef={fileInputRef}
-              className="glass-card hover:border-plantDoc-primary/50 transition-all duration-300 transform hover:translate-y-[-5px]"
-            />
-            
-            {!isValidPlant && previewUrl && (
-              <div className="mt-4 p-4 border border-red-400 rounded-lg bg-red-100/10 flex items-center text-red-400 gap-2">
-                <AlertOctagon className="h-5 w-5" />
-                <p>This doesn't appear to be a plant image. Please upload a clear image of a plant.</p>
-              </div>
-            )}
-            
-            <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
-              <Button
-                onClick={handleDiagnose}
-                disabled={!selectedImage || isLoading}
-                className="bg-gradient-to-r from-plantDoc-primary to-plantDoc-secondary hover:shadow-lg transition-shadow text-white px-8 py-3 text-lg rounded-lg hover:scale-105 transition-transform"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                    Diagnosing...
-                  </>
-                ) : (
-                  <>
-                    <Leaf className="h-5 w-5 mr-2" />
-                    Diagnose Plant
-                  </>
-                )}
-              </Button>
-              
-              {previewUrl && (
-                <Button 
-                  variant="outline" 
-                  onClick={handleReset}
-                  className="border-plantDoc-primary/50 hover:bg-plantDoc-primary/10 transition-colors"
-                >
-                  <Upload className="h-5 w-5 mr-2" />
-                  New Upload
-                </Button>
-              )}
-            </div>
-          </div>
-          
-          {diagnosisResult && (
-            <div className="mt-12 space-y-8 animate-fade-in">
-              <ResultComponent result={diagnosisResult} />
-              
-              {/* About Plant Section */}
-              {diagnosisResult.about_plant && (
-                <div className="mt-8">
-                  <AboutPlant plantData={diagnosisResult.about_plant} />
-                </div>
-              )}
-            </div>
-          )}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="container mx-auto px-4 py-8 max-w-6xl"
+    >
+      <div className="space-y-6">
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl md:text-4xl font-bold text-primary flex items-center justify-center gap-2">
+            <Leaf className="h-8 w-8" />
+            Plant Diagnosis
+          </h1>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Upload a clear image of your plant to receive an accurate diagnosis and personalized care recommendations
+          </p>
         </div>
-      </main>
-      
-      <Footer />
-    </div>
+
+        <Separator className="my-6" />
+
+        {!diagnosisResult ? (
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            <Card className="p-6 border rounded-xl shadow-md bg-gradient-to-br from-background to-muted/30">
+              <div className="space-y-6">
+                <UploadComponent onFileUpload={handleFileUpload} />
+
+                {imagePreview && (
+                  <div className="mt-6 space-y-4">
+                    <div className="aspect-video md:aspect-auto md:h-80 bg-muted rounded-lg overflow-hidden">
+                      <img
+                        src={imagePreview}
+                        alt="Plant preview"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    
+                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                      <Button 
+                        onClick={handleDiagnose} 
+                        disabled={isLoading}
+                        className="flex items-center gap-2"
+                      >
+                        {isLoading ? (
+                          <div className="animate-spin h-5 w-5 border-2 border-current border-t-transparent rounded-full"></div>
+                        ) : (
+                          <Upload className="h-5 w-5" />
+                        )}
+                        {isLoading ? "Analyzing Plant..." : "Diagnose Plant"}
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        onClick={handleReset}
+                        disabled={isLoading}
+                      >
+                        Reset
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {error && (
+                  <div className="bg-destructive/10 text-destructive p-4 rounded-lg flex items-start gap-3">
+                    <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium">Analysis Failed</p>
+                      <p className="text-sm mt-1">{error}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </Card>
+          </motion.div>
+        ) : (
+          <>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">Diagnosis Results</h2>
+              <Button 
+                variant="outline" 
+                onClick={handleReset}
+                className="flex items-center gap-2"
+              >
+                Diagnose Another Plant
+              </Button>
+            </div>
+            
+            <ResultComponent result={diagnosisResult} imagePreview={imagePreview} />
+          </>
+        )}
+      </div>
+    </motion.div>
   );
 };
 
