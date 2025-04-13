@@ -308,18 +308,23 @@ export const getPlantRecommendations = async (conditions: GrowingConditions): Pr
               text: `Given the following growing conditions, recommend 6 plants that would thrive in this environment.
                      Return your recommendations in JSON format as an array with the following structure for each plant:
                      [
-                       {
-                         "name": "Common plant name",
-                         "scientificName": "Latin name",
-                         "growthTime": "Fast/Medium/Slow growth",
-                         "waterNeeds": "Low/Medium/High",
-                         "sunlight": "Full sun/Partial sun/Shade",
-                         "description": "Brief description of the plant and why it's suitable for these conditions",
-                         "careInstructions": ["Care instruction 1", "Care instruction 2", "Care instruction 3"],
-                         "bestSeason": "Spring/Summer/Fall/Winter"
-                       },
-                       // 5 more plants...
-                     ]
+  {
+    "name": "Common plant name",
+    "scientificName": "Latin name",
+    "growthTime": "Fast/Medium/Slow growth",
+    "waterNeeds": "Low/Medium/High",
+    "sunlight": "Full sun/Partial sun/Shade",
+    "description": "Concise overview of the plant and why it thrives under these conditions",
+    "careInstructions": [
+      "Specific care step 1",
+      "Specific care step 2",
+      "Specific care step 3"
+    ],
+    "bestSeason": "Spring/Summer/Fall/Winter"
+  },
+  // 5 more plants…
+]
+
                      
                      Growing Conditions:
                      - Country: ${conditions.country || 'Not specified'}
