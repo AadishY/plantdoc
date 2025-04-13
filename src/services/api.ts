@@ -51,33 +51,44 @@ export const diagnosePlant = async (imageFile: File): Promise<DiagnosisResult> =
               text: `Analyze the provided plant image thoroughly to identify any diseases or issues affecting the plant. Ensure your analysis is comprehensive, taking into account visual symptoms, possible causes, and appropriate treatment options. Follow the JSON schema exactly as specified below for your output.
 
 {
-  "plant": "Plant species name",
+  "plant": "Plant species name (if identifiable from the image)",
   "disease": {
-    "name": "Disease name",
-    "confidence": <confidence percentage as a number>,
+    "name": "Precise name of the identified disease based on visual symptoms",
+    "confidence": 0,
     "severity": "Low" | "Medium" | "High"
   },
-  "causes": ["Likely cause 1", "Likely cause 2", ...],
+  "causes": [
+    "List potential causes such as pest infestation, fungal or bacterial infection, environmental stress, or nutritional deficiency"
+  ],
   "treatment": {
-    "steps": ["Proper professional detailed Treatment step 1", "Proper professional detailed Treatment step 2", "Proper professional detailed Treatment step 3", ...],
-    "prevention": ["Proper detailed professional Prevention tip 1", "Proper professional detailed Prevention tip 2", ...]
+    "steps": [
+      "Step-by-step professional treatment instruction addressing immediate interventions and symptom alleviation",
+      "Detailed treatment step including application method and safety precautions",
+      "Follow-up step outlining post-treatment care and monitoring procedures"
+    ],
+    "prevention": [
+      "Detailed professional prevention tip focusing on cultural practices, sanitation, and environmental adjustments to mitigate recurrence",
+      "Additional prevention measure addressing routine maintenance practices and early symptom detection"
+    ]
   },
   "fertilizer_recommendation": {
-    "type": "Recommended fertilizer type, its name or it composition",
-    "application": "Application instructions"
+    "type": "Recommended fertilizer type or specific composition tailored to the plant's nutrient deficiencies",
+    "application": "Detailed instructions on application frequency, dosage, and method to ensure optimal nutrient uptake"
   },
   "care_recommendations": [
-    "Care tip 1 or anyother details like what to add",
-    "Care tip 2",
-    ...
+    "Additional care tip regarding optimal watering, pruning, and pest control measures",
+    "Further recommendation including adjustments in sunlight exposure, soil improvement, and overall maintenance practices"
   ],
   "about_plant": {
-    "description": "IMPORTANT IF YOU ARE NOT SURE THEN DO NO GIVE RESPONSE. Brief description of the plant species by identifying from the image only, do not need to give random answer if you dont know simply say can't indentified",
-    "origin": "Geographic origin of the plant",
-    "common_uses": ["Use 1", "Use 2", ...],
-    "growing_conditions": "Preferred growing conditions"
+    "description": "IMPORTANT IF YOU ARE NOT SURE THEN DO NOT GIVE RESPONSE. Provide a brief and accurate description of the plant species based solely on the image; if not confidently identified, state that it cannot be identified.",
+    "origin": "Known geographic origin of the plant, if ascertainable from the image",
+    "common_uses": [
+      "Common uses such as ornamental, medicinal, culinary, or other practical applications"
+    ],
+    "growing_conditions": "Preferred environmental, soil, and climatic conditions required for optimal growth"
   }
 }
+
 
 Return only the JSON output with no additional text or commentary.
 `
