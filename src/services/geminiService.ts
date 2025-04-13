@@ -7,7 +7,6 @@ const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 if (!apiKey) {
   console.error('VITE_GEMINI_API_KEY is not set. Please check your environment variables.');
 }
-
 // Function to make a request to the Gemini API
 const makeGeminiRequest = async (model: string, prompt: string, image?: string) => {
   // Prepare the basic content parts
@@ -67,10 +66,7 @@ const makeGeminiRequest = async (model: string, prompt: string, image?: string) 
 };
 
 // Function to diagnose a plant from an image
-export const diagnosePlant = async (imageFile: File) => {
-  // Convert the image file to base64
-  const imageBase64 = await fileToBase64(imageFile);
-  
+export const diagnosePlant = async (image: string) => {
   const prompt = `Analyze the provided plant image thoroughly to identify any diseases or issues affecting the plant. Ensure your analysis is comprehensive, taking into account visual symptoms, possible causes, and appropriate treatment options. Follow the JSON schema exactly as specified below for your output.
 
 {
@@ -105,7 +101,7 @@ export const diagnosePlant = async (imageFile: File) => {
 Return only the JSON output with no additional text or commentary.`;
 
   try {
-    const data = await makeGeminiRequest(API_CONFIG.DIAGNOSIS_MODEL, prompt, imageBase64);
+    const data = await makeGeminiRequest(API_CONFIG.DIAGNOSIS_MODEL, prompt, image);
     
     // Extract the JSON string from Gemini's response
     const textResponse = data.candidates[0].content.parts[0].text;
@@ -163,22 +159,6 @@ Return only the JSON output with no additional text or commentary.`;
     console.error('Error in diagnose plant:', error);
     throw error;
   }
-};
-
-// Helper function to convert File to base64 string
-const fileToBase64 = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => {
-      // Extract the base64 part from the Data URL
-      const base64String = reader.result as string;
-      // Remove the data URL prefix (e.g., "data:image/jpeg;base64,")
-      const base64Content = base64String.split(',')[1];
-      resolve(base64Content);
-    };
-    reader.onerror = error => reject(error);
-  });
 };
 
 // Function to get climate data

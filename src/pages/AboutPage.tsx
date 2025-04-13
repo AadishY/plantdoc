@@ -1,183 +1,273 @@
 
-import React from "react";
-import { motion } from "framer-motion";
-import { Card } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Check, Leaf, Shield, Sparkles, BookOpen, Heart } from "lucide-react";
+import React, { lazy, Suspense } from 'react';
+import { Github, Mail, Leaf, User, School, MapPin, Instagram, Code, Sparkles, ExternalLink } from 'lucide-react';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import AnimatedLoader from '@/components/ui/animated-loader';
+import DynamicBackground from '@/components/DynamicBackground';
+import { motion } from 'framer-motion';
+import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
+import { EnhancedCard, EnhancedCardContent, EnhancedCardHeader } from '@/components/ui/enhanced-card';
+
+const ComponentLoader = () => (
+  <div className="flex items-center justify-center h-32">
+    <AnimatedLoader size="md" color="primary" />
+  </div>
+);
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: { 
+    y: 0, 
+    opacity: 1,
+    transition: { duration: 0.5 }
+  }
+};
 
 const AboutPage = () => {
-  const fadeIn = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
-  };
-
   return (
-    <div className="container mx-auto px-4 py-12 max-w-6xl">
-      <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={fadeIn}
-        className="space-y-12"
-      >
-        {/* Hero Section */}
-        <section className="text-center space-y-6">
-          <h1 className="text-4xl md:text-5xl font-bold text-primary">
-            About Plant Doc
-          </h1>
-          <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto">
-            Empowering plant enthusiasts with AI-driven diagnostics and care recommendations
-          </p>
-          <Separator className="max-w-md mx-auto" />
-        </section>
-
-        {/* Mission Section */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
-            className="space-y-4"
+    <div className="min-h-screen flex flex-col">
+      <DynamicBackground />
+      <Header />
+      
+      <main className="flex-1 py-12 container mx-auto px-4 animate-fade-in">
+        <div className="max-w-4xl mx-auto">
+          <motion.div 
+            className="text-center mb-12"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
           >
-            <h2 className="text-3xl font-bold text-primary">Our Mission</h2>
-            <p className="text-lg text-muted-foreground">
-              At Plant Doc, we believe that everyone deserves a thriving garden. Our mission is to democratize plant care knowledge by leveraging cutting-edge AI technology to provide accurate plant disease diagnostics and personalized care recommendations.
-            </p>
-            <p className="text-lg text-muted-foreground">
-              Whether you're a seasoned gardener or just starting your plant journey, Plant Doc is here to help you nurture your green companions back to health and prevent future issues.
+            <motion.div 
+              className="inline-flex items-center justify-center p-3 bg-plantDoc-primary/20 backdrop-blur-lg rounded-full mb-4"
+              whileHover={{ scale: 1.05, backgroundColor: 'rgba(76, 175, 80, 0.3)' }}
+              transition={{ duration: 0.3 }}
+            >
+              <User className="h-6 w-6 text-plantDoc-primary" />
+            </motion.div>
+            <h1 className="text-3xl md:text-4xl font-bold mb-3 bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">
+              About the Creator
+            </h1>
+            <p className="text-foreground/70 max-w-md mx-auto">
+              Learn more about the person behind Plant Doc
             </p>
           </motion.div>
+          
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5, duration: 0.6 }}
-            className="bg-muted rounded-lg p-8 shadow-md"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible" 
+            className="frost-panel-dark rounded-xl overflow-hidden border border-white/10 shadow-2xl relative"
+            whileHover={{ boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)" }}
           >
-            <div className="grid grid-cols-2 gap-6">
-              {[
-                { icon: <Leaf className="h-10 w-10 text-primary" />, text: "Plant Health" },
-                { icon: <Shield className="h-10 w-10 text-primary" />, text: "Disease Prevention" },
-                { icon: <Sparkles className="h-10 w-10 text-primary" />, text: "Smart Diagnosis" },
-                { icon: <Heart className="h-10 w-10 text-primary" />, text: "Care Guidance" },
-              ].map((item, index) => (
-                <div key={index} className="flex flex-col items-center text-center space-y-2">
-                  {item.icon}
-                  <span className="font-medium">{item.text}</span>
-                </div>
-              ))}
+            {/* Decorative elements */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-plantDoc-primary/5 rounded-full blur-[100px] -z-10"></div>
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-plantDoc-accent/5 rounded-full blur-[100px] -z-10"></div>
+            
+            <div className="md:flex">
+              <motion.div 
+                variants={itemVariants}
+                className="md:w-1/3 bg-gradient-to-br from-plantDoc-primary/25 to-plantDoc-secondary/15 p-8 flex flex-col items-center justify-center backdrop-blur-xl"
+                whileHover={{ backgroundColor: 'rgba(76, 175, 80, 0.2)' }}
+              >
+                <motion.div 
+                  className="w-32 h-32 rounded-full bg-gradient-to-br from-plantDoc-primary/40 to-plantDoc-primary/10 flex items-center justify-center mb-4 border border-white/20 shadow-lg relative overflow-hidden"
+                  whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(76, 175, 80, 0.3)" }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  {/* Animated background */}
+                  <motion.div 
+                    className="absolute inset-0 bg-gradient-to-br from-plantDoc-primary/30 to-transparent"
+                    animate={{ 
+                      rotate: [0, 360],
+                    }}
+                    transition={{ 
+                      repeat: Infinity, 
+                      duration: 10,
+                      ease: "linear"
+                    }}
+                  />
+                  <Leaf className="h-16 w-16 text-white relative z-10" />
+                </motion.div>
+                
+                <motion.h2 variants={itemVariants} className="text-xl font-bold">Aadish Kumar Yadav</motion.h2>
+                <motion.p variants={itemVariants} className="text-foreground/70 text-center mt-2">Student Developer</motion.p>
+                
+                <motion.div variants={itemVariants} className="mt-6 flex gap-3">
+                  <HoverCard>
+                    <HoverCardTrigger asChild>
+                      <motion.a 
+                        href="https://github.com/AadishY/PlantDoc" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <Button variant="outline" size="icon" className="rounded-full bg-black/20 border-white/20 hover:bg-black/40 hover:border-white/30">
+                          <Github className="h-4 w-4" />
+                        </Button>
+                      </motion.a>
+                    </HoverCardTrigger>
+                    <HoverCardContent className="glass-tooltip w-auto">
+                      <span className="text-xs">GitHub Repository</span>
+                    </HoverCardContent>
+                  </HoverCard>
+                  
+                  <HoverCard>
+                    <HoverCardTrigger asChild>
+                      <motion.a 
+                        href="https://instagram.com/yo.akatsuki" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <Button variant="outline" size="icon" className="rounded-full bg-black/20 border-white/20 hover:bg-black/40 hover:border-white/30">
+                          <Instagram className="h-4 w-4" />
+                        </Button>
+                      </motion.a>
+                    </HoverCardTrigger>
+                    <HoverCardContent className="glass-tooltip w-auto">
+                      <span className="text-xs">Instagram Profile</span>
+                    </HoverCardContent>
+                  </HoverCard>
+                </motion.div>
+              </motion.div>
+              
+              <div className="md:w-2/3 p-8">
+                <motion.h3 
+                  variants={itemVariants} 
+                  className="text-xl font-semibold mb-4 flex items-center gap-2"
+                >
+                  <User className="h-5 w-5 text-plantDoc-primary" />
+                  <span className="bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">About Me</span>
+                </motion.h3>
+                
+                <motion.div 
+                  variants={itemVariants}
+                  className="text-foreground/90 mb-6 backdrop-blur-sm bg-black/10 p-4 rounded-lg border border-white/5 transition-all duration-300"
+                  whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.2)', x: 5, borderColor: 'rgba(255, 255, 255, 0.1)' }}
+                >
+                  <p>
+                    I am Aadish Kumar Yadav, a 17-year-old student from Red Rose Public School in Lucknow, India. 
+                    Currently in 11th grade, I'm passionate about technology and how it can be used to solve 
+                    real-world problems, especially in the field of agriculture and plant care.
+                  </p>
+                </motion.div>
+                
+                <motion.div variants={containerVariants} className="space-y-4">
+                  <motion.div 
+                    variants={itemVariants}
+                    className="flex items-center gap-3 backdrop-blur-sm bg-black/10 p-3 rounded-lg border border-white/5 transition-all duration-300"
+                    whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.2)', x: 5, borderColor: 'rgba(255, 255, 255, 0.1)' }}
+                  >
+                    <School className="h-5 w-5 text-plantDoc-primary" />
+                    <div>
+                      <p className="font-medium">Red Rose Public School</p>
+                      <p className="text-sm text-foreground/60">Class 11th</p>
+                    </div>
+                  </motion.div>
+                  
+                  <motion.div 
+                    variants={itemVariants}
+                    className="flex items-center gap-3 backdrop-blur-sm bg-black/10 p-3 rounded-lg border border-white/5 transition-all duration-300"
+                    whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.2)', x: 5, borderColor: 'rgba(255, 255, 255, 0.1)' }}
+                  >
+                    <MapPin className="h-5 w-5 text-plantDoc-primary" />
+                    <p>Lucknow, India</p>
+                  </motion.div>
+
+                  <motion.div 
+                    variants={itemVariants}
+                    className="flex items-center gap-3 backdrop-blur-sm bg-black/10 p-3 rounded-lg border border-white/5 transition-all duration-300"
+                    whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.2)', x: 5, borderColor: 'rgba(255, 255, 255, 0.1)' }}
+                  >
+                    <Instagram className="h-5 w-5 text-plantDoc-primary" />
+                    <p>
+                      <a 
+                        href="https://instagram.com/yo.akatsuki" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-foreground/80 hover:text-plantDoc-primary transition-colors flex items-center gap-1"
+                      >
+                        @yo.akatsuki
+                        <ExternalLink className="h-3 w-3 inline" />
+                      </a>
+                    </p>
+                  </motion.div>
+                </motion.div>
+                
+                <Separator className="my-6 bg-white/10" />
+                
+                <motion.h3 
+                  variants={itemVariants}
+                  className="text-xl font-semibold mb-4 flex items-center gap-2"
+                >
+                  <Leaf className="h-5 w-5 text-plantDoc-primary" />
+                  <span className="bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">About Plant Doc</span>
+                </motion.h3>
+                
+                <motion.div 
+                  variants={itemVariants}
+                  className="text-foreground/90 backdrop-blur-sm bg-black/10 p-4 rounded-lg border border-white/5 transition-all duration-300"
+                  whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.2)', x: 5, borderColor: 'rgba(255, 255, 255, 0.1)' }}
+                >
+                  <p className="mb-4">
+                    Plant Doc is an AI-powered plant disease diagnosis tool that I created to help people 
+                    identify and treat plant diseases. The application uses advanced image recognition 
+                    technology to analyze plant images and provide accurate diagnoses along with 
+                    treatment recommendations.
+                  </p>
+                </motion.div>
+                
+                <motion.div 
+                  variants={itemVariants}
+                  className="mt-6"
+                >
+                  <EnhancedCard className="glass-card-intense" hoverEffect="fancy">
+                    <EnhancedCardHeader>
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="h-5 w-5 text-plantDoc-accent" />
+                        <h3 className="text-gradient">Technology Stack</h3>
+                      </div>
+                    </EnhancedCardHeader>
+                    <EnhancedCardContent>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <div className="flex items-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10">
+                          <Code className="h-4 w-4 text-plantDoc-primary" />
+                          <span className="text-sm">React</span>
+                        </div>
+                        <div className="flex items-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10">
+                          <Code className="h-4 w-4 text-plantDoc-primary" />
+                          <span className="text-sm">Tailwind CSS</span>
+                        </div>
+                        <div className="flex items-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10">
+                          <Code className="h-4 w-4 text-plantDoc-primary" />
+                          <span className="text-sm">TypeScript</span>
+                        </div>
+                      </div>
+                    </EnhancedCardContent>
+                  </EnhancedCard>
+                </motion.div>
+              </div>
             </div>
           </motion.div>
-        </section>
-
-        {/* How It Works */}
-        <section className="space-y-8">
-          <div className="text-center">
-            <h2 className="text-3xl font-bold text-primary">How Plant Doc Works</h2>
-            <p className="text-lg text-muted-foreground mt-2 max-w-2xl mx-auto">
-              A seamless experience from diagnosis to treatment
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                title: "Upload",
-                desc: "Take a clear photo of your plant showing the affected areas and upload it to our platform.",
-                color: "from-green-50 to-emerald-100",
-                delay: 0.2,
-              },
-              {
-                title: "Analyze",
-                desc: "Our AI powered by Google Gemini analyzes the image and identifies potential diseases or issues.",
-                color: "from-blue-50 to-indigo-100",
-                delay: 0.4,
-              },
-              {
-                title: "Treat",
-                desc: "Receive detailed diagnosis, treatment steps, and care recommendations tailored to your plant.",
-                color: "from-purple-50 to-violet-100",
-                delay: 0.6,
-              },
-            ].map((step, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: step.delay, duration: 0.5 }}
-              >
-                <Card className={`h-full p-6 bg-gradient-to-br ${step.color} border-none shadow-md`}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="bg-primary text-primary-foreground h-8 w-8 rounded-full flex items-center justify-center text-lg font-bold">
-                      {index + 1}
-                    </div>
-                    <h3 className="text-xl font-semibold">{step.title}</h3>
-                  </div>
-                  <p className="text-muted-foreground">{step.desc}</p>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </section>
-
-        {/* Technology */}
-        <section className="bg-muted rounded-xl p-8 space-y-6">
-          <h2 className="text-3xl font-bold text-primary text-center">Our Technology</h2>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              {
-                title: "Google Gemini AI",
-                description: "Advanced image recognition for accurate plant disease identification",
-                icon: <Sparkles className="h-6 w-6 text-primary" />,
-              },
-              {
-                title: "Supabase",
-                description: "Secure data storage and authentication for personalized recommendations",
-                icon: <Shield className="h-6 w-6 text-primary" />,
-              },
-              {
-                title: "React & TypeScript",
-                description: "Fast, responsive interface for seamless user experience",
-                icon: <BookOpen className="h-6 w-6 text-primary" />,
-              },
-              {
-                title: "Plant Database",
-                description: "Extensive knowledge base of plants, diseases, and care guidelines",
-                icon: <Leaf className="h-6 w-6 text-primary" />,
-              },
-            ].map((tech, index) => (
-              <Card key={index} className="p-5 bg-background border border-border">
-                <div className="flex flex-col space-y-3">
-                  <div className="bg-primary/10 p-3 rounded-full w-fit">
-                    {tech.icon}
-                  </div>
-                  <h3 className="text-lg font-semibold">{tech.title}</h3>
-                  <p className="text-sm text-muted-foreground">{tech.description}</p>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </section>
-
-        {/* Get Started CTA */}
-        <section className="text-center space-y-6 py-8">
-          <h2 className="text-3xl font-bold text-primary">Ready to help your plants thrive?</h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Upload a photo of your plant and get expert care recommendations in seconds.
-          </p>
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <a 
-              href="/diagnose" 
-              className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-lg font-medium text-lg hover:bg-primary/90 transition-colors"
-            >
-              <Check className="h-5 w-5" />
-              Diagnose Your Plant
-            </a>
-          </motion.div>
-        </section>
-      </motion.div>
+        </div>
+      </main>
+      
+      <Footer />
     </div>
   );
 };

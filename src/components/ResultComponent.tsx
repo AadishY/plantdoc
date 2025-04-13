@@ -1,247 +1,299 @@
-import React from "react";
-import { motion } from "framer-motion";
-import { Card } from "./ui/card";
-import { Badge } from "./ui/badge";
-import { Separator } from "./ui/separator";
-import { Progress } from "./ui/progress";
-import { AlertTriangle, Leaf, Droplet, Thermometer, Sun, ArrowRight, Info, Check, XCircle, Sprout, AlertCircle, Shield } from "lucide-react";
-import AboutPlant from "./AboutPlant";
+
+import React from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Droplet, Thermometer, Leaf, Info, Shield, AlertTriangle } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { DiagnosisResult } from '@/types/diagnosis';
+import { motion } from 'framer-motion';
+import { EnhancedCard, EnhancedCardHeader, EnhancedCardTitle, EnhancedCardContent } from '@/components/ui/enhanced-card';
 
 interface ResultComponentProps {
-  result: any;
-  imagePreview: string;
+  result: DiagnosisResult;
 }
 
-const ResultComponent: React.FC<ResultComponentProps> = ({ result, imagePreview }) => {
-  if (!result) return null;
-
-  const severityColor = (severity: string) => {
-    const severityMap: Record<string, string> = {
-      low: "bg-green-500",
-      medium: "bg-yellow-500",
-      high: "bg-orange-500",
-      severe: "bg-red-500",
-    };
-    return severityMap[severity.toLowerCase()] || "bg-gray-500";
+const ResultComponent: React.FC<ResultComponentProps> = ({ result }) => {
+  // Function to determine severity color
+  const getSeverityColor = (severity: string) => {
+    switch (severity.toLowerCase()) {
+      case 'low':
+        return 'bg-green-500';
+      case 'medium':
+        return 'bg-yellow-500';
+      case 'high':
+        return 'bg-red-500';
+      default:
+        return 'bg-gray-500';
+    }
   };
 
-  const confidenceLevel = Math.round(result.confidence || 75);
-  const severityLevel = result.severity?.toLowerCase() || "medium";
+  // Function to convert confidence to percentage for progress bar
+  const getConfidencePercentage = (confidence: number) => {
+    return Math.round(confidence);
+  };
 
-  const fadeInUp = {
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 },
+    visible: { opacity: 1, y: 0 }
   };
 
   return (
-    <motion.div
+    <motion.div 
+      className="space-y-6"
+      variants={containerVariants}
       initial="hidden"
       animate="visible"
-      variants={{
-        hidden: { opacity: 0 },
-        visible: {
-          opacity: 1,
-          transition: {
-            staggerChildren: 0.1,
-          },
-        },
-      }}
-      className="space-y-8 mb-12"
     >
-      <motion.div
-        variants={fadeInUp}
-        className="flex flex-col md:flex-row gap-6 items-start"
-      >
-        <Card className="p-5 border rounded-xl shadow-md flex-shrink-0 w-full md:w-1/3 bg-gradient-to-br from-background to-muted/50">
-          <div className="space-y-4">
-            <div className="aspect-square rounded-lg overflow-hidden bg-muted">
-              {imagePreview && (
-                <img
-                  src={imagePreview}
-                  alt="Plant"
-                  className="w-full h-full object-cover"
-                />
-              )}
-            </div>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold">Diagnosis Confidence</h3>
-                <Badge variant={confidenceLevel > 70 ? "default" : "outline"} className="font-medium">
-                  {confidenceLevel}%
-                </Badge>
-              </div>
-              <Progress value={confidenceLevel} className="h-2" />
-              
-              <div className="flex justify-between items-center mt-4">
-                <h3 className="text-lg font-semibold">Severity Level</h3>
-                <div className="flex items-center gap-2">
-                  <span className={`inline-block w-3 h-3 rounded-full ${severityColor(severityLevel)}`}></span>
-                  <span className="capitalize">{severityLevel}</span>
-                </div>
-              </div>
-              <div className="grid grid-cols-4 gap-1 h-2">
-                {["low", "medium", "high", "severe"].map((level) => (
-                  <div 
-                    key={level} 
-                    className={`h-full rounded-sm ${level === severityLevel ? severityColor(level) : "bg-muted"}`}
-                  ></div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-6 border rounded-xl shadow-md flex-1 bg-gradient-to-br from-background to-muted/30">
-          <div className="space-y-5">
-            <div>
-              <Badge variant="outline" className="mb-2 bg-primary/10 text-primary border-primary/20">Plant Diagnosis</Badge>
-              <h2 className="text-2xl font-bold">{result.plant_name}</h2>
-              <p className="text-lg font-semibold text-primary mt-1">{result.disease_name || "Healthy Plant"}</p>
-            </div>
-            
-            <Separator />
-            
+      {/* Disease Diagnosis Card */}
+      <motion.div variants={itemVariants}>
+        <EnhancedCard hoverEffect="both">
+          <EnhancedCardHeader className="pb-2">
+            <EnhancedCardTitle className="text-xl flex items-center">
+              <Info className="h-5 w-5 mr-2 text-plantDoc-primary" />
+              Diagnosis Result
+            </EnhancedCardTitle>
+            <CardDescription>
+              Analysis for {result.plant} plant
+            </CardDescription>
+          </EnhancedCardHeader>
+          <EnhancedCardContent className="p-6">
             <div className="space-y-4">
               <div>
-                <h3 className="text-lg font-semibold flex items-center gap-2">
-                  <Info className="h-5 w-5 text-primary" />
-                  Description
-                </h3>
-                <p className="mt-1 text-muted-foreground">
-                  {result.description || "No description available."}
-                </p>
-              </div>
-              
-              {result.causes && (
-                <div>
-                  <h3 className="text-lg font-semibold flex items-center gap-2">
-                    <AlertCircle className="h-5 w-5 text-primary" />
-                    Causes
-                  </h3>
-                  <p className="mt-1 text-muted-foreground">{result.causes}</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </Card>
-      </motion.div>
-
-      {result.treatment_steps && result.treatment_steps.length > 0 && (
-        <motion.div variants={fadeInUp}>
-          <Card className="p-6 border rounded-xl shadow-md bg-gradient-to-r from-background to-green-50/30">
-            <h3 className="text-xl font-bold flex items-center gap-2 mb-4">
-              <Check className="h-6 w-6 text-green-600" />
-              Treatment Steps
-            </h3>
-            <div className="space-y-4">
-              {result.treatment_steps.map((step: string, index: number) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="flex items-start gap-3"
-                >
-                  <div className="bg-primary/10 text-primary font-medium rounded-full h-6 w-6 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    {index + 1}
+                <h3 className="text-lg font-medium">{result.disease.name}</h3>
+                <div className="flex items-center gap-3 mt-3">
+                  <span className="text-sm text-foreground/70">Confidence:</span>
+                  <div className="flex-1">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: '100%' }}
+                      transition={{ duration: 0.8, ease: "easeOut" }}
+                    >
+                      <Progress value={getConfidencePercentage(result.disease.confidence)} className="h-2" />
+                    </motion.div>
                   </div>
-                  <p className="text-muted-foreground">{step}</p>
-                </motion.div>
-              ))}
-            </div>
-          </Card>
-        </motion.div>
-      )}
-
-      <motion.div 
-        variants={fadeInUp}
-        className="grid grid-cols-1 md:grid-cols-2 gap-6"
-      >
-        {result.prevention_tips && result.prevention_tips.length > 0 && (
-          <Card className="p-6 border rounded-xl shadow-md bg-gradient-to-br from-background to-blue-50/30">
-            <h3 className="text-xl font-bold flex items-center gap-2 mb-4">
-              <Shield className="h-6 w-6 text-blue-600" />
-              Prevention Tips
-            </h3>
-            <div className="space-y-3">
-              {result.prevention_tips.map((tip: string, index: number) => (
-                <div key={index} className="flex items-start gap-3">
-                  <ArrowRight className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                  <p className="text-muted-foreground">{tip}</p>
+                  <span className="text-sm font-medium">{result.disease.confidence}%</span>
                 </div>
-              ))}
-            </div>
-          </Card>
-        )}
-
-        <Card className="p-6 border rounded-xl shadow-md bg-gradient-to-br from-background to-purple-50/30">
-          <h3 className="text-xl font-bold flex items-center gap-2 mb-4">
-            <Leaf className="h-6 w-6 text-purple-600" />
-            Care Recommendations
-          </h3>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-3 rounded-lg bg-background border">
-                <div className="flex items-center gap-2 text-primary font-medium mb-1">
-                  <Droplet className="h-4 w-4" />
-                  Watering
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {result.watering || "Moderate watering, allow soil to dry slightly between waterings."}
-                </p>
               </div>
               
-              <div className="p-3 rounded-lg bg-background border">
-                <div className="flex items-center gap-2 text-primary font-medium mb-1">
-                  <Sun className="h-4 w-4" />
-                  Light
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {result.light || "Bright, indirect light. Avoid direct sunlight."}
-                </p>
-              </div>
-              
-              <div className="p-3 rounded-lg bg-background border">
-                <div className="flex items-center gap-2 text-primary font-medium mb-1">
-                  <Thermometer className="h-4 w-4" />
-                  Temperature
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {result.temperature || "65-75°F (18-24°C). Avoid cold drafts and sudden temperature changes."}
-                </p>
-              </div>
-              
-              <div className="p-3 rounded-lg bg-background border">
-                <div className="flex items-center gap-2 text-primary font-medium mb-1">
-                  <Sprout className="h-4 w-4" />
-                  Fertilizer
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {result.fertilizer || "Balanced fertilizer once a month during growing season."}
-                </p>
+              <div className="mt-2 flex items-center">
+                <span className="text-sm text-foreground/70 mr-2">Severity:</span>
+                <motion.span 
+                  className={`text-sm font-medium px-2 py-0.5 rounded-full text-white flex items-center gap-1 ${getSeverityColor(result.disease.severity)}`}
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.3, delay: 0.5 }}
+                >
+                  {result.disease.severity === 'High' && <AlertTriangle className="h-3 w-3" />}
+                  {result.disease.severity}
+                </motion.span>
               </div>
             </div>
-          </div>
-        </Card>
+          </EnhancedCardContent>
+        </EnhancedCard>
       </motion.div>
 
-      {result.about_plant && (
-        <motion.div variants={fadeInUp}>
-          <AboutPlant plantInfo={result.about_plant} />
-        </motion.div>
-      )}
+      {/* Treatment & Prevention Card */}
+      <motion.div variants={itemVariants}>
+        <EnhancedCard hoverEffect="both">
+          <EnhancedCardHeader>
+            <EnhancedCardTitle className="text-xl flex items-center">
+              <Leaf className="h-5 w-5 mr-2 text-plantDoc-primary" />
+              Treatment & Prevention
+            </EnhancedCardTitle>
+          </EnhancedCardHeader>
+          <CardContent className="p-0">
+            <Tabs defaultValue="treatment" className="w-full">
+              <TabsList className="w-full grid grid-cols-3 rounded-none bg-muted/50 p-0 h-12">
+                <TabsTrigger value="treatment" className="rounded-none data-[state=active]:bg-plantDoc-primary/20">Treatment</TabsTrigger>
+                <TabsTrigger value="causes" className="rounded-none data-[state=active]:bg-plantDoc-primary/20">Causes</TabsTrigger>
+                <TabsTrigger value="prevention" className="rounded-none data-[state=active]:bg-plantDoc-primary/20">Prevention</TabsTrigger>
+              </TabsList>
+              <div className="p-6">
+                <TabsContent value="treatment" className="mt-0">
+                  <motion.ul 
+                    className="space-y-2 list-none"
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                  >
+                    {result.treatment.steps.map((step, index) => (
+                      <motion.li 
+                        key={index} 
+                        className="flex items-start gap-2 backdrop-blur-sm bg-black/10 p-3 rounded-lg hover:bg-black/20 transition-all duration-300"
+                        variants={itemVariants}
+                        whileHover={{ x: 5 }}
+                      >
+                        <motion.div 
+                          className="w-5 h-5 rounded-full bg-plantDoc-primary/20 flex-shrink-0 flex items-center justify-center mt-0.5"
+                          whileHover={{ backgroundColor: 'rgba(76, 175, 80, 0.4)', scale: 1.1 }}
+                        >
+                          <span className="text-xs font-medium">{index+1}</span>
+                        </motion.div>
+                        <span>{step}</span>
+                      </motion.li>
+                    ))}
+                  </motion.ul>
+                </TabsContent>
+                <TabsContent value="causes" className="mt-0">
+                  <motion.ul 
+                    className="space-y-2 list-none"
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                  >
+                    {result.causes?.map((cause, index) => (
+                      <motion.li 
+                        key={index} 
+                        className="flex items-start gap-2 backdrop-blur-sm bg-black/10 p-3 rounded-lg hover:bg-black/20 transition-all duration-300"
+                        variants={itemVariants}
+                        whileHover={{ x: 5 }}
+                      >
+                        <motion.div 
+                          className="w-5 h-5 rounded-full bg-plantDoc-primary/20 flex-shrink-0 flex items-center justify-center mt-0.5"
+                          whileHover={{ backgroundColor: 'rgba(76, 175, 80, 0.4)', scale: 1.1 }}
+                        >
+                          <Shield className="h-3 w-3 text-plantDoc-primary" />
+                        </motion.div>
+                        <span>{cause}</span>
+                      </motion.li>
+                    )) || <p>No specific causes listed.</p>}
+                  </motion.ul>
+                </TabsContent>
+                <TabsContent value="prevention" className="mt-0">
+                  <motion.ul 
+                    className="space-y-2 list-none"
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                  >
+                    {result.treatment.prevention.map((tip, index) => (
+                      <motion.li 
+                        key={index} 
+                        className="flex items-start gap-2 backdrop-blur-sm bg-black/10 p-3 rounded-lg hover:bg-black/20 transition-all duration-300"
+                        variants={itemVariants}
+                        whileHover={{ x: 5 }}
+                      >
+                        <motion.div 
+                          className="w-5 h-5 rounded-full bg-plantDoc-primary/20 flex-shrink-0 flex items-center justify-center mt-0.5"
+                          whileHover={{ backgroundColor: 'rgba(76, 175, 80, 0.4)', scale: 1.1 }}
+                        >
+                          <Shield className="h-3 w-3 text-plantDoc-primary" />
+                        </motion.div>
+                        <span>{tip}</span>
+                      </motion.li>
+                    ))}
+                  </motion.ul>
+                </TabsContent>
+              </div>
+            </Tabs>
+          </CardContent>
+        </EnhancedCard>
+      </motion.div>
 
-      {result.expert_notes && (
-        <motion.div variants={fadeInUp}>
-          <Card className="p-6 border rounded-xl shadow-md bg-gradient-to-br from-background to-amber-50/30">
-            <h3 className="text-xl font-bold flex items-center gap-2 mb-3">
-              <AlertTriangle className="h-6 w-6 text-amber-600" />
-              Expert Notes
-            </h3>
-            <p className="text-muted-foreground">{result.expert_notes}</p>
-          </Card>
+      {/* Recommendations Section */}
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* Fertilizer Recommendation Card */}
+        <motion.div variants={itemVariants}>
+          <EnhancedCard hoverEffect="both">
+            <EnhancedCardHeader>
+              <EnhancedCardTitle className="text-xl flex items-center">
+                <Droplet className="h-5 w-5 mr-2 text-plantDoc-primary" />
+                Fertilizer Recommendation
+              </EnhancedCardTitle>
+            </EnhancedCardHeader>
+            <EnhancedCardContent className="p-6">
+              <div className="space-y-3">
+                <motion.div 
+                  className="flex items-center gap-2"
+                  initial={{ x: -10, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <div className="w-2 h-2 rounded-full bg-plantDoc-primary"></div>
+                  <h3 className="font-medium">Recommended:</h3>
+                </motion.div>
+                <motion.p 
+                  className="text-foreground/80 pl-4 backdrop-blur-sm bg-black/10 p-3 rounded-lg hover:bg-black/20 transition-all duration-300"
+                  initial={{ y: 10, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  {result.fertilizer_recommendation.type}
+                </motion.p>
+                
+                <Separator className="my-3 bg-foreground/10" />
+                
+                <motion.div 
+                  className="flex items-center gap-2"
+                  initial={{ x: -10, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <div className="w-2 h-2 rounded-full bg-plantDoc-primary"></div>
+                  <h3 className="font-medium">Application:</h3>
+                </motion.div>
+                <motion.p 
+                  className="text-foreground/80 pl-4 backdrop-blur-sm bg-black/10 p-3 rounded-lg hover:bg-black/20 transition-all duration-300"
+                  initial={{ y: 10, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.6 }}
+                >
+                  {result.fertilizer_recommendation.application}
+                </motion.p>
+              </div>
+            </EnhancedCardContent>
+          </EnhancedCard>
         </motion.div>
-      )}
+
+        {/* Care Recommendations Card */}
+        <motion.div variants={itemVariants}>
+          <EnhancedCard hoverEffect="both">
+            <EnhancedCardHeader>
+              <EnhancedCardTitle className="text-xl flex items-center">
+                <Thermometer className="h-5 w-5 mr-2 text-plantDoc-primary" />
+                Care Recommendations
+              </EnhancedCardTitle>
+            </EnhancedCardHeader>
+            <EnhancedCardContent className="p-6">
+              <motion.ul 
+                className="space-y-2 list-none"
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+              >
+                {result.care_recommendations.map((tip, index) => (
+                  <motion.li 
+                    key={index} 
+                    className="flex items-start gap-2 backdrop-blur-sm bg-black/10 p-3 rounded-lg hover:bg-black/20 transition-all duration-300"
+                    variants={itemVariants}
+                    whileHover={{ x: 5 }}
+                  >
+                    <motion.div 
+                      className="w-5 h-5 rounded-full bg-plantDoc-primary/20 flex-shrink-0 flex items-center justify-center mt-0.5"
+                      whileHover={{ backgroundColor: 'rgba(76, 175, 80, 0.4)', scale: 1.1 }}
+                    >
+                      <Leaf className="h-3 w-3 text-plantDoc-primary" />
+                    </motion.div>
+                    <span>{tip}</span>
+                  </motion.li>
+                ))}
+              </motion.ul>
+            </EnhancedCardContent>
+          </EnhancedCard>
+        </motion.div>
+      </div>
     </motion.div>
   );
 };
