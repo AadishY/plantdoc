@@ -1,361 +1,457 @@
-import React, { useState, useCallback } from "react";
-import { motion } from "framer-motion";
-import { Card } from "@/components/ui/card";
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { toast } from "@/hooks/use-toast";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import { getPlantRecommendations, getClimateDatabByLocation } from '@/services/api';
+import { Loader2, Leaf, Sun, CloudSun, Droplet, ThermometerSun } from 'lucide-react';
+import { PlantRecommendation, GrowingConditions } from '@/types/recommendation';
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
-import { Sparkles, SunMedium, Droplet, Thermometer, Sprout, MessageSquare, Search } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { motion } from 'framer-motion';
+import DynamicBackground from "@/components/DynamicBackground";
+import { EnhancedCard, EnhancedCardHeader, EnhancedCardContent, EnhancedCardTitle, EnhancedCardFooter, EnhancedCardDescription } from '@/components/ui/enhanced-card';
 
-interface PlantRecommendation {
-  name: string;
-  scientificName: string;
-  description: string;
-  careLevel: string;
-  light: string;
-  water: string;
-  humidity: string;
-  temperature: string;
-  imageUrl: string;
-}
+const soilTypes = ["Clay", "Sandy", "Loamy", "Chalky", "Peaty", "Silty"];
+const sunlightOptions = ["Full Sun", "Partial Sun", "Shade"];
 
-const mockRecommendations: PlantRecommendation[] = [
-  {
-    name: "Snake Plant",
-    scientificName: "Sansevieria trifasciata",
-    description: "A hardy succulent that can survive in low light conditions and with minimal watering.",
-    careLevel: "Easy",
-    light: "Low to bright indirect light",
-    water: "Allow soil to dry completely between waterings",
-    humidity: "Low to average",
-    temperature: "60-85°F (15-29°C)",
-    imageUrl: "https://images.unsplash.com/photo-1572686292343-4bb9b3366d96?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1000&q=80",
-  },
-  {
-    name: "Pothos",
-    scientificName: "Epipremnum aureum",
-    description: "A trailing vine with heart-shaped leaves that's nearly impossible to kill.",
-    careLevel: "Easy",
-    light: "Low to bright indirect light",
-    water: "Allow top inch of soil to dry between waterings",
-    humidity: "Average",
-    temperature: "65-85°F (18-29°C)",
-    imageUrl: "https://images.unsplash.com/photo-1594141640813-45ca7488db79?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1000&q=80",
-  },
-  {
-    name: "Peace Lily",
-    scientificName: "Spathiphyllum",
-    description: "Elegant white flowers and glossy leaves that thrive in lower light conditions.",
-    careLevel: "Moderate",
-    light: "Low to medium indirect light",
-    water: "Keep soil moist but not soggy",
-    humidity: "High",
-    temperature: "65-80°F (18-27°C)",
-    imageUrl: "https://images.unsplash.com/photo-1616173758552-1ce1be0d0769?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1000&q=80",
-  },
-  {
-    name: "ZZ Plant",
-    scientificName: "Zamioculcas zamiifolia",
-    description: "Glossy, dark green leaves that can tolerate neglect and low light conditions.",
-    careLevel: "Easy",
-    light: "Low to bright indirect light",
-    water: "Allow soil to dry completely between waterings",
-    humidity: "Low to average",
-    temperature: "60-75°F (16-24°C)",
-    imageUrl: "https://images.unsplash.com/photo-1632321941219-d6e89558682e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1000&q=80",
-  },
-];
-
-const RecommendPage: React.FC = () => {
-  const [lightLevel, setLightLevel] = useState<string>("");
-  const [careLevel, setCareLevel] = useState<string>("");
-  const [searchTerm, setSearchTerm] = useState<string>("");
+const RecommendPage = () => {
   const [recommendations, setRecommendations] = useState<PlantRecommendation[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<string>("criteria");
-  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isClimateFetching, setIsClimateFetching] = useState(false);
+  const [country, setCountry] = useState('');
+  const [state, setState] = useState('');
+  const [city, setCity] = useState('');
+  const [temperature, setTemperature] = useState(25);
+  const [rainfall, setRainfall] = useState(150);
+  const [humidity, setHumidity] = useState(60);
+  const [ph, setPh] = useState(7);
+  const [soilType, setSoilType] = useState(soilTypes[2]); // Default to Loamy
+  const [sunlight, setSunlight] = useState(sunlightOptions[0]); // Default to Full Sun
+  const [nitrogen, setNitrogen] = useState(50);
+  const [phosphorus, setPhosphorus] = useState(50);
+  const [potassium, setPotassium] = useState(50);
 
-  const handleSearch = useCallback(() => {
+  useEffect(() => {
+    const fetchClimateData = async () => {
+      if (country && state) {
+        setIsClimateFetching(true);
+        try {
+          const climateData = await getClimateDatabByLocation(country, state, city);
+          setTemperature(climateData.temperature);
+          setRainfall(climateData.rainfall);
+          setHumidity(climateData.humidity);
+          
+          toast({
+            title: "Climate data updated",
+            description: `Data retrieved for ${city ? city + ', ' : ''}${state}, ${country}`,
+          });
+        } catch (error) {
+          console.error('Error fetching climate data:', error);
+          toast({
+            title: "Couldn't get climate data",
+            description: "Using default values instead",
+            variant: "destructive",
+          });
+        } finally {
+          setIsClimateFetching(false);
+        }
+      }
+    };
+
+    const debounceTimer = setTimeout(() => {
+      if (country && state) {
+        fetchClimateData();
+      }
+    }, 1000); // Debounce 1 second
+
+    return () => clearTimeout(debounceTimer);
+  }, [country, state, city]);
+
+  const handleGetRecommendations = async () => {
+    if (!country || !state) {
+      toast({
+        title: "Missing information",
+        description: "Please provide at least country and state/region",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     
-    setTimeout(() => {
-      let filtered = [...mockRecommendations];
+    try {
+      const conditions: GrowingConditions = {
+        country,
+        state,
+        city,
+        temperature,
+        rainfall,
+        humidity,
+        ph,
+        soilType,
+        sunlight,
+        nitrogen: nitrogen / 100, // Convert to decimal
+        phosphorus: phosphorus / 100,
+        potassium: potassium / 100
+      };
       
-      if (lightLevel) {
-        filtered = filtered.filter(plant => 
-          plant.light.toLowerCase().includes(lightLevel.toLowerCase())
-        );
-      }
+      const plantRecommendations = await getPlantRecommendations(conditions);
+      setRecommendations(plantRecommendations);
       
-      if (careLevel) {
-        filtered = filtered.filter(plant => 
-          plant.careLevel.toLowerCase() === careLevel.toLowerCase()
-        );
-      }
-      
-      if (searchTerm) {
-        filtered = filtered.filter(plant => 
-          plant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          plant.scientificName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          plant.description.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-      }
-      
-      setRecommendations(filtered);
+      toast({
+        title: "Recommendations ready",
+        description: `Found ${plantRecommendations.length} plants that match your conditions`,
+      });
+    } catch (error) {
+      console.error('Error getting recommendations:', error);
+      toast({
+        title: "Error",
+        description: "Failed to get plant recommendations. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setIsLoading(false);
-      setActiveTab("results");
-      
-      if (filtered.length === 0) {
-        toast({
-          title: "No plants found",
-          description: "Try adjusting your criteria for more results.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: `Found ${filtered.length} plants`,
-          description: "Check out these recommendations based on your criteria.",
-        });
+    }
+  };
+
+  const containerAnimation = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
       }
-    }, 1500);
-  }, [lightLevel, careLevel, searchTerm, toast]);
+    }
+  };
 
-  const handleReset = useCallback(() => {
-    setLightLevel("");
-    setCareLevel("");
-    setSearchTerm("");
-    setRecommendations([]);
-    setActiveTab("criteria");
-  }, []);
-
-  const fadeIn = {
+  const itemAnimation = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+    show: { opacity: 1, y: 0, transition: { duration: 0.5 } }
   };
 
   return (
-    <motion.div
-      initial="hidden"
-      animate="visible"
-      variants={fadeIn}
-      className="container mx-auto px-4 py-8 max-w-6xl"
-    >
-      <div className="space-y-6">
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl md:text-4xl font-bold text-primary flex items-center justify-center gap-2">
-            <Sparkles className="h-8 w-8" />
-            Plant Recommendations
-          </h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Find the perfect plants for your space based on your specific conditions and preferences
+    <div className="flex flex-col min-h-screen relative">
+      <DynamicBackground />
+      <Header />
+      
+      <main className="flex-grow container mx-auto px-4 py-8 relative z-10">
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-8"
+        >
+          <h1 className="text-3xl md:text-4xl font-bold mb-3 bg-gradient-to-r from-plantDoc-primary to-plantDoc-secondary bg-clip-text text-transparent">Find Perfect Plants for Your Garden</h1>
+          <p className="text-foreground/70 max-w-3xl mx-auto">
+            Enter your location and growing conditions to discover plants that will thrive in your environment.
           </p>
-        </div>
-
-        <Separator className="my-6" />
-
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-8">
-            <TabsTrigger value="criteria">Search Criteria</TabsTrigger>
-            <TabsTrigger value="results" disabled={recommendations.length === 0}>
-              Results ({recommendations.length})
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="criteria">
-            <Card className="p-6 border rounded-xl shadow-md bg-gradient-to-br from-background to-green-50/30">
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <h2 className="text-2xl font-semibold">Find Your Perfect Plant Match</h2>
-                  <p className="text-muted-foreground">
-                    Tell us about your environment and preferences to get personalized plant recommendations
-                  </p>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="light-level" className="flex items-center gap-2">
-                        <SunMedium className="h-4 w-4 text-primary" />
-                        Light Conditions
-                      </Label>
-                      <Select value={lightLevel} onValueChange={setLightLevel}>
-                        <SelectTrigger id="light-level">
-                          <SelectValue placeholder="Select light level" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="low">Low Light</SelectItem>
-                          <SelectItem value="medium">Medium Light</SelectItem>
-                          <SelectItem value="bright">Bright Indirect Light</SelectItem>
-                          <SelectItem value="direct">Direct Sunlight</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="care-level" className="flex items-center gap-2">
-                        <Sprout className="h-4 w-4 text-primary" />
-                        Care Level
-                      </Label>
-                      <Select value={careLevel} onValueChange={setCareLevel}>
-                        <SelectTrigger id="care-level">
-                          <SelectValue placeholder="Select care level" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="easy">Easy (Low Maintenance)</SelectItem>
-                          <SelectItem value="moderate">Moderate</SelectItem>
-                          <SelectItem value="difficult">Difficult (Expert)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+        </motion.div>
+        
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <EnhancedCard className="max-w-4xl mx-auto shadow-lg shadow-plantDoc-primary/5 glass-card">
+            <EnhancedCardHeader>
+              <EnhancedCardTitle>Your Growing Environment</EnhancedCardTitle>
+              <EnhancedCardDescription>Tell us about your location and we'll recommend suitable plants</EnhancedCardDescription>
+            </EnhancedCardHeader>
+            <EnhancedCardContent className="space-y-6">
+              {/* Location Section */}
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="country">Country*</Label>
+                    <Input 
+                      id="country" 
+                      value={country} 
+                      onChange={(e) => setCountry(e.target.value)}
+                      placeholder="e.g. United States" 
+                      required
+                      className="glass-input border-plantDoc-primary/20 focus-visible:ring-plantDoc-primary/30"
+                    />
                   </div>
-                  
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="search" className="flex items-center gap-2">
-                        <Search className="h-4 w-4 text-primary" />
-                        Search by Name or Feature
-                      </Label>
-                      <Input
-                        id="search"
-                        placeholder="E.g., air purifying, pet-friendly, succulent"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
-                    </div>
-                    
-                    <div className="bg-primary/10 rounded-lg p-4 mt-2">
-                      <h3 className="text-sm font-medium flex items-center gap-2">
-                        <MessageSquare className="h-4 w-4 text-primary" />
-                        Pro Tip
-                      </h3>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Looking for specific benefits? Try searching for "air purifying", "low water", "pet friendly", or "beginner friendly".
-                      </p>
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="state">State/Region*</Label>
+                    <Input 
+                      id="state" 
+                      value={state} 
+                      onChange={(e) => setState(e.target.value)}
+                      placeholder="e.g. California" 
+                      required
+                      className="glass-input border-plantDoc-primary/20 focus-visible:ring-plantDoc-primary/30"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="city">City (Optional)</Label>
+                    <Input 
+                      id="city" 
+                      value={city} 
+                      onChange={(e) => setCity(e.target.value)}
+                      placeholder="e.g. San Francisco"
+                      className="glass-input border-plantDoc-primary/20 focus-visible:ring-plantDoc-primary/30"
+                    />
                   </div>
                 </div>
+
+                {isClimateFetching && (
+                  <div className="flex items-center justify-center text-sm text-plantDoc-primary">
+                    <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                    Updating climate data...
+                  </div>
+                )}
                 
-                <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">
-                  <Button 
-                    onClick={handleSearch} 
-                    disabled={isLoading}
-                    className="flex items-center gap-2"
-                  >
-                    {isLoading ? (
-                      <div className="animate-spin h-5 w-5 border-2 border-current border-t-transparent rounded-full"></div>
-                    ) : (
-                      <Search className="h-5 w-5" />
-                    )}
-                    {isLoading ? "Finding Plants..." : "Find Plants"}
-                  </Button>
-                  
-                  <Button variant="outline" onClick={handleReset} disabled={isLoading}>
-                    Reset
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="results">
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-semibold">Recommended Plants</h2>
-                <Button variant="outline" onClick={handleReset}>
-                  New Search
-                </Button>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {recommendations.map((plant, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    <Card className="overflow-hidden h-full flex flex-col">
-                      <div className="aspect-video relative">
-                        <img 
-                          src={plant.imageUrl} 
-                          alt={plant.name} 
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute top-2 right-2">
-                          <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
-                            plant.careLevel === "Easy" 
-                              ? "bg-green-100 text-green-800" 
-                              : plant.careLevel === "Moderate"
-                              ? "bg-yellow-100 text-yellow-800"
-                              : "bg-red-100 text-red-800"
-                          }`}>
-                            {plant.careLevel}
-                          </span>
+                <Accordion type="single" collapsible className="w-full">
+                  <AccordionItem value="advanced-options" className="border-plantDoc-primary/20">
+                    <AccordionTrigger className="text-plantDoc-primary hover:text-plantDoc-secondary transition-colors">
+                      Advanced Growing Conditions
+                    </AccordionTrigger>
+                    <AccordionContent className="space-y-6">
+                      {/* Climate Information */}
+                      <div className="space-y-4 pt-2">
+                        <h3 className="text-lg font-semibold">Climate Information</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="temperature">Temperature (°C)</Label>
+                            <Input 
+                              id="temperature" 
+                              type="number" 
+                              value={temperature}
+                              onChange={(e) => setTemperature(Number(e.target.value))}
+                              className="glass-input border-plantDoc-primary/20 focus-visible:ring-plantDoc-primary/30"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="rainfall">Rainfall (mm)</Label>
+                            <Input 
+                              id="rainfall" 
+                              type="number" 
+                              value={rainfall}
+                              onChange={(e) => setRainfall(Number(e.target.value))}
+                              className="glass-input border-plantDoc-primary/20 focus-visible:ring-plantDoc-primary/30"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="humidity">Humidity (%)</Label>
+                            <Input 
+                              id="humidity" 
+                              type="number" 
+                              value={humidity}
+                              onChange={(e) => setHumidity(Number(e.target.value))}
+                              min="0"
+                              max="100"
+                              className="glass-input border-plantDoc-primary/20 focus-visible:ring-plantDoc-primary/30"
+                            />
+                          </div>
                         </div>
                       </div>
                       
-                      <div className="p-5 flex-grow flex flex-col">
-                        <h3 className="text-xl font-semibold">{plant.name}</h3>
-                        <p className="text-sm text-primary italic mb-3">{plant.scientificName}</p>
-                        <p className="text-muted-foreground text-sm mb-4 flex-grow">
-                          {plant.description}
-                        </p>
+                      {/* Soil and Sunlight */}
+                      <div className="space-y-4 border-t pt-4 border-plantDoc-primary/10">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="soil-type">Soil Type</Label>
+                            <Select value={soilType} onValueChange={setSoilType}>
+                              <SelectTrigger className="glass-input border-plantDoc-primary/20 focus:ring-plantDoc-primary/30">
+                                <SelectValue placeholder="Select soil type" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {soilTypes.map((type) => (
+                                  <SelectItem key={type} value={type}>{type}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="sunlight">Sunlight</Label>
+                            <Select value={sunlight} onValueChange={setSunlight}>
+                              <SelectTrigger className="glass-input border-plantDoc-primary/20 focus:ring-plantDoc-primary/30">
+                                <SelectValue placeholder="Select sunlight level" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {sunlightOptions.map((option) => (
+                                  <SelectItem key={option} value={option}>{option}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
                         
-                        <div className="grid grid-cols-2 gap-3 mt-auto">
-                          <div className="flex items-start gap-2">
-                            <SunMedium className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
-                            <div>
-                              <p className="text-xs font-medium">Light</p>
-                              <p className="text-xs text-muted-foreground">{plant.light}</p>
-                            </div>
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <Label htmlFor="ph">Soil pH</Label>
+                            <span>{ph}</span>
                           </div>
-                          
-                          <div className="flex items-start gap-2">
-                            <Droplet className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
-                            <div>
-                              <p className="text-xs font-medium">Water</p>
-                              <p className="text-xs text-muted-foreground">{plant.water}</p>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-start gap-2">
-                            <Thermometer className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
-                            <div>
-                              <p className="text-xs font-medium">Temperature</p>
-                              <p className="text-xs text-muted-foreground">{plant.temperature}</p>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-start gap-2">
-                            <Droplet className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
-                            <div>
-                              <p className="text-xs font-medium">Humidity</p>
-                              <p className="text-xs text-muted-foreground">{plant.humidity}</p>
-                            </div>
+                          <Slider
+                            id="ph"
+                            min={3.5}
+                            max={9}
+                            step={0.1}
+                            value={[ph]}
+                            onValueChange={(value) => setPh(value[0])}
+                            className="py-2"
+                          />
+                          <div className="flex justify-between text-xs text-muted-foreground">
+                            <span>Acidic (3.5)</span>
+                            <span>Neutral (7)</span>
+                            <span>Alkaline (9)</span>
                           </div>
                         </div>
                       </div>
-                    </Card>
-                  </motion.div>
-                ))}
+                      
+                      {/* Nutrients */}
+                      <div className="space-y-4 border-t pt-4 border-plantDoc-primary/10">
+                        <h3 className="text-lg font-semibold">Soil Nutrient Levels (%)</h3>
+                        
+                        <div className="space-y-6">
+                          <div className="space-y-2">
+                            <div className="flex justify-between">
+                              <Label htmlFor="nitrogen">Nitrogen (N)</Label>
+                              <span>{nitrogen}%</span>
+                            </div>
+                            <Slider
+                              id="nitrogen"
+                              min={0}
+                              max={100}
+                              step={1}
+                              value={[nitrogen]}
+                              onValueChange={(value) => setNitrogen(value[0])}
+                              className="py-2"
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <div className="flex justify-between">
+                              <Label htmlFor="phosphorus">Phosphorus (P)</Label>
+                              <span>{phosphorus}%</span>
+                            </div>
+                            <Slider
+                              id="phosphorus"
+                              min={0}
+                              max={100}
+                              step={1}
+                              value={[phosphorus]}
+                              onValueChange={(value) => setPhosphorus(value[0])}
+                              className="py-2"
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <div className="flex justify-between">
+                              <Label htmlFor="potassium">Potassium (K)</Label>
+                              <span>{potassium}%</span>
+                            </div>
+                            <Slider
+                              id="potassium"
+                              min={0}
+                              max={100}
+                              step={1}
+                              value={[potassium]}
+                              onValueChange={(value) => setPotassium(value[0])}
+                              className="py-2"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
               </div>
               
-              {recommendations.length === 0 && (
-                <div className="text-center py-12">
-                  <h3 className="text-xl font-semibold mb-2">No plants found</h3>
-                  <p className="text-muted-foreground">
-                    Try adjusting your search criteria to find more plants.
-                  </p>
-                </div>
-              )}
+              <Button 
+                onClick={handleGetRecommendations} 
+                className="w-full bg-gradient-to-r from-plantDoc-primary to-plantDoc-secondary hover:from-plantDoc-primary/90 hover:to-plantDoc-secondary/90 text-white animate-pulse-glow" 
+                size="lg"
+                disabled={isLoading || !country || !state}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Finding plants...
+                  </>
+                ) : (
+                  <>
+                    <Leaf className="mr-2 h-5 w-5" />
+                    Get Plant Recommendations
+                  </>
+                )}
+              </Button>
+            </EnhancedCardContent>
+          </EnhancedCard>
+        </motion.div>
+        
+        {recommendations.length > 0 && (
+          <motion.div 
+            className="mt-12"
+            variants={containerAnimation}
+            initial="hidden"
+            animate="show"
+          >
+            <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-plantDoc-primary to-plantDoc-secondary bg-clip-text text-transparent">
+              Recommended Plants for Your Garden
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {recommendations.map((plant, index) => (
+                <motion.div key={index} variants={itemAnimation}>
+                  <EnhancedCard 
+                    className="h-full flex flex-col"
+                    glassIntensity="medium"
+                    borderGlow={true}
+                  >
+                    <EnhancedCardHeader className="pb-2">
+                      <EnhancedCardTitle className="text-xl">{plant.name}</EnhancedCardTitle>
+                      <EnhancedCardDescription className="italic">{plant.scientificName}</EnhancedCardDescription>
+                    </EnhancedCardHeader>
+                    <EnhancedCardContent className="pt-4 flex-grow">
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-sm">{plant.description}</p>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <div className="flex items-center gap-2">
+                            <ThermometerSun className="h-4 w-4 text-plantDoc-primary" />
+                            <span className="font-medium">Growth:</span> {plant.growthTime}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Droplet className="h-4 w-4 text-plantDoc-primary" />
+                            <span className="font-medium">Water:</span> {plant.waterNeeds}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Sun className="h-4 w-4 text-plantDoc-primary" />
+                            <span className="font-medium">Light:</span> {plant.sunlight}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <CloudSun className="h-4 w-4 text-plantDoc-primary" />
+                            <span className="font-medium">Season:</span> {plant.bestSeason}
+                          </div>
+                        </div>
+                        
+                        <div className="pt-2 border-t border-plantDoc-primary/10">
+                          <h4 className="font-medium mb-1 text-plantDoc-primary">Care Instructions:</h4>
+                          <ul className="list-disc pl-5 text-sm space-y-1">
+                            {plant.careInstructions.map((instruction, idx) => (
+                              <li key={idx}>{instruction}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    </EnhancedCardContent>
+                  </EnhancedCard>
+                </motion.div>
+              ))}
             </div>
-          </TabsContent>
-        </Tabs>
-      </div>
-    </motion.div>
+          </motion.div>
+        )}
+      </main>
+      
+      <Footer />
+    </div>
   );
 };
 
