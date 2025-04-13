@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { GeminiService } from "@/services/geminiService";
+import * as GeminiService from "@/services/geminiService";
 import UploadComponent from "@/components/UploadComponent";
 import ResultComponent from "@/components/ResultComponent";
 import { Leaf, Upload, AlertCircle } from "lucide-react";

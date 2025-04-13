@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
@@ -9,9 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Sparkles, SunMedium, Droplet, Thermometer, Plant, MessageSquare, Search } from "lucide-react";
+import { Sparkles, SunMedium, Droplet, Thermometer, Sprout, MessageSquare, Search } from "lucide-react";
 
-// Define the types for plant recommendations
 interface PlantRecommendation {
   name: string;
   scientificName: string;
@@ -83,7 +81,6 @@ const RecommendPage: React.FC = () => {
   const handleSearch = useCallback(() => {
     setIsLoading(true);
     
-    // Simulate API call
     setTimeout(() => {
       let filtered = [...mockRecommendations];
       

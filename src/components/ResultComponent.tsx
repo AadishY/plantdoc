@@ -52,7 +52,6 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ result, imagePreview 
         variants={fadeInUp}
         className="flex flex-col md:flex-row gap-6 items-start"
       >
-        {/* Image and quick diagnosis */}
         <Card className="p-5 border rounded-xl shadow-md flex-shrink-0 w-full md:w-1/3 bg-gradient-to-br from-background to-muted/50">
           <div className="space-y-4">
             <div className="aspect-square rounded-lg overflow-hidden bg-muted">
@@ -92,7 +91,6 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ result, imagePreview 
           </div>
         </Card>
 
-        {/* Diagnosis details */}
         <Card className="p-6 border rounded-xl shadow-md flex-1 bg-gradient-to-br from-background to-muted/30">
           <div className="space-y-5">
             <div>
@@ -128,7 +126,6 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ result, imagePreview 
         </Card>
       </motion.div>
 
-      {/* Treatment Steps */}
       {result.treatment_steps && result.treatment_steps.length > 0 && (
         <motion.div variants={fadeInUp}>
           <Card className="p-6 border rounded-xl shadow-md bg-gradient-to-r from-background to-green-50/30">
@@ -156,12 +153,10 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ result, imagePreview 
         </motion.div>
       )}
 
-      {/* Prevention Tips and Care Recommendations in a 2-column layout */}
       <motion.div 
         variants={fadeInUp}
         className="grid grid-cols-1 md:grid-cols-2 gap-6"
       >
-        {/* Prevention Tips */}
         {result.prevention_tips && result.prevention_tips.length > 0 && (
           <Card className="p-6 border rounded-xl shadow-md bg-gradient-to-br from-background to-blue-50/30">
             <h3 className="text-xl font-bold flex items-center gap-2 mb-4">
@@ -179,7 +174,6 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ result, imagePreview 
           </Card>
         )}
 
-        {/* Care Recommendations */}
         <Card className="p-6 border rounded-xl shadow-md bg-gradient-to-br from-background to-purple-50/30">
           <h3 className="text-xl font-bold flex items-center gap-2 mb-4">
             <Leaf className="h-6 w-6 text-purple-600" />
@@ -187,7 +181,6 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ result, imagePreview 
           </h3>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              {/* Watering */}
               <div className="p-3 rounded-lg bg-background border">
                 <div className="flex items-center gap-2 text-primary font-medium mb-1">
                   <Droplet className="h-4 w-4" />
@@ -198,7 +191,6 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ result, imagePreview 
                 </p>
               </div>
               
-              {/* Light */}
               <div className="p-3 rounded-lg bg-background border">
                 <div className="flex items-center gap-2 text-primary font-medium mb-1">
                   <Sun className="h-4 w-4" />
@@ -209,7 +201,6 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ result, imagePreview 
                 </p>
               </div>
               
-              {/* Temperature */}
               <div className="p-3 rounded-lg bg-background border">
                 <div className="flex items-center gap-2 text-primary font-medium mb-1">
                   <Thermometer className="h-4 w-4" />
@@ -220,7 +211,6 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ result, imagePreview 
                 </p>
               </div>
               
-              {/* Fertilizer */}
               <div className="p-3 rounded-lg bg-background border">
                 <div className="flex items-center gap-2 text-primary font-medium mb-1">
                   <Sprout className="h-4 w-4" />
@@ -235,14 +225,12 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ result, imagePreview 
         </Card>
       </motion.div>
 
-      {/* About Plant Section */}
-      {result.plant_info && (
+      {result.about_plant && (
         <motion.div variants={fadeInUp}>
-          <AboutPlant plantInfo={result.plant_info} />
+          <AboutPlant plantInfo={result.about_plant} />
         </motion.div>
       )}
 
-      {/* Expert Notes - Conditional */}
       {result.expert_notes && (
         <motion.div variants={fadeInUp}>
           <Card className="p-6 border rounded-xl shadow-md bg-gradient-to-br from-background to-amber-50/30">
