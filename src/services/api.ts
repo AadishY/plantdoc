@@ -51,10 +51,10 @@ export const diagnosePlant = async (imageFile: File): Promise<DiagnosisResult> =
               text: `Analyze the provided plant image thoroughly to identify any diseases or issues affecting the plant. Ensure your analysis is comprehensive, taking into account visual symptoms, possible causes, and appropriate treatment options. Follow the JSON schema exactly as specified below for your output.
 
 {
-  "plant": "Plant species name (if identifiable from the image)",
+  "plant": "Plant species name ",
   "disease": {
     "name": "Precise name of the identified disease based on visual symptoms",
-    "confidence": 0-100,
+    "confidence": <confidence percentage as a number>,
     "severity": "Low" | "Medium" | "High"
   },
   "causes": [
