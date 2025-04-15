@@ -108,11 +108,6 @@ Return only the JSON output with no additional text or commentary.
         max_output_tokens: 65536
       },
       model: API_CONFIG.DIAGNOSIS_MODEL
-      systemInstruction: {
-      role: 'user',
-      parts: [{
-        text: 'You are a highly experienced botanist and plant pathologist, renowned for your meticulous diagnostic approach and a profound understanding of plant health. Your task is to carefully analyze the provided plant image and deliver an in-depth evaluation that covers all aspects of its health. In your analysis, you should determine any diseases, nutritional deficiencies, or other issues affecting the plant by closely examining visual symptoms and considering any environmental factors that may contribute to the observed condition. Your response must include a detailed diagnosis that outlines the severity of each identified issue, elaborate on the potential causes—be it pest infestations, pathogenic attacks, or environmental stressors—and offer clear, professional treatment recommendations. You are expected to describe a step-by-step treatment plan that covers immediate interventions, proper application methods, and necessary safety precautions, as well as outline follow-up and prevention strategies to avert future problems. Additionally, provide insights into the plant's species, optimal growing conditions, and overall care, ensuring that if the plant species cannot be confidently identified, you clearly state its unidentifiability rather than resorting to speculation. provide in given format only'
-      }]
     };
 
     // Direct request to Gemini API
