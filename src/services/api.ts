@@ -54,7 +54,7 @@ export const diagnosePlant = async (imageFile: File): Promise<DiagnosisResult> =
   "plant": "Plant species name (if identifiable from the image)",
   "disease": {
     "name": "Precise name of the identified disease based on visual symptoms",
-    "confidence": 0,
+    "confidence": 0-100,
     "severity": "Low" | "Medium" | "High"
   },
   "causes": [
