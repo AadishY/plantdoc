@@ -107,7 +107,7 @@ Return only the JSON output with no additional text or commentary.
         temperature: 1,
         max_output_tokens: 65536
       },
-      model: API_CONFIG.DIAGNOSIS_MODEL
+      model: API_CONFIG.DIAGNOSIS_MODEL,
         
       systemInstruction: {
       role: 'user',
