@@ -9,13 +9,11 @@ if (!apiKey) {
   console.error('VITE_GEMINI_API_KEY is not set. Please check your environment variables.');
 }
 
-// Function to prepare image for API
 const prepareImageForAPI = async (imageFile: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
       if (typeof reader.result === 'string') {
-        // The result is a base64 string, extract only the data part (remove prefixes)
         const base64Data = reader.result.split(',')[1];
         resolve(base64Data);
       } else {
@@ -27,9 +25,7 @@ const prepareImageForAPI = async (imageFile: File): Promise<string> => {
   });
 };
 
-// Check if a response indicates rate limiting
 const isRateLimitError = (error: any): boolean => {
-  // Check various ways a rate limit error might be indicated
   return (
     error?.message?.includes('429') || 
     error?.message?.toLowerCase().includes('rate limit') ||
@@ -37,18 +33,16 @@ const isRateLimitError = (error: any): boolean => {
   );
 };
 
-// Main diagnosis function
 export const diagnosePlant = async (imageFile: File): Promise<DiagnosisResult> => {
   try {
     const imageBase64 = await prepareImageForAPI(imageFile);
     
-    // Prepare the request payload for Gemini
     const payload = {
       contents: [
         {
           parts: [
             {
-              text: `Analyze the provided plant image thoroughly to identify any diseases or issues affecting the plant. Use your Google Search tool to find the most current and accurate information regarding the plant species, potential diseases, and modern treatment options. Ensure your analysis is comprehensive, taking into account visual symptoms, possible causes, and appropriate treatment options. Follow the JSON schema exactly as specified below for your output.
+              text: `Analyze the provided plant image thoroughly to identify any diseases or issues affecting the plant. Ensure your analysis is comprehensive, taking into account visual symptoms, possible causes, and appropriate treatment options. Follow the JSON schema exactly as specified below for your output.
 
 {
   "plant": "Plant species name ",
@@ -106,21 +100,9 @@ Return only the JSON output with no additional text or commentary.
         temperature: 1,
         max_output_tokens: 65536
       },
-      config: {
-        tools: [
-          {
-            "google_search": {} 
-          }
-        ],
-        thinking_config: {
-          "thinking_budget": 8192,
-          "include_thoughts": false
-        }
-      },
       model: API_CONFIG.DIAGNOSIS_MODEL
     };
 
-    // Direct request to Gemini API
     const response = await fetch(
       `${API_CONFIG.BASE_URL}/models/${API_CONFIG.DIAGNOSIS_MODEL}:generateContent?key=${apiKey}`,
       {
@@ -147,16 +129,13 @@ Return only the JSON output with no additional text or commentary.
     const data = await response.json();
     console.log('Received response from Gemini API');
     
-    // Check if we have a valid response structure
     if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
       console.error('Invalid response structure:', JSON.stringify(data));
       throw new Error('Invalid response from AI service');
     }
     
-    // Extract the JSON string from Gemini's response
     const textResponse = data.candidates[0].content.parts[0].text;
     
-    // Try to extract JSON from the response if it contains extra text
     try {
       const jsonMatch = textResponse.match(/\{[\s\S]*\}/);
       const jsonStr = jsonMatch ? jsonMatch[0] : textResponse;
@@ -166,7 +145,6 @@ Return only the JSON output with no additional text or commentary.
         diagnosisResult = JSON.parse(jsonStr);
       } catch (jsonError) {
         console.error('Failed to parse Gemini response as JSON:', jsonError);
-        // Create a fallback diagnosis result
         diagnosisResult = {
           plant: "Unknown",
           disease: {
@@ -193,7 +171,6 @@ Return only the JSON output with no additional text or commentary.
         };
       }
       
-      // Ensure all required properties exist in the result
       diagnosisResult.plant = diagnosisResult.plant || "Unknown";
       diagnosisResult.disease = diagnosisResult.disease || { name: "Unable to identify", confidence: 0, severity: "Unknown" };
       diagnosisResult.causes = diagnosisResult.causes || ["Could not determine causes"];
@@ -202,12 +179,7 @@ Return only the JSON output with no additional text or commentary.
       diagnosisResult.treatment.prevention = diagnosisResult.treatment.prevention || [];
       diagnosisResult.fertilizer_recommendation = diagnosisResult.fertilizer_recommendation || { type: "Not available", application: "Not available" };
       diagnosisResult.care_recommendations = diagnosisResult.care_recommendations || [];
-      diagnosisResult.about_plant = diagnosisResult.about_plant || { 
-        description: "No information available", 
-        origin: "Unknown", 
-        common_uses: [], 
-        growing_conditions: "Unknown" 
-      };
+      diagnosisResult.about_plant = diagnosisResult.about_plant || { description: "No information available", origin: "Unknown", common_uses: [], growing_conditions: "Unknown" };
       diagnosisResult.about_plant.common_uses = diagnosisResult.about_plant.common_uses || [];
       
       return diagnosisResult;
@@ -221,34 +193,31 @@ Return only the JSON output with no additional text or commentary.
   }
 };
 
-// Function to get climate data based on location
 export const getClimateDatabByLocation = async (country: string, state: string, city?: string): Promise<{ temperature: number, rainfall: number, humidity: number }> => {
   try {
-    // Prepare the request payload for Gemini
     const payload = {
       contents: [
         {
           parts: [
             {
               text: `Given the location information:
-                   Country: ${country}
-                   State/Province: ${state}
-                   City: ${city || 'Not specified'}
-                   
-                   Use your Google Search tool to find the most accurate, up-to-date climate data for this location.
-                   Provide me with the following climate data as an accurate estimate:
-                   1. Average annual temperature in Celsius
-                   2. Average annual rainfall in millimeters
-                   3. Average humidity percentage
-                   
-                   Return only a JSON object with the following structure:
-                   {
-                     "temperature": number,
-                     "rainfall": number,
-                     "humidity": number
-                   }
-                   
-                   Only provide the JSON object, no other text.`
+                     Country: ${country}
+                     State/Province: ${state}
+                     City: ${city || 'Not specified'}
+                     
+                     Provide me with the following climate data as an accurate estimate:
+                     1. Average annual temperature in Celsius
+                     2. Average annual rainfall in millimeters
+                     3. Average humidity percentage
+                     
+                     Return only a JSON object with the following structure:
+                     {
+                       "temperature": number,
+                       "rainfall": number,
+                       "humidity": number
+                     }
+                     
+                     Only provide the JSON object, no other text.`
             }
           ]
         }
@@ -257,17 +226,9 @@ export const getClimateDatabByLocation = async (country: string, state: string, 
         temperature: 0.2,
         max_output_tokens: 1024
       },
-      config: {
-        tools: [
-          {
-            "google_search": {} 
-          }
-        ]
-      },
       model: API_CONFIG.CLIMATE_MODEL
     };
 
-    // Direct request to Gemini API
     const response = await fetch(
       `${API_CONFIG.BASE_URL}/models/${API_CONFIG.CLIMATE_MODEL}:generateContent?key=${apiKey}`,
       {
@@ -282,7 +243,6 @@ export const getClimateDatabByLocation = async (country: string, state: string, 
     if (!response.ok) {
       console.error('Error getting climate data, using defaults');
       
-      // For climate data, we'll just return default values rather than an error
       return { 
         temperature: 25, 
         rainfall: 150, 
@@ -293,10 +253,8 @@ export const getClimateDatabByLocation = async (country: string, state: string, 
     const data = await response.json();
     console.log('Received response from Gemini API for climate data');
     
-    // Extract the JSON string from Gemini's response
     const textResponse = data.candidates[0].content.parts[0].text;
     
-    // Try to extract JSON from the response if it contains extra text
     try {
       const jsonMatch = textResponse.match(/\{[\s\S]*\}/);
       const jsonStr = jsonMatch ? jsonMatch[0] : textResponse;
@@ -306,33 +264,28 @@ export const getClimateDatabByLocation = async (country: string, state: string, 
     } catch (parseError) {
       console.error('Error parsing JSON response:', parseError);
       
-      // Return default climate data on parsing error
       return { 
         temperature: 25, 
-        rainfall: 150,
+        rainfall: 150, 
         humidity: 60 
       };
     }
   } catch (error) {
     console.error('Error getting climate data:', error);
-    // Return default values on error
     return { temperature: 25, rainfall: 150, humidity: 60 };
   }
 };
 
-// Plant recommendation function
 export const getPlantRecommendations = async (conditions: GrowingConditions): Promise<PlantRecommendation[]> => {
   try {
-    // Prepare the request payload for Gemini
     const payload = {
       contents: [
         {
           parts: [
             {
-              text: `Given the following growing conditions, use your Google Search tool to research and recommend 6 plants that would thrive in this environment. Focus on plants well-suited to the specific location and climate data provided.
-                   Return your recommendations in JSON format as an array with the following structure for each plant:
-
-[
+              text: `Given the following growing conditions, recommend 6 plants that would thrive in this environment.
+                     Return your recommendations in JSON format as an array with the following structure for each plant:
+                     [
   {
     "name": "Common plant name",
     "scientificName": "Latin name",
@@ -350,21 +303,22 @@ export const getPlantRecommendations = async (conditions: GrowingConditions): Pr
   // 5 more plants…
 ]
 
-                   Growing Conditions:
-                   - Country: ${conditions.country || 'Not specified'}
-                   - State/Region: ${conditions.state || 'Not specified'}
-                   - City: ${conditions.city || 'Not specified'}
-                   - Temperature: ${conditions.temperature}°C
-                   - Humidity: ${conditions.humidity}%
-                   - Rainfall: ${conditions.rainfall}mm annually
-                   - Soil pH: ${conditions.ph}
-                   - Soil Type: ${conditions.soilType}
-                   - Sunlight: ${conditions.sunlight}
-                   - Nitrogen level: ${conditions.nitrogen}%
-                   - Phosphorus level: ${conditions.phosphorus}%
-                   - Potassium level: ${conditions.potassium}%
-                   
-                   Only provide the JSON array, no other text. and be sure to give total 6 plants`
+                     
+                     Growing Conditions:
+                     - Country: ${conditions.country || 'Not specified'}
+                     - State/Region: ${conditions.state || 'Not specified'}
+                     - City: ${conditions.city || 'Not specified'}
+                     - Temperature: ${conditions.temperature}°C
+                     - Humidity: ${conditions.humidity}%
+                     - Rainfall: ${conditions.rainfall}mm annually
+                     - Soil pH: ${conditions.ph}
+                     - Soil Type: ${conditions.soilType}
+                     - Sunlight: ${conditions.sunlight}
+                     - Nitrogen level: ${conditions.nitrogen}%
+                     - Phosphorus level: ${conditions.phosphorus}%
+                     - Potassium level: ${conditions.potassium}%
+                     
+                     Only provide the JSON array, no other text. and be sure to give total 6 plants`
             }
           ]
         }
@@ -373,21 +327,9 @@ export const getPlantRecommendations = async (conditions: GrowingConditions): Pr
         temperature: 1,
         max_output_tokens: 8000
       },
-      config: {
-        tools: [
-          {
-            "google_search": {} 
-          }
-        ],
-        thinking_config: {
-          "thinking_budget": 1024,
-          "include_thoughts": false
-        }
-      },
       model: API_CONFIG.RECOMMENDATION_MODEL
     };
 
-    // Direct request to Gemini API
     const response = await fetch(
       `${API_CONFIG.BASE_URL}/models/${API_CONFIG.RECOMMENDATION_MODEL}:generateContent?key=${apiKey}`,
       {
@@ -405,7 +347,7 @@ export const getPlantRecommendations = async (conditions: GrowingConditions): Pr
       
       if (response.status === 429) {
         toast.error("API quota exceeded. Please try again later.");
-        throw new Error("The service is currently experiencing high demand. Please try again in a few minutes.");
+        throw new Error("API quota exceeded. The service is currently experiencing high demand. Please try again in a few minutes.");
       }
       
       throw new Error(`API request failed with status: ${response.status}`);
@@ -414,16 +356,13 @@ export const getPlantRecommendations = async (conditions: GrowingConditions): Pr
     const data = await response.json();
     console.log('Received response from Gemini API for plant recommendations');
     
-    // Check if we have a valid response structure
     if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
       console.error('Invalid response structure:', JSON.stringify(data));
       throw new Error('Invalid response from AI service');
     }
     
-    // Extract the JSON string from Gemini's response
     const textResponse = data.candidates[0].content.parts[0].text;
     
-    // Try to extract JSON from the response if it contains extra text
     try {
       const jsonMatch = textResponse.match(/\[[\s\S]*\]/);
       const jsonStr = jsonMatch ? jsonMatch[0] : textResponse;
@@ -433,7 +372,6 @@ export const getPlantRecommendations = async (conditions: GrowingConditions): Pr
         recommendations = JSON.parse(jsonStr);
       } catch (jsonError) {
         console.error('Failed to parse Gemini response as JSON:', jsonError);
-        // Create fallback recommendations
         recommendations = [
           {
             name: "Unknown",
@@ -442,13 +380,12 @@ export const getPlantRecommendations = async (conditions: GrowingConditions): Pr
             waterNeeds: "Unknown",
             sunlight: "Unknown",
             description: "Unknown",
-            careInstructions: "Unknown",
+            careInstructions: ["Unknown"],
             bestSeason: "Unknown"
           }
         ];
       }
       
-      // Ensure all plants have the required properties
       if (Array.isArray(recommendations)) {
         recommendations.forEach(plant => {
           plant.name = plant.name || "Unknown";
@@ -457,7 +394,7 @@ export const getPlantRecommendations = async (conditions: GrowingConditions): Pr
           plant.waterNeeds = plant.waterNeeds || "Medium";
           plant.sunlight = plant.sunlight || "Partial sun";
           plant.description = plant.description || "No description available";
-          plant.careInstructions = plant.careInstructions || "General care information not available";
+          plant.careInstructions = plant.careInstructions || ["General care information not available"];
           plant.bestSeason = plant.bestSeason || "Year-round";
         });
       }
