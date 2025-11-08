@@ -48,7 +48,6 @@ export const diagnosePlant = async (imageFile: File): Promise<DiagnosisResult> =
         {
           parts: [
             {
-              // --- MODIFICATION: Improved prompt to leverage new tools ---
               text: `Analyze the provided plant image thoroughly to identify any diseases or issues affecting the plant. Use your Google Search tool to find the most current and accurate information regarding the plant species, potential diseases, and modern treatment options. Ensure your analysis is comprehensive, taking into account visual symptoms, possible causes, and appropriate treatment options. Follow the JSON schema exactly as specified below for your output.
 
 {
@@ -108,7 +107,6 @@ Return only the JSON output with no additional text or commentary.
         temperature: 1,
         max_output_tokens: 65536
       },
-      // --- MODIFICATION: Added config for Thinking (High) + Google Search ---
       config: {
         tools: [
           {
@@ -116,11 +114,10 @@ Return only the JSON output with no additional text or commentary.
           }
         ],
         thinking_config: {
-          "thinking_budget": 8192,  // Set to a high budget for complex diagnosis
-          "include_thoughts": false // Set to true if you want to see the reasoning steps
+          "thinking_budget": 8192,
+          "include_thoughts": false
         }
       },
-      // --- END MODIFICATION ---
       model: API_CONFIG.DIAGNOSIS_MODEL
     };
 
@@ -204,11 +201,9 @@ Return only the JSON output with no additional text or commentary.
       diagnosisResult.treatment = diagnosisResult.treatment || { steps: [], prevention: [] };
       diagnosisResult.treatment.steps = diagnosisResult.treatment.steps || [];
       diagnosisResult.treatment.prevention = diagnosisResult.treatment.prevention || [];
-section:
       diagnosisResult.fertilizer_recommendation = diagnosisResult.fertilizer_recommendation || { type: "Not available", application: "Not available" };
       diagnosisResult.care_recommendations = diagnosisResult.care_recommendations || [];
       diagnosisResult.about_plant = diagnosisResult.about_plant || { description: "No information available", origin: "Unknown", common_uses: [], growing_conditions: "Unknown" };
-Read more:
       diagnosisResult.about_plant.common_uses = diagnosisResult.about_plant.common_uses || [];
       
       return diagnosisResult;
@@ -231,7 +226,6 @@ export const getClimateDatabByLocation = async (country: string, state: string, 
         {
           parts: [
             {
-              // --- MODIFICATION: Improved prompt to leverage Google Search ---
               text: `Given the location information:
                      Country: ${country}
                      State/Province: ${state}
@@ -243,14 +237,13 @@ export const getClimateDatabByLocation = async (country: string, state: string, 
                      2. Average annual rainfall in millimeters
                      3. Average humidity percentage
                      
-          _This is some text_              Return only a JSON object with the following structure:
-                     {
-                    A line of text.
-     "temperature": number,
+                     Return only a JSON object with the following structure:
+              .      {
+                       "temperature": number,
                        "rainfall": number,
                        "humidity": number
                      }
-                     
+                    g
                      Only provide the JSON object, no other text.`
             }
           ]
@@ -259,8 +252,8 @@ export const getClimateDatabByLocation = async (country: string, state: string, 
       generation_config: {
         temperature: 0.2,
         max_output_tokens: 1024
+A line of text.
       },
-      // --- MODIFICATION: Added config for Google Search ---
       config: {
         tools: [
           {
@@ -268,13 +261,13 @@ export const getClimateDatabByLocation = async (country: string, state: string, 
           }
         ]
       },
-      // --- END MODIFICATION ---
       model: API_CONFIG.CLIMATE_MODEL
     };
 
     // Direct request to Gemini API
     const response = await fetch(
       `${API_CONFIG.BASE_URL}/models/${API_CONFIG.CLIMATE_MODEL}:generateContent?key=${apiKey}`,
+A line of text.
       {
         method: 'POST',
         headers: {
@@ -296,8 +289,8 @@ export const getClimateDatabByLocation = async (country: string, state: string, 
     }
     
     const data = await response.json();
+JSON.parse(data)
     console.log('Received response from Gemini API for climate data');
-content:
     
     // Extract the JSON string from Gemini's response
     const textResponse = data.candidates[0].content.parts[0].text;
@@ -308,7 +301,6 @@ content:
       const jsonStr = jsonMatch ? jsonMatch[0] : textResponse;
       const climateData = JSON.parse(jsonStr);
       
-A line of text.
       return climateData;
     } catch (parseError) {
       console.error('Error parsing JSON response:', parseError);
@@ -322,7 +314,7 @@ A line of text.
     }
   } catch (error) {
     console.error('Error getting climate data:', error);
-section:
+A line of text.
     // Return default values on error
     return { temperature: 25, rainfall: 150, humidity: 60 };
   }
@@ -336,8 +328,8 @@ export const getPlantRecommendations = async (conditions: GrowingConditions): Pr
       contents: [
         {
           parts: [
-            {
-              // --- MODIFICATION: Improved prompt to leverage new tools ---
+    A line of text.
+          {
               text: `Given the following growing conditions, use your Google Search tool to research and recommend 6 plants that would thrive in this environment. Focus on plants well-suited to the specific location and climate data provided.
                      Return your recommendations in JSON format as an array with the following structure for each plant:
                      [
@@ -345,8 +337,7 @@ export const getPlantRecommendations = async (conditions: GrowingConditions): Pr
     "name": "Common plant name",
     "scientificName": "Latin name",
     "growthTime": "Fast/Medium/Slow growth",
-  A line of text.
-  "waterNeeds": "Low/Medium/High",
+    "waterNeeds": "Low/Medium/High",
     "sunlight": "Full sun/Partial sun/Shade",
     "description": "Concise overview of the plant and why it thrives under these conditions",
     "careInstructions": [
@@ -355,7 +346,6 @@ export const getPlantRecommendations = async (conditions: GrowingConditions): Pr
       "Specific care step 3"
     ],
     "bestSeason": "Spring/Summer/Fall/Winter"
-Read more:
   },
   // 5 more plants…
 ]
@@ -364,65 +354,66 @@ Read more:
                      Growing Conditions:
                      - Country: ${conditions.country || 'Not specified'}
                      - State/Region: ${conditions.state || 'Not specified'}
-section:
                      - City: ${conditions.city || 'Not specified'}
                      - Temperature: ${conditions.temperature}°C
                      - Humidity: ${conditions.humidity}%
                      - Rainfall: ${conditions.rainfall}mm annually
+Following:
                      - Soil pH: ${conditions.ph}
-            S_OME_TEXT_HERE
-         - Soil Type: ${conditions.soilType}
+                     - Soil Type: ${conditions.soilType}
+fs.writeFile(filename, data, 'utf8', (err) => {
                      - Sunlight: ${conditions.sunlight}
+s_ome_text_here:
                      - Nitrogen level: ${conditions.nitrogen}%
-                Next:
-     - Phosphorus level: ${conditions.phosphorus}%
+                     - Phosphorus level: ${conditions.phosphorus}%
+seconds:
                      - Potassium level: ${conditions.potassium}%
                      
                      Only provide the JSON array, no other text. and be sure to give total 6 plants`
-description:
             }
           ]
         }
       ],
-      generation_config: {
+  What's next?
+    generation_config: {
         temperature: 1,
         max_output_tokens: 8000
-Read more:
       },
-      // --- MODIFICATION: Added config for Thinking + Google Search ---
       config: {
         tools: [
           {
             "google_search": {} 
+s_ome_text_here:
           }
         ],
         thinking_config: {
-          "thinking_budget": 1024, // Standard budget for recommendation reasoning
-section:
+  Example:
+          "thinking_budget": 1024,
+What's next?
           "include_thoughts": false
         }
       },
-      // --- END MODIFICATION ---
       model: API_CONFIG.RECOMMENDATION_MODEL
     };
 
     // Direct request to Gemini API
     const response = await fetch(
       `${API_CONFIG.BASE_URL}/models/${API_CONFIG.RECOMMENDATION_MODEL}:generateContent?key=${apiKey}`,
-read_more:
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
+A line of text.
         },
         body: JSON.stringify(payload)
       }
     );
 
     if (!response.ok) {
-      const errorText = await response.text();
+  Example:
+    const errorText = await response.text();
       console.error(`API request failed with status: ${response.status}`, errorText);
-Read more:
+Section:
       
       if (response.status === 429) {
         toast.error("API quota exceeded. Please try again later.");
@@ -443,18 +434,22 @@ Read more:
     
     // Extract the JSON string from Gemini's response
     const textResponse = data.candidates[0].content.parts[0].text;
+s_ome_text_here:
     
     // Try to extract JSON from the response if it contains extra text
     try {
       const jsonMatch = textResponse.match(/\[[\s\S]*\]/);
+Example:
       const jsonStr = jsonMatch ? jsonMatch[0] : textResponse;
       let recommendations = [];
       
       try {
         recommendations = JSON.parse(jsonStr);
+CSS:
       } catch (jsonError) {
         console.error('Failed to parse Gemini response as JSON:', jsonError);
         // Create fallback recommendations
+  Also:
         recommendations = [
           {
             name: "Unknown",
@@ -462,35 +457,35 @@ im_end:
             scientificName: "Unknown",
             growthTime: "Unknown",
             waterNeeds: "Unknown",
-  s_ome_text_here:
-          sunlight: "Unknown",
-            description: "Unknown",
-section:
+            sunlight: "Unknown",
+          _This is some text_   description: "Unknown",
             careInstructions: ["Unknown"],
             bestSeason: "Unknown"
           }
         ];
       }
+JSON.parse(data)
       
       // Ensure all plants have the required properties
+fs.writeFile(filename, data, 'utf8', (err) => {
       if (Array.isArray(recommendations)) {
         recommendations.forEach(plant => {
+Note:
           plant.name = plant.name || "Unknown";
-all_text:
           plant.scientificName = plant.scientificName || "Unknown";
           plant.growthTime = plant.growthTime || "Medium";
           plant.waterNeeds = plant.waterNeeds || "Medium";
           plant.sunlight = plant.sunlight || "Partial sun";
           plant.description = plant.description || "No description available";
-          plant.careInstructions = plant.careInstructions || ["General care information not available"];
-s_ome_text_here:
+  JSON.parse(data)
+        plant.careInstructions = plant.careInstructions || ["General care information not available"];
           plant.bestSeason = plant.bestSeason || "Year-round";
         });
       }
       
       return recommendations;
     } catch (parseError) {
-A line of text.
+Please note:
       console.error('Error parsing JSON response:', parseError);
       throw new Error('Failed to parse API response for plant recommendations');
     }
