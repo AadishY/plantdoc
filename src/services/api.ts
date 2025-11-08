@@ -31,11 +31,9 @@ const prepareImageForAPI = async (imageFile: File): Promise<string> => {
 const isRateLimitError = (error: any): boolean => {
   // Check various ways a rate limit error might be indicated
   return (
-    !!error &&
-    (
-      (typeof error.message === 'string' && (error.message.includes('429') || error.message.toLowerCase().includes('rate limit'))) ||
-      error.status === 429
-    )
+    error?.message?.includes('429') || 
+    error?.message?.toLowerCase().includes('rate limit') ||
+    error?.status === 429
   );
 };
 
@@ -43,23 +41,21 @@ const isRateLimitError = (error: any): boolean => {
 export const diagnosePlant = async (imageFile: File): Promise<DiagnosisResult> => {
   try {
     const imageBase64 = await prepareImageForAPI(imageFile);
-
+    
     // Prepare the request payload for Gemini
     const payload = {
       contents: [
         {
           parts: [
             {
-              text: `Analyze the provided plant image thoroughly to identify any diseases or issues affecting the plant. Ensure your analysis is comprehensive, taking into account visual symptoms, possible causes, and appropriate treatment options. Follow the JSON schema exactly as specified below for your output.
-
-Return only the JSON output with no additional text or commentary.
+              text: `Analyze the provided plant image thoroughly to identify any diseases or issues affecting the plant. Use your Google Search tool to find the most current and accurate information regarding the plant species, potential diseases, and modern treatment options. Ensure your analysis is comprehensive, taking into account visual symptoms, possible causes, and appropriate treatment options. Follow the JSON schema exactly as specified below for your output.
 
 {
   "plant": "Plant species name ",
   "disease": {
     "name": "Precise name of the identified disease based on visual symptoms",
-    "confidence": 0,
-    "severity": "Low"
+    "confidence": <confidence percentage as a number>,
+    "severity": "Low" | "Medium" | "High"
   },
   "causes": [
     "List potential causes such as pest infestation, fungal or bacterial infection, environmental stress, or nutritional deficiency"
@@ -68,7 +64,8 @@ Return only the JSON output with no additional text or commentary.
     "steps": [
       "Step-by-step professional treatment instruction addressing immediate interventions and symptom alleviation",
       "Detailed treatment step including application method and safety precautions",
-      "Follow-up step outlining post-treatment care and monitoring procedures"
+      "Follow-up step outlining post-treatment care and monitoring procedures",
+      "Can be any numbers of point, and give briefly"
     ],
     "prevention": [
       "Detailed professional prevention tip focusing on cultural practices, sanitation, and environmental adjustments to mitigate recurrence",
@@ -91,7 +88,10 @@ Return only the JSON output with no additional text or commentary.
     ],
     "growing_conditions": "Preferred environmental, soil, and climatic conditions required for optimal growth"
   }
-}`
+}
+
+Return only the JSON output with no additional text or commentary.
+`
             },
             {
               inline_data: {
@@ -107,13 +107,14 @@ Return only the JSON output with no additional text or commentary.
         max_output_tokens: 65536
       },
       config: {
-        // If your API supports tools, keep them here; otherwise this can be removed.
         tools: [
-          { "google_search": {} }
+          {
+            "google_search": {} 
+          }
         ],
         thinking_config: {
-          thinking_budget: 8192,
-          include_thoughts: false
+          "thinking_budget": 8192,
+          "include_thoughts": false
         }
       },
       model: API_CONFIG.DIAGNOSIS_MODEL
@@ -134,34 +135,33 @@ Return only the JSON output with no additional text or commentary.
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`API request failed with status: ${response.status}`, errorText);
-
+      
       if (response.status === 429) {
         toast.error("API quota exceeded. Please try again later.");
         throw new Error("API quota exceeded. The service is currently experiencing high demand. Please try again in a few minutes.");
       }
-
+      
       throw new Error(`API request failed with status: ${response.status}`);
     }
-
+    
     const data = await response.json();
     console.log('Received response from Gemini API');
-
-    // Find the text content robustly
-    const parts = data?.candidates?.[0]?.content?.parts;
-    if (!parts || !Array.isArray(parts) || parts.length === 0) {
+    
+    // Check if we have a valid response structure
+    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
       console.error('Invalid response structure:', JSON.stringify(data));
       throw new Error('Invalid response from AI service');
     }
-
-    // Combine textual parts in case the model returned multiple parts
-    const textResponse = parts.map((p: any) => p.text || '').join('\n');
-
+    
+    // Extract the JSON string from Gemini's response
+    const textResponse = data.candidates[0].content.parts[0].text;
+    
     // Try to extract JSON from the response if it contains extra text
     try {
       const jsonMatch = textResponse.match(/\{[\s\S]*\}/);
       const jsonStr = jsonMatch ? jsonMatch[0] : textResponse;
-      let diagnosisResult: DiagnosisResult;
-
+      let diagnosisResult;
+      
       try {
         diagnosisResult = JSON.parse(jsonStr);
       } catch (jsonError) {
@@ -192,7 +192,7 @@ Return only the JSON output with no additional text or commentary.
           }
         };
       }
-
+      
       // Ensure all required properties exist in the result
       diagnosisResult.plant = diagnosisResult.plant || "Unknown";
       diagnosisResult.disease = diagnosisResult.disease || { name: "Unable to identify", confidence: 0, severity: "Unknown" };
@@ -202,9 +202,14 @@ Return only the JSON output with no additional text or commentary.
       diagnosisResult.treatment.prevention = diagnosisResult.treatment.prevention || [];
       diagnosisResult.fertilizer_recommendation = diagnosisResult.fertilizer_recommendation || { type: "Not available", application: "Not available" };
       diagnosisResult.care_recommendations = diagnosisResult.care_recommendations || [];
-      diagnosisResult.about_plant = diagnosisResult.about_plant || { description: "No information available", origin: "Unknown", common_uses: [], growing_conditions: "Unknown" };
+      diagnosisResult.about_plant = diagnosisResult.about_plant || { 
+        description: "No information available", 
+        origin: "Unknown", 
+        common_uses: [], 
+        growing_conditions: "Unknown" 
+      };
       diagnosisResult.about_plant.common_uses = diagnosisResult.about_plant.common_uses || [];
-
+      
       return diagnosisResult;
     } catch (parseError) {
       console.error('Error parsing JSON response:', parseError);
@@ -217,7 +222,7 @@ Return only the JSON output with no additional text or commentary.
 };
 
 // Function to get climate data based on location
-export const getClimateDataByLocation = async (country: string, state: string, city?: string): Promise<{ temperature: number, rainfall: number, humidity: number }> => {
+export const getClimateDatabByLocation = async (country: string, state: string, city?: string): Promise<{ temperature: number, rainfall: number, humidity: number }> => {
   try {
     // Prepare the request payload for Gemini
     const payload = {
@@ -226,23 +231,24 @@ export const getClimateDataByLocation = async (country: string, state: string, c
           parts: [
             {
               text: `Given the location information:
-Country: ${country}
-State/Province: ${state}
-City: ${city || 'Not specified'}
-
-Provide the following climate data as an accurate estimate:
-1. Average annual temperature in Celsius
-2. Average annual rainfall in millimeters
-3. Average humidity percentage
-
-Return only a JSON object with the following structure:
-{
-  "temperature": number,
-  "rainfall": number,
-  "humidity": number
-}
-
-Only provide the JSON object, no other text.`
+                   Country: ${country}
+                   State/Province: ${state}
+                   City: ${city || 'Not specified'}
+                   
+                   Use your Google Search tool to find the most accurate, up-to-date climate data for this location.
+                   Provide me with the following climate data as an accurate estimate:
+                   1. Average annual temperature in Celsius
+                   2. Average annual rainfall in millimeters
+                   3. Average humidity percentage
+                   
+                   Return only a JSON object with the following structure:
+                   {
+                     "temperature": number,
+                     "rainfall": number,
+                     "humidity": number
+                   }
+                   
+                   Only provide the JSON object, no other text.`
             }
           ]
         }
@@ -253,7 +259,9 @@ Only provide the JSON object, no other text.`
       },
       config: {
         tools: [
-          { "google_search": {} }
+          {
+            "google_search": {} 
+          }
         ]
       },
       model: API_CONFIG.CLIMATE_MODEL
@@ -273,38 +281,36 @@ Only provide the JSON object, no other text.`
 
     if (!response.ok) {
       console.error('Error getting climate data, using defaults');
+      
       // For climate data, we'll just return default values rather than an error
-      return {
-        temperature: 25,
-        rainfall: 150,
-        humidity: 60
+      return { 
+        temperature: 25, 
+        rainfall: 150, 
+        humidity: 60 
       };
     }
-
+    
     const data = await response.json();
     console.log('Received response from Gemini API for climate data');
-
-    const parts = data?.candidates?.[0]?.content?.parts;
-    const textResponse = parts && Array.isArray(parts) ? parts.map((p: any) => p.text || '').join('\n') : '';
-
+    
+    // Extract the JSON string from Gemini's response
+    const textResponse = data.candidates[0].content.parts[0].text;
+    
+    // Try to extract JSON from the response if it contains extra text
     try {
       const jsonMatch = textResponse.match(/\{[\s\S]*\}/);
       const jsonStr = jsonMatch ? jsonMatch[0] : textResponse;
       const climateData = JSON.parse(jsonStr);
-
-      // Basic validation and fallback
-      return {
-        temperature: typeof climateData.temperature === 'number' ? climateData.temperature : 25,
-        rainfall: typeof climateData.rainfall === 'number' ? climateData.rainfall : 150,
-        humidity: typeof climateData.humidity === 'number' ? climateData.humidity : 60
-      };
+      
+      return climateData;
     } catch (parseError) {
       console.error('Error parsing JSON response:', parseError);
+      
       // Return default climate data on parsing error
-      return {
-        temperature: 25,
+      return { 
+        temperature: 25, 
         rainfall: 150,
-        humidity: 60
+        humidity: 60 
       };
     }
   } catch (error) {
@@ -323,9 +329,9 @@ export const getPlantRecommendations = async (conditions: GrowingConditions): Pr
         {
           parts: [
             {
-              text: `Given the following growing conditions, research and recommend 6 plants that would thrive in this environment. Focus on plants well-suited to the specific location and climate data provided.
+              text: `Given the following growing conditions, use your Google Search tool to research and recommend 6 plants that would thrive in this environment. Focus on plants well-suited to the specific location and climate data provided.
+                   Return your recommendations in JSON format as an array with the following structure for each plant:
 
-Return your recommendations in JSON format as an array with the following structure for each plant:
 [
   {
     "name": "Common plant name",
@@ -340,25 +346,25 @@ Return your recommendations in JSON format as an array with the following struct
       "Specific care step 3"
     ],
     "bestSeason": "Spring/Summer/Fall/Winter"
-  }
-  // repeat for 6 plants
+  },
+  // 5 more plants…
 ]
 
-Growing Conditions:
-- Country: ${conditions.country || 'Not specified'}
-- State/Region: ${conditions.state || 'Not specified'}
-- City: ${conditions.city || 'Not specified'}
-- Temperature: ${conditions.temperature}
-- Humidity: ${conditions.humidity}
-- Rainfall: ${conditions.rainfall}
-- Soil pH: ${conditions.ph}
-- Soil Type: ${conditions.soilType}
-- Sunlight: ${conditions.sunlight}
-- Nitrogen level: ${conditions.nitrogen}
-- Phosphorus level: ${conditions.phosphorus}
-- Potassium level: ${conditions.potassium}
-
-Only provide the JSON array, no other text. Provide exactly 6 plants.`
+                   Growing Conditions:
+                   - Country: ${conditions.country || 'Not specified'}
+                   - State/Region: ${conditions.state || 'Not specified'}
+                   - City: ${conditions.city || 'Not specified'}
+                   - Temperature: ${conditions.temperature}°C
+                   - Humidity: ${conditions.humidity}%
+                   - Rainfall: ${conditions.rainfall}mm annually
+                   - Soil pH: ${conditions.ph}
+                   - Soil Type: ${conditions.soilType}
+                   - Sunlight: ${conditions.sunlight}
+                   - Nitrogen level: ${conditions.nitrogen}%
+                   - Phosphorus level: ${conditions.phosphorus}%
+                   - Potassium level: ${conditions.potassium}%
+                   
+                   Only provide the JSON array, no other text. and be sure to give total 6 plants`
             }
           ]
         }
@@ -369,11 +375,13 @@ Only provide the JSON array, no other text. Provide exactly 6 plants.`
       },
       config: {
         tools: [
-          { "google_search": {} }
+          {
+            "google_search": {} 
+          }
         ],
         thinking_config: {
-          thinking_budget: 1024,
-          include_thoughts: false
+          "thinking_budget": 1024,
+          "include_thoughts": false
         }
       },
       model: API_CONFIG.RECOMMENDATION_MODEL
@@ -394,31 +402,33 @@ Only provide the JSON array, no other text. Provide exactly 6 plants.`
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`API request failed with status: ${response.status}`, errorText);
-
+      
       if (response.status === 429) {
         toast.error("API quota exceeded. Please try again later.");
-        throw new Error("API quota exceeded. The service is currently experiencing high demand. Please try again in a few minutes.");
+        throw new Error("The service is currently experiencing high demand. Please try again in a few minutes.");
       }
-
+      
       throw new Error(`API request failed with status: ${response.status}`);
     }
-
+    
     const data = await response.json();
     console.log('Received response from Gemini API for plant recommendations');
-
-    const parts = data?.candidates?.[0]?.content?.parts;
-    if (!parts || !Array.isArray(parts) || parts.length === 0) {
+    
+    // Check if we have a valid response structure
+    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
       console.error('Invalid response structure:', JSON.stringify(data));
       throw new Error('Invalid response from AI service');
     }
-
-    const textResponse = parts.map((p: any) => p.text || '').join('\n');
-
+    
+    // Extract the JSON string from Gemini's response
+    const textResponse = data.candidates[0].content.parts[0].text;
+    
+    // Try to extract JSON from the response if it contains extra text
     try {
       const jsonMatch = textResponse.match(/\[[\s\S]*\]/);
       const jsonStr = jsonMatch ? jsonMatch[0] : textResponse;
-      let recommendations: PlantRecommendation[] = [];
-
+      let recommendations = [];
+      
       try {
         recommendations = JSON.parse(jsonStr);
       } catch (jsonError) {
@@ -432,13 +442,13 @@ Only provide the JSON array, no other text. Provide exactly 6 plants.`
             waterNeeds: "Unknown",
             sunlight: "Unknown",
             description: "Unknown",
-            careInstructions: ["Unknown"],
+            careInstructions: "Unknown",
             bestSeason: "Unknown"
           }
         ];
       }
-
-      // Ensure each recommendation has required properties and reasonable defaults
+      
+      // Ensure all plants have the required properties
       if (Array.isArray(recommendations)) {
         recommendations.forEach(plant => {
           plant.name = plant.name || "Unknown";
@@ -447,11 +457,11 @@ Only provide the JSON array, no other text. Provide exactly 6 plants.`
           plant.waterNeeds = plant.waterNeeds || "Medium";
           plant.sunlight = plant.sunlight || "Partial sun";
           plant.description = plant.description || "No description available";
-          plant.careInstructions = plant.careInstructions || ["General care information not available"];
+          plant.careInstructions = plant.careInstructions || "General care information not available";
           plant.bestSeason = plant.bestSeason || "Year-round";
         });
       }
-
+      
       return recommendations;
     } catch (parseError) {
       console.error('Error parsing JSON response:', parseError);
