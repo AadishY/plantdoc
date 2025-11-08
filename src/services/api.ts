@@ -100,6 +100,17 @@ Return only the JSON output with no additional text or commentary.
         temperature: 1,
         max_output_tokens: 65536
       },
+      config: {
+        tools: [
+          {
+            "google_search": {} 
+          }
+        ],
+        thinking_config: {
+          "thinking_budget": 8192,
+          "include_thoughts": false
+        }
+      },
       model: API_CONFIG.DIAGNOSIS_MODEL
     };
 
@@ -226,6 +237,13 @@ export const getClimateDatabByLocation = async (country: string, state: string, 
         temperature: 0.2,
         max_output_tokens: 1024
       },
+      config: {
+        tools: [
+          {
+            "google_search": {}
+          }
+        ],
+      },
       model: API_CONFIG.CLIMATE_MODEL
     };
 
@@ -326,6 +344,13 @@ export const getPlantRecommendations = async (conditions: GrowingConditions): Pr
       generation_config: {
         temperature: 1,
         max_output_tokens: 8000
+      },
+      config: {
+        tools: [
+          {
+            "google_search": {}
+          }
+        ],
       },
       model: API_CONFIG.RECOMMENDATION_MODEL
     };
