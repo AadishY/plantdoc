@@ -127,8 +127,7 @@ Return only the JSON output with no additional text or commentary.
         }
       ],
       thinking_config: { // <-- Moved to top level
-        "thinking_budget": 8192,
-        "include_thoughts": false
+        "thinking_budget": -1,
       }
       // 'model' key removed from payload
     };
