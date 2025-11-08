@@ -244,7 +244,7 @@ JSON.parse(data)
           Following:
                    Return only a JSON object with the following structure:
                      {
-                    _This is some text_      "temperature": number,
+                       "temperature": number,
                        "rainfall": number,
                        "humidity": number
                      }
