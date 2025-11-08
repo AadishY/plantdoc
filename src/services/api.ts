@@ -118,6 +118,9 @@ Return only the JSON output with no additional text or commentary.
         }
       ],
       generation_config: {
+        thinking_config: {
+          "thinking_budget": -1,
+        }
         temperature: 1,
         max_output_tokens: 65536
       },
@@ -126,9 +129,6 @@ Return only the JSON output with no additional text or commentary.
           "google_search": {} 
         }
       ],
-      thinking_config: { // <-- Moved to top level
-        "thinking_budget": -1,
-      }
       // 'model' key removed from payload
     };
 
