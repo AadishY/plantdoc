@@ -9,15 +9,30 @@ if (!apiKey) {
   console.error('VITE_GEMINI_API_KEY is not set. Please check your environment variables.');
 }
 
-const prepareImageForAPI = async (imageFile: File): Promise<string> => {
+// 💡 MODIFIED FUNCTION
+const prepareImageForAPI = async (imageFile: File): Promise<{ mimeType: string, base64Data: string }> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
       if (typeof reader.result === 'string') {
-        const base64Data = reader.result.split(',')[1];
-        resolve(base64Data);
+        const dataUrl = reader.result;
+        // Split the Data URL into its two parts
+        const parts = dataUrl.split(',');
+        
+        if (parts.length !== 2) {
+          return reject(new Error('Invalid Data URL format'));
+        }
+
+        // Part 0: "data:image/png;base64"
+        // We need to extract just "image/png"
+        const mimeType = parts[0].split(':')[1].split(';')[0];
+        
+        // Part 1: The actual Base64 data
+        const base64Data = parts[1];
+        
+        resolve({ mimeType, base64Data });
       } else {
-        reject(new Error('Failed to read file as base64'));
+        reject(new Error('Failed to read file as string'));
       }
     };
     reader.onerror = () => reject(reader.error);
@@ -35,7 +50,9 @@ const isRateLimitError = (error: any): boolean => {
 
 export const diagnosePlant = async (imageFile: File): Promise<DiagnosisResult> => {
   try {
-    const imageBase64 = await prepareImageForAPI(imageFile);
+    const { mimeType, base64Data } = await prepareImageForAPI(imageFile);
+
+    console.log(`Prepared image with MIME type: ${mimeType}`);
     
     //
     // 💡 FIX: 'tools' and 'thinking_config' are now top-level keys.
@@ -93,8 +110,8 @@ Return only the JSON output with no additional text or commentary.
             },
             {
               inline_data: {
-                mime_type: "image/jpeg",
-                data: imageBase64
+                mime_type: mimeType,
+                data: base64Data
               }
             }
           ]
