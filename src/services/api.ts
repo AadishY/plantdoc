@@ -120,9 +120,11 @@ Return only the JSON output with no additional text or commentary.
       generation_config: {
         thinking_config: {
           "thinking_budget": -1,
-        }
-        temperature: 1,
-        max_output_tokens: 65536
+        },
+        "imageConfig": {
+          "image_size": "1K"
+        },
+        "temperature": 1,
       },
       tools: [ // <-- Moved to top level
         {
