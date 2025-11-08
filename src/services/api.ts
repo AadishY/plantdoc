@@ -37,6 +37,10 @@ export const diagnosePlant = async (imageFile: File): Promise<DiagnosisResult> =
   try {
     const imageBase64 = await prepareImageForAPI(imageFile);
     
+    //
+    // 💡 FIX: 'tools' and 'thinking_config' are now top-level keys.
+    // 'config' wrapper and 'model' key have been removed.
+    //
     const payload = {
       contents: [
         {
@@ -100,18 +104,16 @@ Return only the JSON output with no additional text or commentary.
         temperature: 1,
         max_output_tokens: 65536
       },
-      config: {
-        tools: [
-          {
-            "google_search": {} 
-          }
-        ],
-        thinking_config: {
-          "thinking_budget": 8192,
-          "include_thoughts": false
+      tools: [ // <-- Moved to top level
+        {
+          "google_search": {} 
         }
-      },
-      model: API_CONFIG.DIAGNOSIS_MODEL
+      ],
+      thinking_config: { // <-- Moved to top level
+        "thinking_budget": 8192,
+        "include_thoughts": false
+      }
+      // 'model' key removed from payload
     };
 
     const response = await fetch(
@@ -182,6 +184,7 @@ Return only the JSON output with no additional text or commentary.
         };
       }
       
+      // Fallbacks to ensure app doesn't crash on incomplete JSON
       diagnosisResult.plant = diagnosisResult.plant || "Unknown";
       diagnosisResult.disease = diagnosisResult.disease || { name: "Unable to identify", confidence: 0, severity: "Unknown" };
       diagnosisResult.causes = diagnosisResult.causes || ["Could not determine causes"];
@@ -206,29 +209,33 @@ Return only the JSON output with no additional text or commentary.
 
 export const getClimateDatabByLocation = async (country: string, state: string, city?: string): Promise<{ temperature: number, rainfall: number, humidity: number }> => {
   try {
+    //
+    // 💡 FIX: 'tools' is now a top-level key.
+    // 'config' wrapper and 'model' key have been removed.
+    //
     const payload = {
       contents: [
         {
           parts: [
             {
               text: `Given the location information:
-                     Country: ${country}
-                     State/Province: ${state}
-                     City: ${city || 'Not specified'}
-                     
-                     Provide me with the following climate data as an accurate estimate:
-                     1. Average annual temperature in Celsius
-                     2. Average annual rainfall in millimeters
-                     3. Average humidity percentage
-                     
-                     Return only a JSON object with the following structure:
-                     {
-                       "temperature": number,
-                       "rainfall": number,
-                       "humidity": number
-                     }
-                     
-                     Only provide the JSON object, no other text.`
+                      Country: ${country}
+                      State/Province: ${state}
+                      City: ${city || 'Not specified'}
+                      
+                      Provide me with the following climate data as an accurate estimate:
+                      1. Average annual temperature in Celsius
+                      2. Average annual rainfall in millimeters
+                      3. Average humidity percentage
+                      
+                      Return only a JSON object with the following structure:
+                      {
+                         "temperature": number,
+                         "rainfall": number,
+                         "humidity": number
+                      }
+                      
+                      Only provide the JSON object, no other text.`
             }
           ]
         }
@@ -237,14 +244,12 @@ export const getClimateDatabByLocation = async (country: string, state: string, 
         temperature: 0.2,
         max_output_tokens: 1024
       },
-      config: {
-        tools: [
-          {
-            "google_search": {}
-          }
-        ],
-      },
-      model: API_CONFIG.CLIMATE_MODEL
+      tools: [ // <-- Moved to top level
+        {
+          "google_search": {}
+        }
+      ]
+      // 'model' key removed from payload
     };
 
     const response = await fetch(
@@ -261,6 +266,7 @@ export const getClimateDatabByLocation = async (country: string, state: string, 
     if (!response.ok) {
       console.error('Error getting climate data, using defaults');
       
+      // Return default values if API fails
       return { 
         temperature: 25, 
         rainfall: 150, 
@@ -282,6 +288,7 @@ export const getClimateDatabByLocation = async (country: string, state: string, 
     } catch (parseError) {
       console.error('Error parsing JSON response:', parseError);
       
+      // Return default values if parsing fails
       return { 
         temperature: 25, 
         rainfall: 150, 
@@ -290,20 +297,25 @@ export const getClimateDatabByLocation = async (country: string, state: string, 
     }
   } catch (error) {
     console.error('Error getting climate data:', error);
+    // Return default values on any other error
     return { temperature: 25, rainfall: 150, humidity: 60 };
   }
 };
 
 export const getPlantRecommendations = async (conditions: GrowingConditions): Promise<PlantRecommendation[]> => {
   try {
+    //
+    // 💡 FIX: 'tools' is now a top-level key.
+    // 'config' wrapper and 'model' key have been removed.
+    //
     const payload = {
       contents: [
         {
           parts: [
             {
               text: `Given the following growing conditions, recommend 6 plants that would thrive in this environment.
-                     Return your recommendations in JSON format as an array with the following structure for each plant:
-                     [
+                      Return your recommendations in JSON format as an array with the following structure for each plant:
+                      [
   {
     "name": "Common plant name",
     "scientificName": "Latin name",
@@ -321,22 +333,22 @@ export const getPlantRecommendations = async (conditions: GrowingConditions): Pr
   // 5 more plants…
 ]
 
-                     
-                     Growing Conditions:
-                     - Country: ${conditions.country || 'Not specified'}
-                     - State/Region: ${conditions.state || 'Not specified'}
-                     - City: ${conditions.city || 'Not specified'}
-                     - Temperature: ${conditions.temperature}°C
-                     - Humidity: ${conditions.humidity}%
-                     - Rainfall: ${conditions.rainfall}mm annually
-                     - Soil pH: ${conditions.ph}
-                     - Soil Type: ${conditions.soilType}
-                     - Sunlight: ${conditions.sunlight}
-                     - Nitrogen level: ${conditions.nitrogen}%
-                     - Phosphorus level: ${conditions.phosphorus}%
-                     - Potassium level: ${conditions.potassium}%
-                     
-                     Only provide the JSON array, no other text. and be sure to give total 6 plants`
+                      
+                      Growing Conditions:
+                      - Country: ${conditions.country || 'Not specified'}
+                      - State/Region: ${conditions.state || 'Not specified'}
+                      - City: ${conditions.city || 'Not specified'}
+                      - Temperature: ${conditions.temperature}°C
+                      - Humidity: ${conditions.humidity}%
+                      - Rainfall: ${conditions.rainfall}mm annually
+                      - Soil pH: ${conditions.ph}
+                      - Soil Type: ${conditions.soilType}
+                      - Sunlight: ${conditions.sunlight}
+                      - Nitrogen level: ${conditions.nitrogen}%
+                      - Phosphorus level: ${conditions.phosphorus}%
+                      - Potassium level: ${conditions.potassium}%
+                      
+                      Only provide the JSON array, no other text. and be sure to give total 6 plants`
             }
           ]
         }
@@ -345,14 +357,12 @@ export const getPlantRecommendations = async (conditions: GrowingConditions): Pr
         temperature: 1,
         max_output_tokens: 8000
       },
-      config: {
-        tools: [
-          {
-            "google_search": {}
-          }
-        ],
-      },
-      model: API_CONFIG.RECOMMENDATION_MODEL
+      tools: [ // <-- Moved to top level
+        {
+          "google_search": {}
+        }
+      ]
+      // 'model' key removed from payload
     };
 
     const response = await fetch(
@@ -397,6 +407,7 @@ export const getPlantRecommendations = async (conditions: GrowingConditions): Pr
         recommendations = JSON.parse(jsonStr);
       } catch (jsonError) {
         console.error('Failed to parse Gemini response as JSON:', jsonError);
+        // Provide a default fallback if JSON is invalid
         recommendations = [
           {
             name: "Unknown",
@@ -411,6 +422,7 @@ export const getPlantRecommendations = async (conditions: GrowingConditions): Pr
         ];
       }
       
+      // Validate and provide fallbacks for each plant object
       if (Array.isArray(recommendations)) {
         recommendations.forEach(plant => {
           plant.name = plant.name || "Unknown";
