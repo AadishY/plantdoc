@@ -257,7 +257,8 @@ export const PlantDocHeroStage: React.FC = () => {
             alpha: 0.95,
             seed: Math.random() * 100
           });
-          if (points.length > TRAIL_MAX_POINTS) {
+          const maxPoints = isMobileDevice ? 70 : TRAIL_MAX_POINTS;
+          if (points.length > maxPoints) {
             points.shift();
           }
           lastX = smoothX;
@@ -265,12 +266,15 @@ export const PlantDocHeroStage: React.FC = () => {
         }
       }
 
-      // Decay previous trailing points
+      // Decay previous trailing points (linger longer on mobile for smooth dissipation)
+      const fadeSpeed = isMobileDevice ? 0.975 : TRAIL_FADE_SPEED;
+      const radiusDecay = isMobileDevice ? 0.997 : 0.994;
+
       points = points
         .map(p => ({
           ...p,
-          alpha: p.alpha * TRAIL_FADE_SPEED,
-          r: p.r * 0.994
+          alpha: p.alpha * fadeSpeed,
+          r: p.r * radiusDecay
         }))
         .filter(p => p.alpha > 0.01 && p.r > 1);
 
