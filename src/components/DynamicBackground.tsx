@@ -39,19 +39,19 @@ const DynamicBackground: React.FC = React.memo(() => {
 
     window.addEventListener('resize', handleResize, { passive: true });
 
-    // Adaptive bioluminescent spores (6 on mobile, 22 on desktop for 120fps efficiency)
+    // Adaptive bioluminescent spores (4 on mobile for ultra-lightweight GPU budget, 22 on desktop)
     const isMobile = window.innerWidth < 768;
-    const particleCount = isMobile ? 6 : Math.min(Math.floor(window.innerWidth / 60), 22);
+    const particleCount = isMobile ? 4 : Math.min(Math.floor(window.innerWidth / 60), 22);
     const particles: Particle[] = [];
 
     for (let i = 0; i < particleCount; i++) {
       particles.push({
         x: Math.random() * width,
         y: Math.random() * height,
-        size: Math.random() * 1.6 + 0.8,
-        speedX: (Math.random() - 0.5) * 0.22,
-        speedY: -Math.random() * 0.30 - 0.08,
-        opacity: Math.random() * 0.40 + 0.2,
+        size: Math.random() * 1.5 + 0.8,
+        speedX: (Math.random() - 0.5) * 0.20,
+        speedY: -Math.random() * 0.25 - 0.08,
+        opacity: Math.random() * 0.35 + 0.2,
         pulseSpeed: Math.random() * 0.02 + 0.01,
         pulsePhase: Math.random() * Math.PI * 2,
         hue: Math.random() > 0.4 ? 165 : 150
@@ -72,6 +72,19 @@ const DynamicBackground: React.FC = React.memo(() => {
       window.addEventListener('mousemove', handleMouseMove, { passive: true });
     }
 
+    let isScrolling = false;
+    let scrollTimer: any;
+    const handleScroll = () => {
+      if (!isMobile) return;
+      isScrolling = true;
+      clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(() => {
+        isScrolling = false;
+      }, 100);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
     const handleVisibility = () => {
       if (document.hidden) {
         isRunning = false;
@@ -86,43 +99,47 @@ const DynamicBackground: React.FC = React.memo(() => {
 
     const render = () => {
       if (!isRunning) return;
-      ctx.clearRect(0, 0, width, height);
 
-      // Fast single-pass draw call
-      for (let i = 0; i < particles.length; i++) {
-        const p = particles[i];
+      // When actively scrolling on mobile, pause spore redraw to give 100% GPU to scrolling
+      if (!isScrolling) {
+        ctx.clearRect(0, 0, width, height);
 
-        p.x += p.speedX;
-        p.y += p.speedY;
-        p.pulsePhase += p.pulseSpeed;
+        // Fast single-pass draw call
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
 
-        // Wrap boundaries
-        if (p.y < -10) {
-          p.y = height + 10;
-          p.x = Math.random() * width;
-        }
-        if (p.x < -10) p.x = width + 10;
-        if (p.x > width + 10) p.x = -10;
+          p.x += p.speedX;
+          p.y += p.speedY;
+          p.pulsePhase += p.pulseSpeed;
 
-        // Subtle mouse repulsion
-        if (mouseX !== -9999) {
-          const dx = mouseX - p.x;
-          const dy = mouseY - p.y;
-          const distSq = dx * dx + dy * dy;
-          if (distSq < 14400) {
-            const dist = Math.sqrt(distSq);
-            const force = (120 - dist) / 120;
-            p.x -= (dx / dist) * force * 0.6;
-            p.y -= (dy / dist) * force * 0.6;
+          // Wrap boundaries
+          if (p.y < -10) {
+            p.y = height + 10;
+            p.x = Math.random() * width;
           }
+          if (p.x < -10) p.x = width + 10;
+          if (p.x > width + 10) p.x = -10;
+
+          // Subtle mouse repulsion (desktop only)
+          if (hasHover && mouseX !== -9999) {
+            const dx = mouseX - p.x;
+            const dy = mouseY - p.y;
+            const distSq = dx * dx + dy * dy;
+            if (distSq < 14400) {
+              const dist = Math.sqrt(distSq);
+              const force = (120 - dist) / 120;
+              p.x -= (dx / dist) * force * 0.6;
+              p.y -= (dy / dist) * force * 0.6;
+            }
+          }
+
+          const currentOpacity = p.opacity * (0.6 + 0.4 * Math.sin(p.pulsePhase));
+
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fillStyle = `hsla(${p.hue}, 85%, 65%, ${currentOpacity})`;
+          ctx.fill();
         }
-
-        const currentOpacity = p.opacity * (0.6 + 0.4 * Math.sin(p.pulsePhase));
-
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${p.hue}, 85%, 65%, ${currentOpacity})`;
-        ctx.fill();
       }
 
       animationFrameId = requestAnimationFrame(render);
@@ -134,7 +151,9 @@ const DynamicBackground: React.FC = React.memo(() => {
       isRunning = false;
       cancelAnimationFrame(animationFrameId);
       clearTimeout(resizeTimer);
+      clearTimeout(scrollTimer);
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('visibilitychange', handleVisibility);
     };

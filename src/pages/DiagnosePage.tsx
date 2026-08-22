@@ -226,4 +226,4 @@ const DiagnosePage: React.FC = () => {
   );
 };
 
-export default DiagnosePage;
+export default React.memo(DiagnosePage);

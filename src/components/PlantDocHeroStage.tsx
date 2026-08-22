@@ -59,6 +59,11 @@ export const PlantDocHeroStage: React.FC = () => {
     };
     window.addEventListener('resize', debouncedResize, { passive: true });
 
+    const isMobile = window.innerWidth < 768;
+    const blobVertexCount = isMobile ? 12 : TRAIL_BLOB_PTS;
+    const polyPtsX = new Float32Array(32);
+    const polyPtsY = new Float32Array(32);
+
     const drawMorphBlob = (
       context: CanvasRenderingContext2D,
       cx: number,
@@ -68,34 +73,31 @@ export const PlantDocHeroStage: React.FC = () => {
       seed: number
     ) => {
       if (r < 1.5) return;
-      const pts: Array<{ x: number; y: number }> = [];
+      const count = blobVertexCount;
 
-      for (let i = 0; i < TRAIL_BLOB_PTS; i++) {
-        const angle = (i / TRAIL_BLOB_PTS) * Math.PI * 2;
+      for (let i = 0; i < count; i++) {
+        const angle = (i / count) * Math.PI * 2;
         const n1 = Math.sin(angle * 3 + t * 1.5 + seed) * 0.45;
         const n2 = Math.sin(angle * 5 - t * 1.0 + seed * 2.3) * 0.3;
-        const n3 = Math.cos(angle * 2 + t * 1.8 + seed * 0.7) * 0.25;
-        const noise = (n1 + n2 + n3) * (TRAIL_NOISE_AMP * 0.5) * (r / 32);
+        const noise = (n1 + n2) * (TRAIL_NOISE_AMP * 0.45) * (r / 32);
         const currentR = Math.max(0, r + noise);
-        pts.push({
-          x: cx + Math.cos(angle) * currentR,
-          y: cy + Math.sin(angle) * currentR,
-        });
+        polyPtsX[i] = cx + Math.cos(angle) * currentR;
+        polyPtsY[i] = cy + Math.sin(angle) * currentR;
       }
 
-      if (pts.length > 2) {
+      if (count > 2) {
         context.beginPath();
-        const firstMidX = (pts[0].x + pts[1].x) / 2;
-        const firstMidY = (pts[0].y + pts[1].y) / 2;
+        const firstMidX = (polyPtsX[0] + polyPtsX[1]) / 2;
+        const firstMidY = (polyPtsY[0] + polyPtsY[1]) / 2;
         context.moveTo(firstMidX, firstMidY);
 
-        for (let i = 1; i < pts.length; i++) {
-          const nextPt = pts[(i + 1) % pts.length];
-          const midX = (pts[i].x + nextPt.x) / 2;
-          const midY = (pts[i].y + nextPt.y) / 2;
-          context.quadraticCurveTo(pts[i].x, pts[i].y, midX, midY);
+        for (let i = 1; i < count; i++) {
+          const nextIdx = (i + 1) % count;
+          const midX = (polyPtsX[i] + polyPtsX[nextIdx]) / 2;
+          const midY = (polyPtsY[i] + polyPtsY[nextIdx]) / 2;
+          context.quadraticCurveTo(polyPtsX[i], polyPtsY[i], midX, midY);
         }
-        context.quadraticCurveTo(pts[0].x, pts[0].y, firstMidX, firstMidY);
+        context.quadraticCurveTo(polyPtsX[0], polyPtsY[0], firstMidX, firstMidY);
         context.closePath();
       }
     };
@@ -257,7 +259,7 @@ export const PlantDocHeroStage: React.FC = () => {
             alpha: 0.95,
             seed: Math.random() * 100
           });
-          const maxPoints = isMobileDevice ? 70 : TRAIL_MAX_POINTS;
+          const maxPoints = isMobileDevice ? 85 : TRAIL_MAX_POINTS;
           if (points.length > maxPoints) {
             points.shift();
           }
@@ -266,17 +268,19 @@ export const PlantDocHeroStage: React.FC = () => {
         }
       }
 
-      // Decay previous trailing points (linger longer on mobile for smooth dissipation)
-      const fadeSpeed = isMobileDevice ? 0.975 : TRAIL_FADE_SPEED;
-      const radiusDecay = isMobileDevice ? 0.997 : 0.994;
+      // In-place decay: 0 garbage collection allocations per frame!
+      // Balanced organic linger (0.965 fade speed creates ~1.8s smooth trailing wake)
+      const fadeSpeed = isMobileDevice ? 0.965 : TRAIL_FADE_SPEED;
+      const radiusDecay = isMobileDevice ? 0.996 : 0.994;
 
-      points = points
-        .map(p => ({
-          ...p,
-          alpha: p.alpha * fadeSpeed,
-          r: p.r * radiusDecay
-        }))
-        .filter(p => p.alpha > 0.01 && p.r > 1);
+      for (let i = points.length - 1; i >= 0; i--) {
+        const p = points[i];
+        p.alpha *= fadeSpeed;
+        p.r *= radiusDecay;
+        if (p.alpha <= 0.01 || p.r <= 1) {
+          points.splice(i, 1);
+        }
+      }
 
       if (maskCanvas.width > 0 && maskCanvas.height > 0) {
         if (points.length === 0 && !hovering && headRadius < 0.5) {
@@ -407,7 +411,6 @@ export const PlantDocHeroStage: React.FC = () => {
               alt="Healthy Foliage Specimen"
               className="w-full h-full object-contain object-top filter drop-shadow-[0_25px_60px_rgba(0,0,0,0.9)]"
               loading="eager"
-              fetchPriority="high"
               decoding="async"
             />
 
@@ -425,7 +428,6 @@ export const PlantDocHeroStage: React.FC = () => {
                 alt=""
                 className="relative z-10 w-full h-full object-contain object-top filter drop-shadow-[0_0_40px_rgba(239,68,68,0.4)]"
                 loading="eager"
-                fetchPriority="high"
                 decoding="async"
               />
             </div>

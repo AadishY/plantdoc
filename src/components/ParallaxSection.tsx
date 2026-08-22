@@ -163,4 +163,4 @@ export const ParallaxSection: React.FC = () => {
   );
 };
 
-export default ParallaxSection;
+export default React.memo(ParallaxSection);

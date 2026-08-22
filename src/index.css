@@ -960,5 +960,19 @@ html.lenis, html.lenis body {
   }
 }
 
+/* 🚀 Heavy Mobile Rendering & Touch Performance Hardening */
+@media (max-width: 768px) {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  body {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: none;
+  }
 
-
+  section:not(:first-of-type), footer {
+    content-visibility: auto;
+    contain-intrinsic-size: 600px;
+  }
+}

@@ -628,4 +628,4 @@ const RecommendPage = () => {
   );
 };
 
-export default RecommendPage;
+export default React.memo(RecommendPage);

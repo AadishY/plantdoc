@@ -252,4 +252,4 @@ const AboutPage: React.FC = () => {
   );
 };
 
-export default AboutPage;
+export default React.memo(AboutPage);
