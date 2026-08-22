@@ -227,7 +227,7 @@ export const PlantDocHeroStage: React.FC = () => {
     }
 
     const isMobileDevice = typeof window !== 'undefined' && window.innerWidth < 768;
-    const scaledHeadR = isMobileDevice ? TRAIL_HEAD_R * 0.32 : TRAIL_HEAD_R * 0.5;
+    const scaledHeadR = isMobileDevice ? TRAIL_HEAD_R * 0.36 : TRAIL_HEAD_R * 0.52;
 
     const renderLoop = () => {
       if (!isPageVisible || !isIntersecting) {
@@ -426,7 +426,7 @@ export const PlantDocHeroStage: React.FC = () => {
               <img 
                 src="/main_disease.webp" 
                 alt=""
-                className="relative z-10 w-full h-full object-contain object-top filter drop-shadow-[0_0_40px_rgba(239,68,68,0.4)]"
+                className="relative z-10 w-full h-full object-contain object-top filter brightness-[1.04] contrast-[1.12] saturate-[1.16] drop-shadow-[0_0_30px_rgba(239,68,68,0.45)] drop-shadow-[0_0_10px_rgba(245,158,11,0.25)]"
                 loading="eager"
                 decoding="async"
               />
