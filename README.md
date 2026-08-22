@@ -11,7 +11,7 @@
 ---
 
 <p align="center">
-  <img src="public/demo/home.webp" alt="PlantDoc AI Hero Stage" width="100%" style="border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);" />
+  <img src="bannerr.jpg" alt="PlantDoc AI Banner" width="100%" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);" />
 </p>
 
 ---
