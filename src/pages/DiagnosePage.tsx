@@ -36,7 +36,18 @@ const DiagnosePage: React.FC = () => {
     return () => clearInterval(interval);
   }, [isLoading]);
 
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
+
   const handleImageChange = (file: File) => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
     setSelectedImage(file);
     setPreviewUrl(URL.createObjectURL(file));
     setDiagnosisResult(null);
@@ -67,6 +78,9 @@ const DiagnosePage: React.FC = () => {
   };
 
   const handleReset = () => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
     setSelectedImage(null);
     setPreviewUrl(null);
     setDiagnosisResult(null);

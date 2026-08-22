@@ -174,4 +174,4 @@ const MobileNavLink: React.FC<MobileNavLinkProps> = ({ to, label, isActive, onCl
   );
 };
 
-export default Header;
+export default React.memo(Header);
