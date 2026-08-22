@@ -9,11 +9,9 @@ import {
   Eye, 
   EyeOff, 
   AlertTriangle, 
-  CheckCircle2, 
-  Info,
+  ShieldCheck,
   Maximize2,
-  Minimize2,
-  ShieldCheck
+  Minimize2
 } from 'lucide-react';
 
 interface PlantSegmentationViewerProps {
@@ -28,10 +26,10 @@ interface PlantSegmentationViewerProps {
 }
 
 const CV_COLORS = [
-  { border: '#EF4444', bg: 'rgba(239, 68, 68, 0.18)', text: '#F87171', labelBg: 'rgba(12, 12, 12, 0.95)' }, // Red - Necrosis
-  { border: '#F59E0B', bg: 'rgba(245, 158, 11, 0.18)', text: '#FBBF24', labelBg: 'rgba(12, 12, 12, 0.95)' }, // Amber - Halo
-  { border: '#A855F7', bg: 'rgba(168, 85, 247, 0.18)', text: '#C084FC', labelBg: 'rgba(12, 12, 12, 0.95)' }, // Purple - Spores
-  { border: '#06B6D4', bg: 'rgba(6, 182, 212, 0.18)', text: '#22D3EE', labelBg: 'rgba(12, 12, 12, 0.95)' },  // Cyan - Spot
+  { border: '#EF4444', bg: 'rgba(239, 68, 68, 0.18)', text: '#F87171' }, // Red - Necrosis
+  { border: '#F59E0B', bg: 'rgba(245, 158, 11, 0.18)', text: '#FBBF24' }, // Amber - Halo
+  { border: '#A855F7', bg: 'rgba(168, 85, 247, 0.18)', text: '#C084FC' }, // Purple - Spores
+  { border: '#06B6D4', bg: 'rgba(6, 182, 212, 0.18)', text: '#22D3EE' },  // Cyan - Spot
 ];
 
 export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = ({
@@ -73,8 +71,8 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
     
     const top = (actualYmin / scale) * 100;
     const left = (actualXmin / scale) * 100;
-    const height = Math.max(4, ((actualYmax - actualYmin) / scale) * 100);
-    const width = Math.max(4, ((actualXmax - actualXmin) / scale) * 100);
+    const height = Math.max(3, ((actualYmax - actualYmin) / scale) * 100);
+    const width = Math.max(3, ((actualXmax - actualXmin) / scale) * 100);
 
     return {
       top: `${Math.max(0, Math.min(top, 100 - height))}%`,
@@ -100,23 +98,18 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
   );
 
   return (
-    <div className="relative rounded-3xl overflow-hidden glass-card-intense border border-white/20 shadow-2xl backdrop-blur-xl transition-all duration-300">
+    <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden glass-card-intense border border-white/20 shadow-2xl backdrop-blur-xl transition-all duration-300">
       {/* Top Header Controls Bar */}
-      <div className="p-4 bg-black/60 border-b border-white/10 flex flex-wrap items-center justify-between gap-3">
+      <div className="p-3 sm:p-4 bg-black/60 border-b border-white/10 flex flex-wrap items-center justify-between gap-2.5 sm:gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-[#2DD4BF]/20 border border-[#2DD4BF]/40 text-[#2DD4BF]">
-            {isHealthy ? <ShieldCheck className="h-5 w-5 text-emerald-400" /> : <Scan className="h-5 w-5" />}
+          <div className="p-1.5 sm:p-2 rounded-xl bg-[#2DD4BF]/20 border border-[#2DD4BF]/40 text-[#2DD4BF]">
+            {isHealthy ? <ShieldCheck className="h-4 sm:h-5 w-4 sm:h-5 text-emerald-400" /> : <Scan className="h-4 sm:h-5 w-4 sm:h-5" />}
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h3 className="font-bold text-base text-white">
-                {isHealthy ? 'Healthy Plant Foliage Inspection' : `Plant Disease Diagnosis: ${diseaseName}`}
-              </h3>
-              <Badge className={`font-semibold text-[10px] px-2 py-0.5 ${isHealthy ? 'bg-emerald-500 text-black' : 'bg-[#2DD4BF] text-black font-bold'}`}>
-                {isHealthy ? 'Healthy Specimen' : 'PlantDoc Vision Engine'}
-              </Badge>
-            </div>
-            <p className="text-xs text-foreground/70">
+            <h3 className="font-bold text-sm sm:text-base text-white">
+              {isHealthy ? 'Healthy Plant Foliage Inspection' : `Plant Disease Diagnosis: ${diseaseName}`}
+            </h3>
+            <p className="text-[11px] sm:text-xs text-foreground/70">
               {isHealthy 
                 ? 'No disease pathogens, discoloration, or lesions detected' 
                 : 'Precise 2D bounding boxes localized over active foliar infection zones'}
@@ -131,7 +124,7 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
               size="sm"
               variant={showLesions ? "default" : "outline"}
               onClick={() => setShowLesions(!showLesions)}
-              className={`text-xs h-8 px-2.5 rounded-lg ${showLesions ? 'bg-plantDoc-primary text-black font-semibold hover:bg-plantDoc-primary/90' : 'border-white/20'}`}
+              className={`text-xs h-7 sm:h-8 px-2 sm:px-2.5 rounded-lg ${showLesions ? 'bg-plantDoc-primary text-black font-semibold hover:bg-plantDoc-primary/90' : 'border-white/20'}`}
             >
               <AlertTriangle className="h-3.5 w-3.5 mr-1" />
               Lesion Boxes ({displayLesions.length})
@@ -141,7 +134,7 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
               size="sm"
               variant={showHeatmap ? "default" : "outline"}
               onClick={() => setShowHeatmap(!showHeatmap)}
-              className={`text-xs h-8 px-2.5 rounded-lg ${showHeatmap ? 'bg-amber-500/80 hover:bg-amber-600 text-white' : 'border-white/20'}`}
+              className={`text-xs h-7 sm:h-8 px-2 sm:px-2.5 rounded-lg ${showHeatmap ? 'bg-amber-500/80 hover:bg-amber-600 text-white' : 'border-white/20'}`}
             >
               <Layers className="h-3.5 w-3.5 mr-1" />
               Heat Tint
@@ -151,7 +144,7 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
               size="sm"
               variant="ghost"
               onClick={() => setShowLabels(!showLabels)}
-              className="text-xs h-8 px-2 text-foreground/80 hover:text-white rounded-lg"
+              className="text-xs h-7 sm:h-8 px-1.5 sm:px-2 text-foreground/80 hover:text-white rounded-lg"
               title={showLabels ? "Hide labels" : "Show labels"}
             >
               {showLabels ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
@@ -161,7 +154,7 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
               size="sm"
               variant="ghost"
               onClick={() => setIsZoomed(!isZoomed)}
-              className="text-xs h-8 px-2 text-foreground/80 hover:text-white rounded-lg"
+              className="text-xs h-7 sm:h-8 px-1.5 sm:px-2 text-foreground/80 hover:text-white rounded-lg"
               title="Toggle zoom inspection"
             >
               {isZoomed ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
@@ -171,17 +164,17 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
       </div>
 
       {/* Main Computer Vision Canvas Container */}
-      <div className={`relative w-full bg-[#070b08] p-3 sm:p-6 flex items-center justify-center overflow-hidden transition-all duration-300 ${isZoomed ? 'min-h-[550px]' : 'min-h-[380px] max-h-[550px]'}`}>
+      <div className={`relative w-full bg-[#070b08] p-2 sm:p-6 flex items-center justify-center overflow-hidden transition-all duration-300 ${isZoomed ? 'min-h-[480px]' : 'min-h-[220px]'}`}>
         
-        {/* 🎯 Exact Image-Fitted Relative Wrapper (Zero Letterbox Offset) */}
-        <div className="relative inline-block leading-none max-w-full max-h-[500px]">
+        {/* 🎯 Exact Pixel-Fitted Relative Image Wrapper */}
+        <div className="relative inline-block leading-none max-w-full rounded-xl shadow-2xl border border-white/10">
           <img
             src={imageUrl}
             alt="Plant Diagnostic Canvas"
-            className="block w-auto h-auto max-w-full max-h-[500px] object-contain rounded-xl select-none pointer-events-none shadow-2xl"
+            className="block w-full max-w-full h-auto object-cover rounded-xl select-none pointer-events-none"
           />
 
-          {/* Bounding Boxes mapped directly onto the exact image bounds! */}
+          {/* Bounding Boxes mapped directly onto the exact image bounds */}
           {!isHealthy && showLesions && (
             <AnimatePresence>
               {displayLesions.map((lesion, index) => {
@@ -193,43 +186,45 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
                   height: '35%'
                 };
                 const isSelected = selectedLesion?.label === lesion.label;
+                const isNearTop = parseFloat(box.top) < 6;
 
                 return (
                   <div
                     key={index}
                     onClick={() => setSelectedLesion(isSelected ? null : lesion)}
-                    className={`absolute cursor-pointer transition-all duration-150 ${isSelected ? 'z-30 ring-1 ring-white scale-[1.01]' : 'z-20 hover:z-25'}`}
+                    className={`absolute cursor-pointer transition-all duration-150 min-w-[14px] min-h-[14px] ${isSelected ? 'z-30 ring-1 ring-white scale-[1.01]' : 'z-20 hover:z-25'}`}
                     style={{
                       ...box,
-                      border: `0.75px solid ${color.border}`,
+                      border: `1px solid ${color.border}`,
                       backgroundColor: showHeatmap ? color.bg : 'transparent',
-                      boxShadow: isSelected ? `0 0 12px ${color.border}` : '0 0 4px rgba(0,0,0,0.4)'
+                      boxShadow: isSelected ? `0 0 12px ${color.border}` : '0 0 4px rgba(0,0,0,0.5)'
                     }}
                   >
                     {/* Delicate Precision Corner Brackets */}
-                    <span className="absolute -top-[1px] -left-[1px] w-1.5 h-1.5 border-t-[1px] border-l-[1px]" style={{ borderColor: color.border }} />
-                    <span className="absolute -top-[1px] -right-[1px] w-1.5 h-1.5 border-t-[1px] border-r-[1px]" style={{ borderColor: color.border }} />
-                    <span className="absolute -bottom-[1px] -left-[1px] w-1.5 h-1.5 border-b-[1px] border-l-[1px]" style={{ borderColor: color.border }} />
-                    <span className="absolute -bottom-[1px] -right-[1px] w-1.5 h-1.5 border-b-[1px] border-r-[1px]" style={{ borderColor: color.border }} />
+                    <span className="absolute -top-[1px] -left-[1px] w-1 sm:w-1.5 h-1 sm:h-1.5 border-t-[1px] border-l-[1px]" style={{ borderColor: color.border }} />
+                    <span className="absolute -top-[1px] -right-[1px] w-1 sm:w-1.5 h-1 sm:h-1.5 border-t-[1px] border-r-[1px]" style={{ borderColor: color.border }} />
+                    <span className="absolute -bottom-[1px] -left-[1px] w-1 sm:w-1.5 h-1 sm:h-1.5 border-b-[1px] border-l-[1px]" style={{ borderColor: color.border }} />
+                    <span className="absolute -bottom-[1px] -right-[1px] w-1 sm:w-1.5 h-1 sm:h-1.5 border-b-[1px] border-r-[1px]" style={{ borderColor: color.border }} />
 
-                    {/* Simple Clean White Monospace Tag (Flush to Box, Matching Border Color, Non-Bold) */}
+                    {/* Simple Clean Monospace Tag (Intelligently placed inside if near top edge) */}
                     {showLabels && (
                       <div 
-                        className="absolute bottom-full left-[-0.75px] whitespace-nowrap select-none font-mono flex items-center gap-1 rounded-t-[3px]"
+                        className={`absolute whitespace-nowrap select-none font-mono flex items-center gap-1 ${isNearTop ? 'top-0 left-0 rounded-b-[3px]' : 'bottom-full left-[-1px] rounded-t-[3px]'}`}
                         style={{
                           backgroundColor: 'rgba(5, 10, 8, 0.92)',
-                          border: `0.75px solid ${color.border}`,
-                          borderBottom: 'none',
+                          border: `1px solid ${color.border}`,
+                          borderBottom: isNearTop ? `1px solid ${color.border}` : 'none',
+                          borderTop: isNearTop ? 'none' : `1px solid ${color.border}`,
                           color: '#ffffff',
-                          padding: '1px 4px',
-                          fontSize: '7.5px',
-                          fontWeight: 300,
+                          padding: '1px 3px',
+                          fontSize: '7px',
+                          fontWeight: 400,
                           letterSpacing: '0.01em',
                           boxShadow: '0 -2px 6px rgba(0,0,0,0.6)'
                         }}
                       >
-                        <span className="text-white font-light">{lesion.label}</span>
-                        <span className="opacity-75 text-[7px] text-white/90 font-light">
+                        <span className="text-white">{lesion.label}</span>
+                        <span className="opacity-75 text-[6.5px] text-white/90">
                           {(lesion.confidence || diseaseConfidence).toFixed(0)}%
                         </span>
                       </div>
@@ -243,114 +238,47 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
 
         {/* Floating Top-Left Plant Specimen Pill */}
         <div className="absolute top-3 left-3 pointer-events-auto z-30">
-          <div className="glass-card-intense backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20 flex items-center gap-2 shadow-lg">
-            <span className="w-2.5 h-2.5 rounded-full bg-plantDoc-primary animate-pulse" />
-            <div className="text-xs">
+          <div className="glass-card-intense backdrop-blur-md px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-white/20 flex items-center gap-1.5 sm:gap-2 shadow-lg">
+            <span className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-plantDoc-primary animate-pulse" />
+            <div className="text-[11px] sm:text-xs">
               <span className="font-semibold text-white">{plantName}</span>
               {scientificName && (
-                <span className="text-foreground/70 italic ml-1">({scientificName})</span>
+                <span className="text-foreground/70 italic text-[10px] sm:text-xs ml-1">({scientificName})</span>
               )}
             </div>
-            <Badge className="bg-plantDoc-primary/30 text-plantDoc-primary border border-plantDoc-primary/50 text-[10px] px-1.5 py-0">
-              {plantAccuracy.toFixed(1)}% Match
+          </div>
+        </div>
+      </div>
+
+      {/* Selected Lesion Detail Inspector Drawer */}
+      {selectedLesion && (
+        <div className="p-3 sm:p-4 bg-black/80 border-t border-white/10 text-xs flex flex-wrap items-center justify-between gap-2.5 animate-fade-in">
+          <div className="flex items-center gap-2">
+            <Badge className="bg-red-500/20 text-red-300 border border-red-500/30 text-xs">
+              {selectedLesion.label}
             </Badge>
+            <span className="text-foreground/80 text-xs">
+              {selectedLesion.description || 'Active necrotic lesion exhibiting chloroplast degradation'}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-foreground/60 text-[11px]">Match Certainty:</span>
+            <span className="font-mono font-bold text-plantDoc-primary text-xs">
+              {(selectedLesion.confidence || diseaseConfidence).toFixed(1)}%
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setSelectedLesion(null)}
+              className="text-[11px] h-6 px-2 ml-2 rounded-full border-white/20 hover:bg-white/10"
+            >
+              Close Inspector
+            </Button>
           </div>
         </div>
-
-        {/* Floating Top-Right Diagnostics Pill */}
-        <div className="absolute top-3 right-3 pointer-events-auto z-30">
-          <div className="glass-card-intense backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20 flex items-center gap-2 shadow-lg">
-            {isHealthy ? (
-              <>
-                <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                <div className="text-xs font-semibold text-emerald-300">
-                  Healthy Foliage
-                </div>
-                <Badge className="bg-emerald-600 text-white text-[10px] px-1.5 py-0">
-                  No Disease
-                </Badge>
-              </>
-            ) : (
-              <>
-                <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
-                <div className="text-xs font-semibold text-white">
-                  {diseaseName}
-                </div>
-                <Badge className="bg-red-600 text-white text-[10px] px-1.5 py-0">
-                  {severity} Severity
-                </Badge>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom Status Bar */}
-      <div className="p-3.5 bg-black/60 border-t border-white/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2.5 text-foreground/85 flex-wrap">
-          {isHealthy ? (
-            <>
-              <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-              <span className="text-emerald-300 font-medium">
-                No active disease symptoms or pathogen lesions detected. Foliage displays normal healthy pigmentation.
-              </span>
-            </>
-          ) : (
-            <>
-              <Info className="h-4 w-4 text-[#2DD4BF] shrink-0" />
-              {selectedLesion ? (
-                <div className="flex items-center gap-2 flex-wrap text-xs">
-                  <span className="text-white font-mono">
-                    <strong className="text-[#2DD4BF] font-semibold">{selectedLesion.label}:</strong>{' '}
-                    <span className="text-white/90 font-sans">
-                      {selectedLesion.description || (
-                        selectedLesion.label.toLowerCase().includes('hole')
-                          ? 'Foliar tissue perforated by pest feeding, impairing photosynthetic leaf area.'
-                          : selectedLesion.label.toLowerCase().includes('mildew') || selectedLesion.label.toLowerCase().includes('spore')
-                          ? 'Fungal mycelium growth draining epidermal moisture and blocking sunlight.'
-                          : selectedLesion.label.toLowerCase().includes('halo') || selectedLesion.label.toLowerCase().includes('chlorosis')
-                          ? 'Marginal chlorosis caused by chlorophyll breakdown and localized pathogen toxins.'
-                          : `Localized necrotic lesion causing foliar cell degradation and pathogen spread.`
-                      )}
-                    </span>
-                  </span>
-                  {selectedLesion.box_2d && (
-                    <Badge className="bg-black/80 text-[#5EEAD4] text-[9.5px] font-mono border border-[#2DD4BF]/40 px-2 py-0.5 rounded">
-                      Coords: [{selectedLesion.box_2d.join(', ')}]
-                    </Badge>
-                  )}
-                  <Badge className="bg-red-500/20 text-red-300 text-[9.5px] font-mono border border-red-500/30 px-2 py-0.5 rounded">
-                    {selectedLesion.severity} severity ({(selectedLesion.confidence || diseaseConfidence).toFixed(0)}%)
-                  </Badge>
-                </div>
-              ) : (
-                <span className="text-white/80 text-xs">
-                  Click on any localized lesion box on the image to inspect pathology coordinates & affected tissue info.
-                </span>
-              )}
-            </>
-          )}
-        </div>
-
-        {!isHealthy && (
-          <div className="flex items-center gap-3 shrink-0 font-mono text-[11px]">
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-sm bg-[#EF4444]" />
-              <span className="text-foreground/70 text-[10px]">Necrosis</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-sm bg-[#F59E0B]" />
-              <span className="text-foreground/70 text-[10px]">Chlorosis</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-sm bg-[#A855F7]" />
-              <span className="text-foreground/70 text-[10px]">Pathogen</span>
-            </div>
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 };
 
-export default PlantSegmentationViewer;
+export default React.memo(PlantSegmentationViewer);

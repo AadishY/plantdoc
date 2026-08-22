@@ -39,9 +39,9 @@ const DynamicBackground: React.FC = React.memo(() => {
 
     window.addEventListener('resize', handleResize, { passive: true });
 
-    // Adaptive bioluminescent spores (12 on mobile, 22 on desktop)
+    // Adaptive bioluminescent spores (6 on mobile, 22 on desktop for 120fps efficiency)
     const isMobile = window.innerWidth < 768;
-    const particleCount = isMobile ? 12 : Math.min(Math.floor(window.innerWidth / 60), 22);
+    const particleCount = isMobile ? 6 : Math.min(Math.floor(window.innerWidth / 60), 22);
     const particles: Particle[] = [];
 
     for (let i = 0; i < particleCount; i++) {

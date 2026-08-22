@@ -10,7 +10,6 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 
 // Lazily load components for better performance
 const TextHighlighter = lazy(() => import('@/components/TextHighlighter'));
-const FixedMobileNav = lazy(() => import('@/components/FixedMobileNav'));
 
 // Preload critical pages
 import Index from '@/pages/Index';
@@ -64,9 +63,8 @@ function App() {
             } />
           </Routes>
 
-          {/* Global Navigation */}
+          {/* Global Highlights & Toast */}
           <Suspense fallback={null}>
-            <FixedMobileNav />
             <TextHighlighter />
           </Suspense>
           <Toaster />
