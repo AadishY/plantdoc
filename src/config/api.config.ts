@@ -1,9 +1,14 @@
-
-// API Configuration
-// Replace the API_KEY value with your actual Gemini API key
+// PlantDoc AI Configuration
 export const API_CONFIG = {
-  DIAGNOSIS_MODEL: "gemini-3.7-flash", // Model for plant diagnosis
-  RECOMMENDATION_MODEL: "gemini-3-flash-preview", // Model for plant recommendation
-  CLIMATE_MODEL: "gemini-flash-lite-latest", // Model for climate data
-  BASE_URL: "https://generativelanguage.googleapis.com/v1beta"
+  DIAGNOSIS_MODEL: "gemini-3.6-flash", // PlantDoc Vision Clinical Diagnosis Model
+  SEGMENTATION_MODEL: "gemini-3.5-flash-lite", // PlantDoc Fast Spatial Lesion Segmentation Model
+  RECOMMENDATION_MODEL: "gemini-3.6-flash", // PlantDoc Botanical Recommendation Model
+  CLIMATE_MODEL: "gemini-3.5-flash-lite", // PlantDoc Fast Climate Model
+  BASE_URL: "https://generativelanguage.googleapis.com/v1beta",
+  WIKIMEDIA_USER_AGENT: "PlantDoc/1.0 (https://plantdoc.app; contact@plantdoc.app)",
+  
+  // Environment API key getter
+  getApiKey: (): string => {
+    return (import.meta.env.VITE_GEMINI_API_KEY || '').trim();
+  }
 };

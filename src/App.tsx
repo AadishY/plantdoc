@@ -1,10 +1,12 @@
-
 import { Suspense, lazy } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { Toaster } from '@/components/ui/toaster';
 import AnimatedLoader from '@/components/ui/animated-loader';
 import DynamicBackground from '@/components/DynamicBackground';
+import SiteLoader from '@/components/SiteLoader';
+import SmoothScroll from '@/components/SmoothScroll';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 // Lazily load components for better performance
 const TextHighlighter = lazy(() => import('@/components/TextHighlighter'));
@@ -22,46 +24,54 @@ const NotFound = lazy(() => import('@/pages/NotFound'));
 // Fallback loading component for lazy-loaded routes
 const PageLoading = () => (
   <div className="h-screen w-full flex flex-col items-center justify-center">
-    <AnimatedLoader size="lg" color="primary" text="Loading Plant Doc..." />
+    <AnimatedLoader size="lg" color="primary" text="Loading PlantDoc..." />
   </div>
 );
 
 function App() {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="plantdoc-theme">
-      {/* Apply DynamicBackground to all pages */}
-      <DynamicBackground />
-      
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/diagnose" element={
-          <Suspense fallback={<PageLoading />}>
-            <DiagnosePage />
+      <ErrorBoundary>
+        {/* Smooth Lenis Inertia Scroll */}
+        <SmoothScroll>
+          {/* Initial load splash */}
+          <SiteLoader />
+          
+          {/* Ultra-fast GPU background */}
+          <DynamicBackground />
+          
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/diagnose" element={
+              <Suspense fallback={<PageLoading />}>
+                <DiagnosePage />
+              </Suspense>
+            } />
+            <Route path="/recommend" element={
+              <Suspense fallback={<PageLoading />}>
+                <RecommendPage />
+              </Suspense>
+            } />
+            <Route path="/about" element={
+              <Suspense fallback={<PageLoading />}>
+                <AboutPage />
+              </Suspense>
+            } />
+            <Route path="*" element={
+              <Suspense fallback={<PageLoading />}>
+                <NotFound />
+              </Suspense>
+            } />
+          </Routes>
+
+          {/* Global Navigation */}
+          <Suspense fallback={null}>
+            <FixedMobileNav />
+            <TextHighlighter />
           </Suspense>
-        } />
-        <Route path="/recommend" element={
-          <Suspense fallback={<PageLoading />}>
-            <RecommendPage />
-          </Suspense>
-        } />
-        <Route path="/about" element={
-          <Suspense fallback={<PageLoading />}>
-            <AboutPage />
-          </Suspense>
-        } />
-        <Route path="*" element={
-          <Suspense fallback={<PageLoading />}>
-            <NotFound />
-          </Suspense>
-        } />
-      </Routes>
-      
-      {/* Global Components */}
-      <Suspense fallback={null}>
-        <FixedMobileNav />
-        <TextHighlighter />
-      </Suspense>
-      <Toaster />
+          <Toaster />
+        </SmoothScroll>
+      </ErrorBoundary>
     </ThemeProvider>
   );
 }

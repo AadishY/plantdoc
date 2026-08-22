@@ -1,174 +1,138 @@
-# Plant Doc 🌿
+# PlantDoc AI 🌿
 
-[Visit Site](https://plantdoc.lovable.app/)
+> **Next-Generation Botanical AI Vision, Neural Lesion Mapping & Clinical Plant Health Engine**
 
-Plant Doc is an AI-powered web application designed to help plant enthusiasts diagnose and treat plant diseases efficiently. Using state-of-the-art image recognition and the advanced capabilities of Google Gemini AI, Plant Doc analyzes plant images to provide accurate diagnoses and tailored treatment recommendations.
-
----
-
-## Table of Contents
-
-- [Overview](#overview)
-- [Features](#features)
-- [Technologies Used](#technologies-used)
-- [Target Audience](#target-audience)
-- [Project Overview](#project-overview)
-- [Integrations & Sponsor Technologies](#integrations--sponsor-technologies)
-- [Team & Contributions](#team--contributions)
-- [Market Opportunity](#market-opportunity)
-- [Business Model](#business-model)
-- [Contact & Links](#contact--links)
+[![Live Demo](https://img.shields.io/badge/Live-Demo-4CAF50?style=for-the-badge&logo=vercel&logoColor=white)](https://plantdoc.lovable.app/)
+[![React](https://img.shields.io/badge/React_18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript_5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 
 ---
 
-[![Demo Video](path/to/screenshot.png)](public/demo.mp4)
+## 🌟 Overview
+
+**PlantDoc AI** is an advanced botanical diagnostics and regional recommendation platform engineered to empower gardeners, agricultural practitioners, and nurseries. By combining neural vision processing with **precise foliar lesion localization** and **live Wikimedia REST API synchronization**, PlantDoc AI delivers sub-second disease localization and actionable clinical recovery plans.
 
 ---
 
-## Overview
+## ✨ Key Features
 
-Plant Doc empowers home gardeners, small-scale farmers, and plant care enthusiasts by using advanced machine learning and AI technology to diagnose plant diseases from photos. With a clean, user-friendly interface, users can quickly upload an image of their plant, receive a detailed diagnosis, and access actionable care and treatment recommendations—all in one place.
+### 🔬 1. Neural Foliar Lesion Localization
+- **Pixel-Accurate Bounding Boxes**: Automatically isolates localized disease symptoms including necrotic lesions, chlorotic yellow halos, and active sporulation centers.
+- **Interactive Annotation Viewer**: Direct inspection of individual lesion coordinates, severity tags, and confidence percentages over the uploaded plant photo.
+- **Micro-Animations**: Laser radar scanning preview and real-time canvas overlays.
 
----
+### 🛡️ 2. Clinical Remediation & Treatment Matrix
+- **Interactive Emergency Checklist**: Check off emergency triage steps (shears sterilization, plant isolation, canopy pruning).
+- **Biological & Organic Arsenal**: Pure cold-pressed neem formulations, *Bacillus subtilis*, *Trichoderma harzianum*, and potassium bicarbonate washes.
+- **Targeted Chemical Prescriptions**: Active ingredient recommendations (Copper Hydroxide, Chlorothalonil, Azoxystrobin) with application intervals and dilution rates.
+- **30-Day Recovery Timeline**: Structured milestone tracking from day-1 triage to foliar regeneration.
 
-## Features
+### 🌾 3. Climate-Adaptive Recommendation Engine
+- **Plant Category Filtering**: Discover species tailored for **Mix (Default)**, **Crops & Veggies**, **Fruit Trees & Berries**, **Flowers & Ornamentals**, or **Herbs**.
+- **Auto-Detect Regional Climate**: Automatically models regional temperature, annual rainfall, humidity, and soil pH based on Country and State/Province.
+- **100% Real Wikimedia Images**: Connects directly to the **Wikimedia REST API** to retrieve verified botanical photography, Wikipedia care guides, and seed purchase references with zero synthetic placeholders.
 
-- **Simple and Intuitive UI:**  
-  A seamless landing page with an "About" section and a primary focus on image upload for fast, efficient diagnosis.
+### ⚡ 4. High-Performance Mobile & Glassmorphic Architecture
+- **Lenis Smooth Inertia Scroll**: 60/120fps inertia scrolling synchronized with GSAP tickers.
+- **Moving Ambient Lighting Orbs**: Pure CSS GPU-accelerated floating lighting orbs with zero CPU overhead.
+- **Mobile Touch Optimized**: Responsive bottom navigation with native touch fluidity and safe-area support.
 
-- **AI-Driven Diagnostics:**  
-  Utilizes Google Gemini for image analysis and disease detection with high accuracy.
-
-- **Comprehensive Results:**  
-  Detailed diagnostic cards provide:
-  - Disease identification and confidence metrics
-  - Severity indicators
-  - Treatment steps, prevention tips, and causes
-  - Fertilizer recommendations and care tips
-  - In-depth plant information including description, origin, common uses, and growing conditions
-
-- **Real-Time Integrations:**  
-  Supports environmental data integration and user feedback for continuous model improvement.
-
----
-
-## Technologies Used
-
-- **Google Gemini:**  
-  For AI-powered image recognition and plant disease identification.
-  
-- **Supabase:**  
-  Provides backend services including authentication, database management, and real-time data synchronization.
-  
-- **Lovable:**  
-  The platform used for developing and hosting the website.
-  
-- **Vite:**  
-  A fast build tool for a streamlined development process.
-  
-- **TypeScript:**  
-  Ensures robust type-checking and enhances code maintainability.
-  
-- **React:**  
-  Powers the dynamic, component-based user interface.
-  
-- **shadcn-ui:**  
-  Offers pre-built UI components to accelerate design and development.
-  
-- **Tailwind CSS:**  
-  Enables rapid styling and ensures a modern, responsive design.
+### 📄 5. Clinical PDF Report & Cropped Lesion Scans
+- **Pixel-Perfect Cropped Lesion Thumbnails**: High-resolution cropped scans of individual necrotic lesion zones with localized coordinates `[ymin, xmin, ymax, xmax]`.
+- **Sleek Dark Mode & Eco Light Mode Print Themes**: Switch between high-tech clinical dark theme and ink-saving white light mode for PDF export and printing.
+- **Complete Clinical Summary**: Formulates comprehensive PDF diagnostic reports with health vitality scores, pathogen profiles, fertilizer prescriptions, and 30-day recovery timelines.
 
 ---
 
-## Target Audience
+## 🚀 Quick Start Guide
 
-- **Home Gardeners & Hobbyists:**  
-  Individuals seeking an easy-to-use tool for plant disease diagnosis.
-  
-- **Small-Scale Farmers:**  
-  Agricultural practitioners aiming to enhance crop yields by timely disease management.
-  
-- **Environmental Enthusiasts:**  
-  Those interested in sustainable gardening and plant care practices.
-  
-- **Educational & Research Institutions:**  
-  Organizations looking for innovative tools that integrate AI with environmental science.
+### Prerequisites
+- [Node.js](https://nodejs.org/) (v18.0.0 or higher)
+- npm, yarn, or pnpm
 
----
+### Installation
 
-## Project Overview
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/AadishY/PlantDoc.git
+   cd PlantDoc
+   ```
 
-**Problem Statement:**  
-Plant enthusiasts often face challenges diagnosing and treating plant diseases, leading to crop loss and ineffective care practices.
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-**Solution:**  
-Plant Doc leverages cutting-edge AI and image recognition technology to analyze plant images, diagnose diseases, and provide actionable treatment and care recommendations—making plant care accessible and efficient.
+3. **Configure Environment Variables:**
+   Create a `.env` file in the root directory:
+   ```env
+   VITE_GEMINI_API_KEY=your_gemini_api_key_here
+   ```
 
----
+4. **Launch Development Server:**
+   ```bash
+   npm run dev
+   ```
+   Open [http://localhost:8080](http://localhost:8080) in your browser.
 
-## Integrations & Sponsor Technologies
-
-- **Google Gemini AI:**  
-  Core to our diagnosis engine, offering reliable and accurate disease detection.
-
-- **Supabase:**  
-  Manages data storage, authentication, and real-time updates seamlessly.
-
-- **Lovable:**  
-  Provides the foundation for our website's development and ongoing support.
-
-- **Additional Tools:**  
-  Vite, TypeScript, React, shadcn-ui, and Tailwind CSS ensure a robust and modern user experience.
+5. **Build for Production:**
+   ```bash
+   npm run build
+   ```
 
 ---
 
-## Team & Contributions
+## 🏗️ Project Structure
 
-- **Project Lead:**  
-  Oversees project vision and strategic decisions.
-  
-- **AI/ML Engineer:**  
-  Develops and refines the diagnostic algorithms using Google Gemini AI.
-  
-- **Frontend Developer:**  
-  Implements the UI/UX using React and modern design frameworks.
-  
-- **Backend Developer:**  
-  Manages API integrations and data synchronization with Supabase.
-  
-- **UX/UI Designer:**  
-  Crafts a clean, accessible, and engaging interface.
-
-Contributions and feedback are always welcome—please check our [GitHub repository](https://github.com/AadishY/PlantDoc) for more details.
-
----
-
-## Market Opportunity
-
-The demand for AI-driven agricultural technology is growing rapidly, fueled by increasing interest in sustainable practices and smart gardening solutions. Plant Doc is positioned to capture a diverse user base—from home gardeners to commercial farmers—by addressing a critical need in plant disease diagnosis and care.
-
----
-
-## Business Model
-
-- **Freemium Model:**  
-  Free basic diagnostic services with premium features (detailed reports, historical tracking, personalized care plans) available via subscription.
-  
-- **In-App Purchases:**  
-  Monetizing treatment recommendations, fertilizer suggestions, and other plant care products.
-  
-- **B2B Partnerships:**  
-  Collaborations with agricultural centers, garden supply retailers, and research institutions.
-
----
-
-## Contact & Links
-
-- **Website:** [https://plantdoc.lovable.app/](https://plantdoc.lovable.app/)
-- **Gmail:** [aadish14146yadav@gmail.com](aadish14146yadav@gmail.com)
-- **Instagram:** [Click](https://www.instagram.com/yo.akatsuki/)
-- **Author:** Aadish
+```
+plantdoc/
+├── src/
+│   ├── components/
+│   │   ├── ClinicalTreatmentProtocol.tsx   # 5-tier treatment matrix
+│   │   ├── DiagnosisVisualizations.tsx     # Animated Sun/Water/Airflow widgets
+│   │   ├── DynamicBackground.tsx           # Floating ambient lighting orbs
+│   │   ├── FixedMobileNav.tsx              # Modern mobile dock navigation
+│   │   ├── Header.tsx                      # Glassmorphic top navigation
+│   │   ├── PlantSegmentationViewer.tsx     # Foliar lesion localization viewer
+│   │   ├── ResultComponent.tsx             # Complete diagnostic dashboard
+│   │   ├── ScrollProgressBar.tsx           # Viewport progress indicator
+│   │   ├── SiteLoader.tsx                  # Initial splash screen
+│   │   ├── SmoothScroll.tsx                # Lenis & GSAP ticker integration
+│   │   └── UploadComponent.tsx             # Plant upload & laser animation
+│   ├── config/
+│   │   └── api.config.ts                   # Model endpoints & environment getter
+│   ├── pages/
+│   │   ├── AboutPage.tsx                   # Creator bio & tech architecture
+│   │   ├── DiagnosePage.tsx                # Disease diagnosis engine
+│   │   ├── Index.tsx                       # Landing page & parallax showcase
+│   │   └── RecommendPage.tsx               # Botanical matching & Wikimedia
+│   ├── services/
+│   │   ├── api.ts                          # Resilient vision & recommendation API
+│   │   └── wikimedia.ts                    # Live Wikimedia image/article fetcher
+│   ├── types/
+│   │   ├── diagnosis.ts                    # Pathology & lesion coordinate types
+│   │   └── recommendation.ts               # Botanical recommendation schema
+│   ├── App.tsx                             # Application root with SmoothScroll
+│   ├── index.css                           # Tailwind utilities & keyframes
+│   └── main.tsx                            # React entrypoint
+├── tailwind.config.ts                      # Theme tokens & animations
+└── vite.config.ts                          # ManualChunks rollup code splitting
+```
 
 ---
 
-*Happy Planting & Healthy Growth!*
+## 👨‍💻 Creator & Author
+
+- **Author**: Aadish Kumar Yadav (Student Developer)
+- **Institution**: Red Rose Public School, Lucknow, India
+- **GitHub**: [@AadishY](https://github.com/AadishY/PlantDoc)
+- **Instagram**: [@yo.akatsuki](https://instagram.com/yo.akatsuki)
+- **Email**: [aadish14146yadav@gmail.com](mailto:aadish14146yadav@gmail.com)
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License — see the LICENSE file for details.

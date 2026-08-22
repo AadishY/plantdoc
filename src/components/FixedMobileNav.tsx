@@ -1,17 +1,18 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Leaf, Info, FlaskConical } from 'lucide-react';
+import { Home, Scan, Info, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
 const FixedMobileNav: React.FC = () => {
   const location = useLocation();
-  
   const isActive = (path: string) => location.pathname === path;
   
   return (
-    <div className="md:hidden bottom-nav">
+    <nav 
+      aria-label="Mobile Navigation"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#070b08]/90 backdrop-blur-xl border-t border-white/10 px-3 py-2 flex items-center justify-around shadow-[0_-10px_30px_rgba(0,0,0,0.6)] pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))]"
+    >
       <NavItem 
         to="/" 
         icon={<Home size={20} />} 
@@ -20,14 +21,14 @@ const FixedMobileNav: React.FC = () => {
       />
       <NavItem 
         to="/diagnose" 
-        icon={<Leaf size={20} />} 
+        icon={<Scan size={20} />} 
         label="Diagnose" 
         isActive={isActive('/diagnose')} 
       />
       <NavItem 
         to="/recommend" 
-        icon={<FlaskConical size={20} />} 
-        label="Plants" 
+        icon={<Sparkles size={20} />} 
+        label="Recommend" 
         isActive={isActive('/recommend')} 
       />
       <NavItem 
@@ -36,7 +37,7 @@ const FixedMobileNav: React.FC = () => {
         label="About" 
         isActive={isActive('/about')} 
       />
-    </div>
+    </nav>
   );
 };
 
@@ -51,30 +52,23 @@ const NavItem: React.FC<NavItemProps> = ({ to, icon, label, isActive }) => (
   <Link 
     to={to} 
     className={cn(
-      "bottom-nav-item",
-      isActive ? "text-plantDoc-primary" : "text-white/80"
+      "relative flex flex-col items-center justify-center py-1.5 px-3 rounded-xl transition-all duration-200 min-w-[60px] min-h-[44px]",
+      isActive 
+        ? "text-plantDoc-primary font-semibold" 
+        : "text-foreground/70 hover:text-white"
     )}
   >
-    {isActive ? (
-      <motion.div
-        initial={{ scale: 0.8 }}
-        animate={{ scale: 1 }}
-        className="relative"
-      >
-        <span className="absolute -inset-1 bg-white/10 rounded-full blur-sm" />
-        {icon}
-      </motion.div>
-    ) : (
-      icon
-    )}
-    <span className="text-xs">{label}</span>
-    {isActive && (
-      <motion.span 
-        className="absolute -top-1 w-1 h-1 bg-plantDoc-primary rounded-full"
-        layoutId="navIndicator"
-        transition={{ type: "spring", duration: 0.3 }}
-      />
-    )}
+    <div className="relative">
+      {isActive && (
+        <motion.span 
+          layoutId="mobileNavPill"
+          className="absolute -inset-2 rounded-xl bg-plantDoc-primary/15 border border-plantDoc-primary/30 -z-10"
+          transition={{ type: "spring", stiffness: 350, damping: 30 }}
+        />
+      )}
+      {icon}
+    </div>
+    <span className="text-[11px] mt-1 leading-tight">{label}</span>
   </Link>
 );
 

@@ -64,15 +64,20 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 142 70% 45%;
   }
-}
 
-@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
   * {
     @apply border-border;
   }
 
   body {
     @apply bg-background text-foreground;
+    overflow-x: hidden;
   }
 
   button, a, [role="button"] {
@@ -83,16 +88,29 @@
     @apply bg-plantDoc-primary/30 text-foreground;
   }
   
+  /* Ultra-Luxury Obsidian-Emerald Scrollbar */
   ::-webkit-scrollbar {
-    @apply w-2;
+    width: 6px;
+    height: 6px;
   }
   
   ::-webkit-scrollbar-track {
-    @apply bg-black/20;
+    background: #070b08;
   }
   
   ::-webkit-scrollbar-thumb {
-    @apply bg-plantDoc-primary/50 hover:bg-plantDoc-primary/70 rounded-full;
+    background: rgba(16, 185, 129, 0.35);
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(52, 211, 153, 0.7);
+    box-shadow: 0 0 10px rgba(52, 211, 153, 0.5);
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(16, 185, 129, 0.35) #070b08;
   }
   
   input:-webkit-autofill,
@@ -695,3 +713,247 @@ html {
   transform: translateZ(0);
   backface-visibility: hidden;
 }
+
+@keyframes scan-laser {
+  0% {
+    top: 0%;
+    opacity: 0.8;
+  }
+  50% {
+    top: 100%;
+    opacity: 1;
+  }
+  100% {
+    top: 0%;
+    opacity: 0.8;
+  }
+}
+
+.animate-scan-laser {
+  position: absolute;
+  animation: scan-laser 3s linear infinite;
+}
+
+/* Lenis Smooth Scrolling Styles */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+/* Watermelon UI Glow & Border Beam Styles */
+@keyframes border-beam {
+  100% {
+    offset-distance: 100%;
+  }
+}
+
+.border-beam {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border: var(--size) solid transparent;
+  border-radius: inherit;
+  mask-clip: padding-box, border-box;
+  mask-composite: intersect;
+  mask-image: linear-gradient(transparent, transparent), linear-gradient(#000, #000);
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 35s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+@keyframes meteor {
+  0% {
+    transform: rotate(215deg) translateX(0);
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(215deg) translateX(-500px);
+    opacity: 0;
+  }
+}
+
+.animate-meteor {
+  animation: meteor 5s linear infinite;
+}
+
+@keyframes shiny-text {
+  0%, 90%, 100% {
+    background-position: calc(-100% - var(--shimmer-width)) 0;
+  }
+  30%, 60% {
+    background-position: calc(100% + var(--shimmer-width)) 0;
+  }
+}
+
+.animate-shiny-text {
+  animation: shiny-text 8s infinite;
+}
+
+@keyframes spin-around {
+  0% {
+    transform: translateZ(0) rotate(0);
+  }
+  15%, 35% {
+    transform: translateZ(0) rotate(90deg);
+  }
+  65%, 85% {
+    transform: translateZ(0) rotate(270deg);
+  }
+  100% {
+    transform: translateZ(0) rotate(360deg);
+  }
+}
+
+.animate-spin-around {
+  animation: spin-around calc(var(--speed) * 2) infinite linear;
+}
+
+@keyframes shimmer-slide {
+  to {
+    transform: translate(calc(100cqw - 100%), 0);
+  }
+}
+
+.animate-shimmer-slide {
+  animation: shimmer-slide var(--speed) ease-in-out infinite alternate;
+}
+
+/* Ambient Floating Lighting Orbs */
+@keyframes float-orb-1 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(70px, 50px, 0) scale(1.08);
+  }
+}
+
+@keyframes float-orb-2 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-60px, -45px, 0) scale(1.06);
+  }
+}
+
+@keyframes float-orb-3 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(55px, -35px, 0) scale(1.1);
+  }
+}
+
+@keyframes float-orb-4 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.15;
+  }
+  50% {
+    transform: translate3d(-45px, 45px, 0) scale(1.14);
+    opacity: 0.22;
+  }
+}
+
+.animate-float-orb-1 {
+  animation: float-orb-1 18s ease-in-out infinite;
+}
+
+.animate-float-orb-2 {
+  animation: float-orb-2 22s ease-in-out infinite;
+}
+
+.animate-float-orb-3 {
+  animation: float-orb-3 20s ease-in-out infinite;
+}
+
+.animate-float-orb-4 {
+  animation: float-orb-4 16s ease-in-out infinite;
+}
+
+@keyframes progress {
+  0% {
+    width: 0%;
+    transform: translateX(-100%);
+  }
+  50% {
+    width: 70%;
+    transform: translateX(0%);
+  }
+  100% {
+    width: 100%;
+    transform: translateX(0%);
+  }
+}
+
+.animate-progress {
+  animation: progress 2.5s ease-in-out infinite;
+}
+
+.transform-gpu {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+@media print {
+  body {
+    background: transparent !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  header, footer, nav, .print\:hidden {
+    display: none !important;
+  }
+  
+  #clinical-report-printable {
+    box-shadow: none !important;
+    border: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    position: static !important;
+  }
+}
+
+
+

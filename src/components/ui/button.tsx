@@ -1,4 +1,3 @@
-
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
@@ -55,41 +54,28 @@ export interface ButtonProps
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, roundedness, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : "button"
+  ({ className, variant, size, roundedness, asChild = false, children, ...props }, ref) => {
+    if (asChild) {
+      return (
+        <Slot
+          className={cn(buttonVariants({ variant, size, roundedness, className }))}
+          ref={ref}
+          {...props}
+        >
+          {children}
+        </Slot>
+      )
+    }
+
     return (
-      <Comp
+      <button
         className={cn(buttonVariants({ variant, size, roundedness, className }))}
         ref={ref}
         {...props}
-        onClick={(e) => {
-          // Create ripple effect
-          const button = e.currentTarget;
-          const circle = document.createElement('span');
-          const diameter = Math.max(button.clientWidth, button.clientHeight);
-          const radius = diameter / 2;
-
-          circle.style.width = circle.style.height = `${diameter}px`;
-          circle.style.left = `${e.clientX - (button.getBoundingClientRect().left + radius)}px`;
-          circle.style.top = `${e.clientY - (button.getBoundingClientRect().top + radius)}px`;
-          circle.classList.add('ripple-effect');
-
-          const ripple = button.querySelector('.ripple-effect');
-          if (ripple) {
-            ripple.remove();
-          }
-
-          button.appendChild(circle);
-          
-          // Call the original onClick if it exists
-          if (props.onClick) {
-            props.onClick(e);
-          }
-        }}
       >
-        {props.children}
-        <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-inherit"></span>
-      </Comp>
+        {children}
+        <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-inherit pointer-events-none"></span>
+      </button>
     )
   }
 )
