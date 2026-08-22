@@ -413,10 +413,13 @@ export const PlantDocHeroStage: React.FC = () => {
               className="absolute inset-0 flex items-start justify-center pointer-events-none transition-opacity duration-150 will-change-[mask-image,opacity]"
               style={{ opacity: 0 }}
             >
+              {/* Dark Void Underlay (Prevents healthy flower from showing through necrotic holes) */}
+              <div className="absolute inset-0 bg-[#040805] pointer-events-none" />
+
               <img 
                 src="/main_disease.webp" 
                 alt=""
-                className="w-full h-full object-contain object-top filter drop-shadow-[0_0_40px_rgba(239,68,68,0.4)]"
+                className="relative z-10 w-full h-full object-contain object-top filter drop-shadow-[0_0_40px_rgba(239,68,68,0.4)]"
                 loading="eager"
                 fetchPriority="high"
                 decoding="async"
