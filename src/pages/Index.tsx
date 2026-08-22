@@ -67,7 +67,7 @@ const Index = () => {
         <MetricsShowcase />
 
         {/* Section 4: 3-Step Clinical Workflow */}
-        <section className="py-8 md:py-12 container mx-auto px-4 relative z-10 max-w-6xl">
+        <section className="py-8 md:py-12 container mx-auto px-4 relative z-10 max-w-6xl content-visibility-auto">
           <div className="max-w-3xl mx-auto text-center mb-8">
             <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#2DD4BF]/20 border border-[#2DD4BF]/40 text-[#5EEAD4] text-xs font-semibold mb-3">
               <Sparkles className="h-3.5 w-3.5" />
@@ -118,8 +118,8 @@ const Index = () => {
         </section>
 
         {/* Section 7: FAQ Accordion */}
-        <section className="py-16 md:py-24 container mx-auto px-4 relative z-10 max-w-4xl">
-          <div className="text-center mb-12">
+        <section className="py-10 md:py-14 container mx-auto px-4 relative z-10 max-w-4xl content-visibility-auto">
+          <div className="text-center mb-10">
             <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#2DD4BF]/20 border border-[#2DD4BF]/40 text-[#5EEAD4] text-xs font-semibold mb-3">
               <HelpCircle className="h-3.5 w-3.5" />
               Frequently Asked Questions
@@ -153,7 +153,7 @@ const Index = () => {
         </section>
 
         {/* Section 8: Closing Radiant Beacon CTA */}
-        <section className="py-16 md:py-24 container mx-auto px-4 relative z-10 max-w-5xl">
+        <section className="py-10 md:py-14 container mx-auto px-4 relative z-10 max-w-5xl content-visibility-auto">
           <div className="relative rounded-3xl p-8 sm:p-12 md:p-16 bg-gradient-to-br from-[#0a2013]/90 via-black to-[#05140b]/80 backdrop-blur-3xl border border-[#2DD4BF]/50 shadow-[0_0_60px_rgba(45,212,191,0.3)] overflow-hidden text-center transform-gpu">
             
             {/* Ambient Radial Flare */}

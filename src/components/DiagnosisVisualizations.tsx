@@ -240,25 +240,25 @@ export const DiagnosisVisualizations: React.FC<DiagnosisVisualizationsProps> = (
         <EnhancedCardHeader className="pb-2">
           <EnhancedCardTitle className="text-base flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <FlaskConical className="h-4 w-4 text-plantDoc-primary" />
-              Fertilizer & Soil Rehabilitation Formula
+              <FlaskConical className="h-4 w-4 text-[#2DD4BF]" />
+              Commercial Fertilizer & Soil Nutrition
             </div>
-            <Badge className="bg-plantDoc-primary text-black font-semibold text-xs">
-              NPK: {result.fertilizer_recommendation.npk_ratio || '10-10-10'}
+            <Badge className="bg-[#2DD4BF] text-black font-extrabold text-xs rounded-full">
+              NPK: {result.fertilizer_recommendation.npk_ratio || '24-8-16'}
             </Badge>
           </EnhancedCardTitle>
         </EnhancedCardHeader>
         <EnhancedCardContent className="pt-2 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="p-4 rounded-2xl bg-black/30 border border-white/10 space-y-2">
-              <div className="text-xs font-semibold text-plantDoc-primary flex items-center gap-1.5">
+              <div className="text-xs font-semibold text-[#5EEAD4] flex items-center gap-1.5">
                 <Sparkles className="h-3.5 w-3.5" />
-                Prescribed Nutrient Blend
+                Prescribed Commercial Product & Brand
               </div>
-              <p className="text-sm font-medium text-white">
+              <p className="text-sm font-semibold text-white">
                 {result.fertilizer_recommendation.type}
               </p>
-              <p className="text-xs text-foreground/75 leading-relaxed">
+              <p className="text-xs text-foreground/80 leading-relaxed">
                 {result.fertilizer_recommendation.application}
               </p>
             </div>

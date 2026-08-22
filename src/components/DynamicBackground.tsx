@@ -39,18 +39,19 @@ const DynamicBackground: React.FC = React.memo(() => {
 
     window.addEventListener('resize', handleResize, { passive: true });
 
-    // Lightweight bioluminescent spores (24 particles)
-    const particleCount = Math.min(Math.floor(window.innerWidth / 50), 24);
+    // Adaptive bioluminescent spores (12 on mobile, 22 on desktop)
+    const isMobile = window.innerWidth < 768;
+    const particleCount = isMobile ? 12 : Math.min(Math.floor(window.innerWidth / 60), 22);
     const particles: Particle[] = [];
 
     for (let i = 0; i < particleCount; i++) {
       particles.push({
         x: Math.random() * width,
         y: Math.random() * height,
-        size: Math.random() * 1.8 + 0.8,
-        speedX: (Math.random() - 0.5) * 0.25,
-        speedY: -Math.random() * 0.35 - 0.08,
-        opacity: Math.random() * 0.45 + 0.2,
+        size: Math.random() * 1.6 + 0.8,
+        speedX: (Math.random() - 0.5) * 0.22,
+        speedY: -Math.random() * 0.30 - 0.08,
+        opacity: Math.random() * 0.40 + 0.2,
         pulseSpeed: Math.random() * 0.02 + 0.01,
         pulsePhase: Math.random() * Math.PI * 2,
         hue: Math.random() > 0.4 ? 165 : 150
@@ -60,12 +61,16 @@ const DynamicBackground: React.FC = React.memo(() => {
     let mouseX = -9999;
     let mouseY = -9999;
 
+    const hasHover = window.matchMedia('(hover: hover)').matches;
     const handleMouseMove = (e: MouseEvent) => {
+      if (!hasHover) return;
       mouseX = e.clientX;
       mouseY = e.clientY;
     };
 
-    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    if (hasHover) {
+      window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    }
 
     const handleVisibility = () => {
       if (document.hidden) {

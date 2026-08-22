@@ -356,12 +356,14 @@ export const PlantDocHeroStage: React.FC = () => {
               alt="Healthy Foliage Specimen"
               className="w-full h-full object-contain object-top filter drop-shadow-[0_25px_60px_rgba(0,0,0,0.9)]"
               loading="eager"
+              fetchPriority="high"
+              decoding="async"
             />
 
             {/* Reveal Top Layer: Diseased Foliage (main_disease.webp) Morph Masked (100% 1:1 Cursor Centered) */}
             <div 
               ref={topLayerRef}
-              className="absolute inset-0 flex items-start justify-center pointer-events-none transition-opacity duration-150"
+              className="absolute inset-0 flex items-start justify-center pointer-events-none transition-opacity duration-150 will-change-[mask-image,opacity]"
               style={{ opacity: 0 }}
             >
               <img 
@@ -369,6 +371,8 @@ export const PlantDocHeroStage: React.FC = () => {
                 alt=""
                 className="w-full h-full object-contain object-top filter drop-shadow-[0_0_40px_rgba(239,68,68,0.4)]"
                 loading="eager"
+                fetchPriority="high"
+                decoding="async"
               />
             </div>
           </div>

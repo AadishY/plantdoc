@@ -4,22 +4,72 @@ import { toast } from 'sonner';
 import { fetchPlantWikimediaData } from './wikimedia';
 import { API_CONFIG } from '@/config/api.config';
 
-// Helper to convert File to base64
-const fileToBase64 = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = (error) => reject(new Error("Failed to read image file from disk."));
-  });
-};
-
-// Helper to prepare image data for Gemini API
+// Helper to downsample and convert image File to ultra-lightweight WebP base64 (99% payload reduction)
 const prepareImageForAPI = async (file: File): Promise<{ mimeType: string, base64Data: string }> => {
-  const base64Url = await fileToBase64(file);
-  const mimeType = base64Url.substring(base64Url.indexOf(':') + 1, base64Url.indexOf(';'));
-  const base64Data = base64Url.substring(base64Url.indexOf(',') + 1);
-  return { mimeType, base64Data };
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      if (!e.target?.result) {
+        reject(new Error("Failed to read image file."));
+        return;
+      }
+      img.src = e.target.result as string;
+    };
+    reader.onerror = () => reject(new Error("Failed to read image file from disk."));
+
+    img.onload = () => {
+      try {
+        const MAX_DIMENSION = 1280;
+        let width = img.naturalWidth || img.width;
+        let height = img.naturalHeight || img.height;
+
+        if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+          if (width > height) {
+            height = Math.round((height * MAX_DIMENSION) / width);
+            width = MAX_DIMENSION;
+          } else {
+            width = Math.round((width * MAX_DIMENSION) / height);
+            height = MAX_DIMENSION;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          throw new Error("Failed to get canvas context for downsampling.");
+        }
+
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Convert to high-efficiency WebP with JPEG fallback
+        let dataUrl = canvas.toDataURL('image/webp', 0.85);
+        let mimeType = 'image/webp';
+
+        if (!dataUrl.startsWith('data:image/webp')) {
+          dataUrl = canvas.toDataURL('image/jpeg', 0.88);
+          mimeType = 'image/jpeg';
+        }
+
+        const base64Data = dataUrl.substring(dataUrl.indexOf(',') + 1);
+        resolve({ mimeType, base64Data });
+      } catch (err) {
+        // Fallback to direct file read if canvas downsampling fails
+        const base64Url = img.src;
+        const mime = base64Url.substring(base64Url.indexOf(':') + 1, base64Url.indexOf(';')) || 'image/jpeg';
+        const data = base64Url.substring(base64Url.indexOf(',') + 1);
+        resolve({ mimeType: mime, base64Data: data });
+      }
+    };
+
+    img.onerror = () => reject(new Error("Failed to decode uploaded image data."));
+    reader.readAsDataURL(file);
+  });
 };
 
 // Resilient multi-pass extraction of JSON from model outputs
@@ -177,7 +227,10 @@ CRITICAL RULES:
 2. If the specimen is HEALTHY, explicitly set:
    - "disease": { "name": "Healthy Specimen / No Disease Detected", "confidence": 98.0, "severity": "Low", "pathogen_type": "None (Healthy)", "health_score": 98, "recovery_prognosis": 100, "spread_risk": "Low" }
    - "treatment": { "immediate_actions": ["No emergency quarantine required."], "organic_remedies": ["Maintain regular watering and balanced sunlight."], "chemical_treatments": ["No chemical fungicides necessary."], "steps": ["1. Continue regular preventive care", "2. Inspect foliage bi-weekly"], "prevention": ["Maintain optimal spacing and airflow"], "timeline": { "day_1_3": "Routine inspection", "week_1_2": "Regular watering", "month_1": "Apply maintenance fertilizer" } }
-3. If DISEASED, pinpoint specific pathogen (Fungal, Bacterial, Viral, Pest, Deficiency) with actionable chemical active ingredients, biological remedies, and NPK fertilizer advice.
+3. If DISEASED, pinpoint specific pathogen (Fungal, Bacterial, Viral, Pest, Deficiency).
+4. REAL PRODUCT FERTILIZER MANDATE: In "fertilizer_recommendation", you MUST provide a REAL-WORLD commercial product brand name, manufacturer, and exact formulation (e.g. "Miracle-Gro Water Soluble All Purpose Plant Food (24-8-16)", "FoxFarm Grow Big Liquid Concentrate (6-4-4)", "Espoma Organic Garden-tone (3-4-4)", "Osmocote Smart-Release Plant Food (15-9-12)", "Alaska 5-1-1 Liquid Fish Fertilizer", "Jack's Classic 20-20-20 All Purpose", "Down to Earth Organic Bone Meal (3-15-0)"). DO NOT use generic phrases like "rich nitrogen based fertilizer" or "balanced fertilizer". Always include the exact real brand, NPK ratio, and precise mixing dosage (e.g. "Mix 1/2 tablespoon per gallon of water and apply every 14 days around root zone").
+5. REAL PRODUCT CHEMICAL TREATMENTS MANDATE: In "treatment.chemical_treatments", you MUST specify real commercial product brand names alongside active chemical ingredients and exact mixing dosages (e.g. "Daconil Fungicide Concentrate (Active: Chlorothalonil 29.6%) — Mix 1.5 tbsp (22ml) per gallon of water and spray foliar surfaces until runoff every 7-10 days", "Bonide Copper Fungicide Spray / Dust (Active: Copper Octanoate 10.0%) — Apply 1.5 fl oz per gallon of water", "Spectracide Immunox Multi-Purpose Fungicide (Active: Myclobutanil 1.55%) — Mix 1 fl oz per gallon", "BioAdvanced 3-in-1 Insect, Disease & Mite Control (Active: Tebuconazole 0.8% + Tau-Fluvalinate 0.61%) — Apply 5 tbsp per gallon", "Monterey Garden Insect Spray (Active: Spinosad 0.5%) — Mix 2 fl oz per gallon"). DO NOT output generic chemical names alone.
+6. REAL PRODUCT ORGANIC REMEDIES MANDATE: In "treatment.organic_remedies", you MUST specify real commercial bio-organic product brand names or exact verified biological recipes (e.g. "Southern Ag Triple Action Neem Oil (70% Hydrophobic Extract of Neem Oil) — Mix 2 tbsp per gallon of water with mild soap", "Serenade Garden Disease Control Bio-Fungicide (Active: Bacillus amyloliquefaciens QST 713 strain) — Spray foliar canopy every 7 days", "Monterey Complete Disease Control (Active: Bacillus subtilis) — 1 tbsp per gallon").
 
 CRITICAL: Output ONLY a valid JSON object matching this schema:
 
@@ -212,11 +265,12 @@ CRITICAL: Output ONLY a valid JSON object matching this schema:
       "Prune and dispose of severely infected leaves using sanitized shears"
     ],
     "organic_remedies": [
-      "Apply cold-pressed pure neem oil or copper-based bio-fungicide every 7-10 days",
-      "Dust with biological Bacillus subtilis spray"
+      "Southern Ag Triple Action Neem Oil — Mix 2 tbsp per gallon of water and spray foliar surfaces every 7 days",
+      "Serenade Garden Disease Control (Bacillus subtilis bio-fungicide) — Apply in early morning to colonize leaf surface"
     ],
     "chemical_treatments": [
-      "Apply chlorothalonil or mancozeb fungicide following label dosage instructions"
+      "Daconil Fungicide Concentrate (Chlorothalonil 29.6%) — Mix 1.5 tbsp per gallon of water and spray foliage thoroughly every 7-10 days",
+      "Bonide Liquid Copper Fungicide (Copper Octanoate 10%) — Mix 1.5 fl oz per gallon of water at first symptom onset"
     ],
     "steps": [
       "1. Isolate and prune infected foliage",
@@ -236,9 +290,9 @@ CRITICAL: Output ONLY a valid JSON object matching this schema:
     }
   },
   "fertilizer_recommendation": {
-    "type": "Balanced Organic 10-10-10 or Potassium-rich formula",
-    "application": "Dilute to half-strength and apply every 2 weeks to promote root and foliage recovery",
-    "npk_ratio": "10-10-10",
+    "type": "Miracle-Gro Water Soluble All Purpose Plant Food (24-8-16) or FoxFarm Grow Big (6-4-4)",
+    "application": "Dilute 1/2 tablespoon per gallon of water and apply every 14 days around the root zone to promote foliar recovery",
+    "npk_ratio": "24-8-16",
     "soil_ph_advice": "Maintain soil pH between 6.0 and 6.8 for optimal nutrient bioavailability"
   },
   "care_recommendations": [
@@ -404,10 +458,10 @@ export const diagnosePlant = async (imageFile: File): Promise<DiagnosisResult> =
         }
       },
       fertilizer_recommendation: {
-        type: parsed.fertilizer_recommendation?.type || "Balanced all-purpose plant fertilizer",
-        application: parsed.fertilizer_recommendation?.application || "Apply once a month during active growth season",
-        npk_ratio: parsed.fertilizer_recommendation?.npk_ratio || "10-10-10",
-        soil_ph_advice: parsed.fertilizer_recommendation?.soil_ph_advice || "Optimal pH range 6.0 - 7.0"
+        type: parsed.fertilizer_recommendation?.type || "Miracle-Gro Water Soluble All Purpose Plant Food (24-8-16) or FoxFarm Grow Big",
+        application: parsed.fertilizer_recommendation?.application || "Dilute 1/2 tbsp per gallon of water and apply every 14 days around root zone",
+        npk_ratio: parsed.fertilizer_recommendation?.npk_ratio || "24-8-16",
+        soil_ph_advice: parsed.fertilizer_recommendation?.soil_ph_advice || "Optimal pH range 6.0 - 6.8 for root nutrient bioavailability"
       },
       care_recommendations: Array.isArray(parsed.care_recommendations) ? parsed.care_recommendations : ["Ensure adequate sunlight and well-draining soil."],
       about_plant: {

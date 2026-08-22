@@ -124,6 +124,11 @@
 }
 
 @layer utilities {
+  .content-visibility-auto {
+    content-visibility: auto;
+    contain-intrinsic-size: 0 450px;
+  }
+
   .scrollbar-none {
     -ms-overflow-style: none;
     scrollbar-width: none;

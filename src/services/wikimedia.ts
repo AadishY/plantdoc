@@ -20,11 +20,20 @@ export async function fetchPlantWikimediaData(
 ): Promise<WikimediaPlantData> {
   const primaryQuery = (scientificName || '').trim();
   const fallbackQuery = (commonName || '').trim();
-  const cacheKey = `${primaryQuery}_${fallbackQuery}`.toLowerCase();
+  const cacheKey = `wiki_${primaryQuery}_${fallbackQuery}`.toLowerCase().replace(/[^a-z0-9_]/g, '');
 
   if (wikimediaCache.has(cacheKey)) {
     return wikimediaCache.get(cacheKey)!;
   }
+
+  try {
+    const cached = sessionStorage.getItem(cacheKey);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      wikimediaCache.set(cacheKey, parsed);
+      return parsed;
+    }
+  } catch {}
 
   // Helper function to query Wikipedia REST API summary
   const queryWikipediaSummary = async (term: string): Promise<WikimediaPlantData | null> => {
@@ -146,5 +155,8 @@ export async function fetchPlantWikimediaData(
   };
 
   wikimediaCache.set(cacheKey, finalData);
+  try {
+    sessionStorage.setItem(cacheKey, JSON.stringify(finalData));
+  } catch {}
   return finalData;
 }
