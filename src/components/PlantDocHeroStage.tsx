@@ -67,7 +67,7 @@ export const PlantDocHeroStage: React.FC = () => {
     window.addEventListener('resize', debouncedResize, { passive: true });
 
     const isMobile = window.innerWidth < 768;
-    const blobVertexCount = isMobile ? 12 : TRAIL_BLOB_PTS;
+    const blobVertexCount = isMobile ? 10 : TRAIL_BLOB_PTS;
     const polyPtsX = new Float32Array(32);
     const polyPtsY = new Float32Array(32);
 
@@ -77,16 +77,17 @@ export const PlantDocHeroStage: React.FC = () => {
       cy: number,
       r: number,
       t: number,
-      seed: number
+      seed: number,
+      alpha: number = 1.0
     ) => {
       if (r < 1.5) return;
       const count = blobVertexCount;
 
       for (let i = 0; i < count; i++) {
         const angle = (i / count) * Math.PI * 2;
-        const n1 = Math.sin(angle * 3 + t * 1.5 + seed) * 0.45;
-        const n2 = Math.sin(angle * 5 - t * 1.0 + seed * 2.3) * 0.3;
-        const noise = (n1 + n2) * (TRAIL_NOISE_AMP * 0.45) * (r / 32);
+        const n1 = Math.sin(angle * 3 + t * 1.5 + seed) * 0.38;
+        const n2 = Math.sin(angle * 5 - t * 1.0 + seed * 2.3) * 0.24;
+        const noise = (n1 + n2) * (TRAIL_NOISE_AMP * 0.38) * (r / 32);
         const currentR = Math.max(0, r + noise);
         polyPtsX[i] = cx + Math.cos(angle) * currentR;
         polyPtsY[i] = cy + Math.sin(angle) * currentR;
@@ -106,6 +107,15 @@ export const PlantDocHeroStage: React.FC = () => {
         }
         context.quadraticCurveTo(polyPtsX[0], polyPtsY[0], firstMidX, firstMidY);
         context.closePath();
+
+        // Soft, feathered transparent perimeter falloff (only soft circle edges, full reveal clarity inside)
+        const grad = context.createRadialGradient(cx, cy, 0, cx, cy, Math.max(2, r * 1.10));
+        grad.addColorStop(0, `rgba(255, 255, 255, ${alpha})`);
+        grad.addColorStop(0.70, `rgba(255, 255, 255, ${alpha * 0.88})`);
+        grad.addColorStop(0.92, `rgba(255, 255, 255, ${alpha * 0.35})`);
+        grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        context.fillStyle = grad;
+        context.fill();
       }
     };
 
@@ -301,19 +311,15 @@ export const PlantDocHeroStage: React.FC = () => {
         } else {
           ctx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
 
-          // 1. Draw decaying trailing morph blobs
+          // 1. Draw decaying trailing morph blobs with feathered transparency
           for (let i = 0; i < points.length; i++) {
             const p = points[i];
-            drawMorphBlob(ctx, p.x, p.y, p.r, time, p.seed);
-            ctx.fillStyle = `rgba(255, 255, 255, ${p.alpha})`;
-            ctx.fill();
+            drawMorphBlob(ctx, p.x, p.y, p.r, time, p.seed, p.alpha);
           }
 
-          // 2. Draw persistent active head morph blob
+          // 2. Draw persistent active head morph blob with feathered transparency
           if (hovering && headRadius > 1 && smoothX !== -9999) {
-            drawMorphBlob(ctx, smoothX, smoothY, headRadius, time, 42);
-            ctx.fillStyle = "rgba(255, 255, 255, 1.0)";
-            ctx.fill();
+            drawMorphBlob(ctx, smoothX, smoothY, headRadius, time, 42, 1.0);
           }
 
           const dataUrl = maskCanvas.toDataURL();
@@ -458,7 +464,7 @@ export const PlantDocHeroStage: React.FC = () => {
               <img 
                 src="/main_disease.webp" 
                 alt=""
-                className="w-full h-full object-contain object-top filter brightness-[1.04] contrast-[1.12] saturate-[1.16] drop-shadow-[0_0_30px_rgba(239,68,68,0.45)] drop-shadow-[0_0_10px_rgba(245,158,11,0.25)]"
+                className="w-full h-full object-contain object-top filter brightness-[1.03] contrast-[1.08] saturate-[1.14] drop-shadow-[0_25px_60px_rgba(0,0,0,0.9)]"
                 loading="eager"
                 decoding="async"
               />
