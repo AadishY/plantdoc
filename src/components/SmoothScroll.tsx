@@ -13,15 +13,15 @@ export const SmoothScroll: React.FC<SmoothScrollProps> = ({ children }) => {
   const lenisRef = useRef<Lenis | null>(null);
 
   useEffect(() => {
-    // Initialize Lenis with fluid inertia and cinematic high-FPS glide
+    // Initialize Lenis with balanced natural inertia and extra silky-smooth glide
     const lenis = new Lenis({
-      duration: 1.1,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      duration: 1.12,
+      easing: (t) => 1 - Math.pow(1 - t, 3.2),
       orientation: 'vertical',
       gestureOrientation: 'vertical',
       smoothWheel: true,
-      wheelMultiplier: 0.95,
-      touchMultiplier: 1.1,
+      wheelMultiplier: 1.05,
+      touchMultiplier: 1.12,
       syncTouch: false,
     });
 
@@ -37,7 +37,7 @@ export const SmoothScroll: React.FC<SmoothScrollProps> = ({ children }) => {
     };
 
     gsap.ticker.add(updateTicker);
-    gsap.ticker.lagSmoothing(0);
+    gsap.ticker.lagSmoothing(500, 33);
 
     return () => {
       gsap.ticker.remove(updateTicker);

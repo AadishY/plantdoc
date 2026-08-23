@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import Header from "@/components/Header";
-import { getPlantRecommendations, getClimateDatabByLocation } from '@/services/api';
+import { getPlantRecommendations, getClimateDatabByLocation, formatUserFriendlyError } from '@/services/api';
 import { 
   Loader2, 
   Leaf, 
@@ -75,6 +75,12 @@ const PlantCard = React.memo(({ plant }: { plant: PlantRecommendation }) => {
         <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
           <Badge className="bg-black/80 backdrop-blur-md text-white border border-white/20 text-[10px] px-2.5 py-0.5 font-medium rounded-full">
             {plant.family || 'Botanical'}
+          </Badge>
+        </div>
+
+        <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
+          <Badge className="bg-gradient-to-r from-[#2DD4BF] to-[#10B981] text-black font-extrabold text-[10px] px-2.5 py-0.5 rounded-full shadow-[0_0_15px_rgba(45,212,191,0.6)]">
+            {plant.matchScore ? `${plant.matchScore}% Match` : '96% Match'}
           </Badge>
         </div>
 
@@ -280,7 +286,7 @@ const RecommendPage = () => {
       toast.success(`Found 6 recommended ${selectedPlantType === 'Mix' ? 'plants' : selectedPlantType.toLowerCase()} with verified Wikimedia media!`);
     } catch (error: any) {
       console.error('Error getting recommendations:', error);
-      toast.error(error?.message || "Failed to get plant recommendations. Please try again.");
+      toast.error(formatUserFriendlyError(error));
     } finally {
       setIsLoading(false);
     }
@@ -572,7 +578,7 @@ const RecommendPage = () => {
               {/* Submit Button */}
               <Button 
                 onClick={handleGetRecommendations} 
-                className="w-full bg-gradient-to-r from-[#2DD4BF] via-[#10B981] to-[#059669] hover:from-[#5EEAD4] hover:via-[#34D399] hover:to-[#10B981] text-black font-extrabold text-base py-6 rounded-full shadow-[0_0_35px_rgba(45,212,191,0.55)] transition-all transform hover:scale-[1.01] border border-[#5EEAD4]/60" 
+                className="w-full bg-gradient-to-r from-[#2DD4BF] via-[#10B981] to-[#059669] hover:from-[#5EEAD4] hover:via-[#34D399] hover:to-[#10B981] text-black font-extrabold text-base py-6 rounded-full shadow-[0_0_35px_rgba(45,212,191,0.55)] transition-all transform hover:scale-[1.01] border border-[#5EEAD4]/60 cursor-pointer" 
                 size="lg"
                 disabled={isLoading || !country.trim() || !state.trim()}
               >
@@ -591,14 +597,60 @@ const RecommendPage = () => {
             </EnhancedCardContent>
           </EnhancedCard>
         </div>
+
+        {/* Botanical Climate Intelligence Hub (Loading Stage) */}
+        {isLoading && (
+          <div className="mt-10 p-8 md:p-10 rounded-3xl bg-black/75 backdrop-blur-3xl border border-[#2DD4BF]/40 text-center space-y-6 shadow-[0_0_50px_rgba(45,212,191,0.25)] relative overflow-hidden animate-fade-in max-w-4xl mx-auto">
+            <div className="absolute -top-24 -left-24 w-48 h-48 bg-[#2DD4BF]/20 rounded-full blur-3xl pointer-events-none animate-pulse" />
+            <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-[#10B981]/20 rounded-full blur-3xl pointer-events-none animate-pulse" />
+
+            <div className="relative w-24 h-24 mx-auto flex items-center justify-center">
+              <div className="absolute inset-0 rounded-full border border-[#2DD4BF]/30 animate-ping opacity-60" />
+              <div className="absolute inset-2 rounded-full border border-[#10B981]/40 animate-pulse" />
+              <div className="absolute inset-4 rounded-full border border-dashed border-[#5EEAD4]/60 animate-spin" style={{ animationDuration: '8s' }} />
+              <div className="relative p-4 rounded-full bg-gradient-to-br from-[#2DD4BF]/30 to-[#059669]/30 border border-[#2DD4BF]/60 shadow-[0_0_25px_rgba(45,212,191,0.5)]">
+                <Wand2 className="h-8 w-8 text-[#5EEAD4] animate-bounce" style={{ animationDuration: '2s' }} />
+              </div>
+            </div>
+
+            <div className="space-y-2 max-w-lg mx-auto">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#2DD4BF]/20 border border-[#2DD4BF]/40 text-[#5EEAD4] text-xs font-mono font-semibold">
+                <Sparkles className="h-3.5 w-3.5 animate-spin" style={{ animationDuration: '4s' }} />
+                <span>Climate Intelligence & Wikimedia Synchronization</span>
+              </div>
+              <h3 className="text-lg md:text-xl font-bold text-white tracking-tight">
+                Matching Top 6 {selectedPlantType === 'Mix' ? 'Botanical Species' : selectedPlantType} for {state}, {country}...
+              </h3>
+            </div>
+
+            <div className="w-full bg-white/10 rounded-full h-2.5 overflow-hidden max-w-md mx-auto p-0.5 border border-white/15">
+              <div className="bg-gradient-to-r from-[#2DD4BF] via-[#10B981] to-[#34D399] h-full rounded-full animate-progress" />
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px] font-mono text-foreground/75 max-w-md mx-auto pt-2">
+              <div className="p-2 rounded-xl bg-white/5 border border-white/10">
+                <span className="text-[#5EEAD4] block font-bold">{temperature}°C / {rainfall}mm</span>
+                <span>Climate Profile</span>
+              </div>
+              <div className="p-2 rounded-xl bg-white/5 border border-white/10">
+                <span className="text-[#5EEAD4] block font-bold">{soilType}</span>
+                <span>pH {ph} Matrix</span>
+              </div>
+              <div className="p-2 rounded-xl bg-white/5 border border-white/10 col-span-2 sm:col-span-1">
+                <span className="text-emerald-400 block font-bold">Wikimedia REST</span>
+                <span>Live Scientific Media</span>
+              </div>
+            </div>
+          </div>
+        )}
         
         {/* Recommendations Result Grid */}
-        {recommendations.length > 0 && (
+        {recommendations.length > 0 && !isLoading && (
           <div className="mt-14 space-y-6 animate-fade-in">
             {/* Filter and Search Bar */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 glass-card p-4 rounded-xl border border-white/10">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 glass-card p-4 rounded-2xl border border-white/10 bg-black/45 backdrop-blur-2xl">
               <div>
-                <h2 className="text-2xl font-bold bg-gradient-to-r from-plantDoc-primary to-plantDoc-secondary bg-clip-text text-transparent">
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-white via-emerald-100 to-[#2DD4BF] bg-clip-text text-transparent">
                   Top Recommended {selectedPlantType === 'Mix' ? 'Plants' : selectedPlantType} ({filteredRecommendations.length})
                 </h2>
                 <p className="text-xs text-foreground/70">Matched for {state}, {country} with verified Wikimedia profiles</p>

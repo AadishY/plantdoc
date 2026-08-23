@@ -114,6 +114,65 @@ function extractJsonFromText(text: string): any {
   return null;
 }
 
+// Resilient fetch wrapper with strict timeout to prevent infinite loading spins
+async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: number = 30000): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('Connection timed out. Please check your internet connection and try again.');
+    }
+    throw error;
+  }
+}
+
+// User-friendly error message formatter (replaces raw API quotas with clean actionable messages)
+export function formatUserFriendlyError(error: any): string {
+  if (!error) return "Diagnosis could not be completed. Please try again.";
+  const msg = typeof error === 'string' ? error : (error.message || String(error));
+  const lower = msg.toLowerCase();
+
+  // 1. Quota / Rate limit (429) -> Server busy
+  if (lower.includes('429') || lower.includes('quota') || lower.includes('rate limit') || lower.includes('resource_exhausted') || lower.includes('exceeded')) {
+    return "Our diagnostic AI servers are currently experiencing high request volume. Please wait a few seconds and try again.";
+  }
+
+  // 2. Network / Offline / Timeout / Abort
+  if (lower.includes('aborted') || lower.includes('timed out') || lower.includes('timeout') || lower.includes('failed to fetch') || lower.includes('network') || lower.includes('offline') || lower.includes('err_connection')) {
+    return "Network connection issue detected. Please check your internet connection and try again.";
+  }
+
+  // 3. Server errors (500, 502, 503, 504, overloaded)
+  if (lower.includes('500') || lower.includes('502') || lower.includes('503') || lower.includes('504') || lower.includes('overloaded') || lower.includes('internal server error') || lower.includes('unavailable')) {
+    return "AI diagnostic servers are momentarily busy. Please try again in a few moments.";
+  }
+
+  // 4. Bad image (400)
+  if (lower.includes('400') || lower.includes('invalid plant image') || lower.includes('image file') || lower.includes('decode uploaded image')) {
+    return "Unable to process the foliage image. Please upload a clear, well-lit photo of the plant.";
+  }
+
+  // 5. Missing API key
+  if (lower.includes('missing api key') || lower.includes('api_key') || lower.includes('vite_gemini_api_key')) {
+    return "PlantDoc AI connection is not configured. Please ensure your API key is provided.";
+  }
+
+  // 6. Parsing error / Empty response
+  if (lower.includes('empty response') || lower.includes('parse') || lower.includes('json')) {
+    return "The diagnosis could not be processed. Please ensure the plant leaf is clearly visible and try again.";
+  }
+
+  return "Unable to analyze the foliage specimen. Please ensure the leaf is clearly visible in good lighting and try again.";
+}
+
 // -------------------------------------------------------------
 // Parallel Segmentation Fetcher using fast gemini-3.5-flash-lite
 // -------------------------------------------------------------
@@ -166,25 +225,18 @@ Output strictly valid JSON:
       ],
       generationConfig: {
         temperature: 0.1,
-        maxOutputTokens: 4096,
-        thinkingConfig: {
-          thinkingBudget: 1024
-        }
-      },
-      tools: [
-        {
-          codeExecution: {}
-        }
-      ]
+        maxOutputTokens: 4096
+      }
     };
 
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `${API_CONFIG.BASE_URL}/models/${API_CONFIG.SEGMENTATION_MODEL}:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
-      }
+      },
+      20000 // 20s timeout for segmentation
     );
 
     if (!response.ok) return { lesions: [] };
@@ -207,7 +259,7 @@ Output strictly valid JSON:
     }
     return { lesions: [] };
   } catch (err) {
-    console.warn('Fast segmentation parallel fetch fallback:', err);
+    console.warn('Fast segmentation fallback (non-blocking):', err);
     return { lesions: [] };
   }
 }
@@ -327,14 +379,11 @@ Return ONLY the JSON. No markdown commentary.`;
     ],
     generationConfig: {
       temperature: 0.2,
-      maxOutputTokens: 8192,
-      thinkingConfig: {
-        thinkingBudget: 2048
-      }
+      maxOutputTokens: 8192
     }
   };
 
-  const response = await fetch(
+  const response = await fetchWithTimeout(
     `${API_CONFIG.BASE_URL}/models/${API_CONFIG.DIAGNOSIS_MODEL}:generateContent?key=${apiKey}`,
     {
       method: 'POST',
@@ -342,7 +391,8 @@ Return ONLY the JSON. No markdown commentary.`;
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(payload)
-    }
+    },
+    30000 // 30s timeout
   );
 
   if (!response.ok) {
@@ -350,10 +400,13 @@ Return ONLY the JSON. No markdown commentary.`;
     console.error(`Diagnosis API failed (${response.status}):`, errorText);
     
     if (response.status === 429) {
-      throw new Error("PlantDoc AI quota limit reached. Please wait a few moments and try again.");
+      throw new Error("Our diagnostic AI servers are currently experiencing high request volume. Please wait a few seconds and try again.");
     }
     if (response.status === 400) {
-      throw new Error("Invalid plant image or unsupported image format. Please upload a clear photo.");
+      throw new Error("Unable to process this image. Please upload a clear, well-lit photo of the plant foliage.");
+    }
+    if (response.status >= 500) {
+      throw new Error("AI diagnostic servers are momentarily busy. Please try again in a few moments.");
     }
     throw new Error(`Diagnosis request failed (${response.status})`);
   }
@@ -361,7 +414,7 @@ Return ONLY the JSON. No markdown commentary.`;
   const data = await response.json();
   const candidate = data.candidates?.[0];
   if (!candidate || !candidate.content?.parts) {
-    throw new Error('PlantDoc AI returned an empty response. Please re-upload a clear plant photo.');
+    throw new Error('The diagnosis could not be processed. Please ensure the plant leaf is clearly visible and try again.');
   }
 
   let fullText = '';
@@ -376,7 +429,7 @@ Return ONLY the JSON. No markdown commentary.`;
   const parsed = extractJsonFromText(fullText);
   if (!parsed) {
     console.error('Failed to parse JSON. Raw output:', fullText);
-    throw new Error('Could not parse clinical diagnosis structure. Please retry with a well-lit foliage photo.');
+    throw new Error('Unable to analyze the foliage specimen. Please ensure the leaf is clearly visible in good lighting and try again.');
   }
 
   return parsed;
@@ -636,18 +689,22 @@ Return ONLY the JSON array.`;
       }
     };
 
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `${API_CONFIG.BASE_URL}/models/${API_CONFIG.RECOMMENDATION_MODEL}:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
-      }
+      },
+      30000 // 30s timeout
     );
 
     if (!response.ok) {
       if (response.status === 429) {
-        throw new Error("Botanical recommendation quota reached. Please retry in a few moments.");
+        throw new Error("Our botanical recommendation servers are currently experiencing high request volume. Please wait a few seconds and try again.");
+      }
+      if (response.status >= 500) {
+        throw new Error("AI recommendation servers are momentarily busy. Please try again in a few moments.");
       }
       throw new Error(`Recommendation request failed (${response.status})`);
     }
@@ -655,7 +712,7 @@ Return ONLY the JSON array.`;
     const data = await response.json();
     const candidate = data.candidates?.[0];
     if (!candidate || !candidate.content?.parts) {
-      throw new Error('Empty recommendation response from PlantDoc AI.');
+      throw new Error('No recommendation data returned. Please try adjusting your parameters.');
     }
 
     let fullText = '';

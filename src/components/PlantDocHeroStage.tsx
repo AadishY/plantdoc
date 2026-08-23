@@ -388,9 +388,9 @@ export const PlantDocHeroStage: React.FC = () => {
 
     if (lenis) {
       lenis.scrollTo(target, { 
-        duration: 1.35, 
+        duration: 1.45, 
         easing: (t: number) => 1 - Math.pow(1 - t, 3.5), // Butter-smooth cubic-bezier deceleration
-        offset: 0,
+        offset: -15,
         lock: false
       });
     } else {

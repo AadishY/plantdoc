@@ -164,28 +164,29 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
               className="w-full h-full object-contain max-h-[460px] transition-all rounded-2xl" 
             />
 
-            {/* Scanning Laser Animation during diagnosis */}
+            {/* High-Tech Holographic Scanning Laser & HUD Overlay */}
             {isLoading && (
-              <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex flex-col items-center justify-center z-30">
-                <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                  <motion.div 
-                    className="w-full h-1 bg-gradient-to-r from-transparent via-[#2DD4BF] to-transparent shadow-[0_0_20px_#2DD4BF]"
-                    animate={{ y: [0, 400, 0] }}
-                    transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
-                  />
-                </div>
+              <div className="absolute inset-0 bg-black/35 backdrop-blur-[1.5px] pointer-events-none z-30 overflow-hidden">
+                {/* Sweeping Laser Beam */}
+                <motion.div 
+                  className="w-full h-1.5 bg-gradient-to-r from-transparent via-[#2DD4BF] to-transparent shadow-[0_0_25px_#2DD4BF,0_0_8px_#5EEAD4]"
+                  animate={{ y: ['0%', '420px', '0%'] }}
+                  transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+                />
 
-                <div className="glass-card-intense p-6 rounded-3xl border border-[#2DD4BF]/40 shadow-[0_0_35px_rgba(45,212,191,0.3)] flex flex-col items-center gap-3 text-center z-40 max-w-xs bg-black/80 backdrop-blur-2xl">
-                  <div className="relative">
-                    <Loader2 className="h-10 w-10 text-[#2DD4BF] animate-spin" />
-                    <Scan className="h-5 w-5 text-white absolute inset-0 m-auto" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-white text-sm">Analyzing Specimen</h4>
-                    <p className="text-xs text-foreground/70 mt-1">
-                      PlantDoc AI is localizing individual foliar lesions & damaged zones...
-                    </p>
-                  </div>
+                {/* HUD Corner Reticles */}
+                <div className="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-[#2DD4BF] opacity-80" />
+                <div className="absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 border-[#2DD4BF] opacity-80" />
+                <div className="absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 border-[#2DD4BF] opacity-80" />
+                <div className="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-[#2DD4BF] opacity-80" />
+
+                {/* Top Telemetry Status Pill */}
+                <div className="absolute top-4 left-1/2 transform -translate-x-1/2 px-4 py-1 rounded-full bg-black/85 backdrop-blur-xl border border-[#2DD4BF]/50 text-[#5EEAD4] text-[11px] font-mono font-bold shadow-[0_0_20px_rgba(45,212,191,0.4)] flex items-center gap-2">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#2DD4BF] opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[#2DD4BF]" />
+                  </span>
+                  <span>AI PATHOLOGY SCAN IN PROGRESS</span>
                 </div>
               </div>
             )}

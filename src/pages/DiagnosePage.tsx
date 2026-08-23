@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import Header from "@/components/Header";
 import UploadComponent from "@/components/UploadComponent";
 import ResultComponent from "@/components/ResultComponent";
-import { diagnosePlant } from "@/services/api";
+import { diagnosePlant, formatUserFriendlyError } from "@/services/api";
 import { DiagnosisResult } from "@/types/diagnosis";
 
 const LOADING_STEPS = [
@@ -69,9 +69,9 @@ const DiagnosePage: React.FC = () => {
       toast.success("Diagnosis & lesion segmentation complete!");
     } catch (error: any) {
       console.error("Diagnosis error:", error);
-      const msg = error.message || "Failed to analyze plant specimen. Please ensure photo is well-lit.";
-      setErrorMessage(msg);
-      toast.error(msg);
+      const friendlyMsg = formatUserFriendlyError(error);
+      setErrorMessage(friendlyMsg);
+      toast.error(friendlyMsg);
     } finally {
       setIsLoading(false);
     }
@@ -146,19 +146,60 @@ const DiagnosePage: React.FC = () => {
                 </div>
               )}
               
-              {/* Loading Status Indicator */}
+              {/* Neural Vision Diagnostic Stage (Loading Hub) */}
               {isLoading && (
-                <div className="p-6 rounded-3xl bg-black/55 backdrop-blur-2xl border border-[#2DD4BF]/40 text-center space-y-3 shadow-[0_0_35px_rgba(45,212,191,0.2)] animate-pulse">
-                  <div className="flex items-center justify-center gap-3 text-[#5EEAD4] font-bold text-sm sm:text-base">
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    <span>{LOADING_STEPS[loadingStepIdx]}</span>
+                <div className="p-8 md:p-10 rounded-3xl bg-black/75 backdrop-blur-3xl border border-[#2DD4BF]/40 text-center space-y-6 shadow-[0_0_50px_rgba(45,212,191,0.25)] relative overflow-hidden animate-fade-in">
+                  {/* Subtle background radar scan glow */}
+                  <div className="absolute -top-24 -left-24 w-48 h-48 bg-[#2DD4BF]/20 rounded-full blur-3xl pointer-events-none animate-pulse" />
+                  <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-[#10B981]/20 rounded-full blur-3xl pointer-events-none animate-pulse" />
+
+                  {/* High-Tech Animated Radar Scanner */}
+                  <div className="relative w-24 h-24 mx-auto flex items-center justify-center">
+                    <div className="absolute inset-0 rounded-full border border-[#2DD4BF]/30 animate-ping opacity-60" />
+                    <div className="absolute inset-2 rounded-full border border-[#10B981]/40 animate-pulse" />
+                    <div className="absolute inset-4 rounded-full border border-dashed border-[#5EEAD4]/60 animate-spin" style={{ animationDuration: '8s' }} />
+                    <div className="relative p-4 rounded-full bg-gradient-to-br from-[#2DD4BF]/30 to-[#059669]/30 border border-[#2DD4BF]/60 shadow-[0_0_25px_rgba(45,212,191,0.5)]">
+                      <Leaf className="h-8 w-8 text-[#5EEAD4] animate-bounce" style={{ animationDuration: '2s' }} />
+                    </div>
                   </div>
-                  <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden max-w-md mx-auto">
-                    <div className="bg-gradient-to-r from-[#2DD4BF] via-[#10B981] to-[#059669] h-full rounded-full animate-progress" />
+
+                  {/* Active Step Indicator */}
+                  <div className="space-y-2 max-w-lg mx-auto">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#2DD4BF]/20 border border-[#2DD4BF]/40 text-[#5EEAD4] text-xs font-mono font-semibold">
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#2DD4BF] opacity-75" />
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-[#2DD4BF]" />
+                      </span>
+                      <span>Phase {loadingStepIdx + 1} of {LOADING_STEPS.length}</span>
+                    </div>
+                    <h3 className="text-lg md:text-xl font-bold text-white tracking-tight">
+                      {LOADING_STEPS[loadingStepIdx]}
+                    </h3>
                   </div>
-                  <p className="text-xs text-foreground/70 font-mono">
-                    PlantDoc AI Vision Diagnostics: Neural pathology analysis & lesion localization active
-                  </p>
+
+                  {/* High-Tech Shimmering Progress Bar */}
+                  <div className="w-full bg-white/10 rounded-full h-2.5 overflow-hidden max-w-md mx-auto p-0.5 border border-white/15">
+                    <div 
+                      className="bg-gradient-to-r from-[#2DD4BF] via-[#10B981] to-[#34D399] h-full rounded-full transition-all duration-500 shadow-[0_0_15px_rgba(45,212,191,0.8)] animate-pulse"
+                      style={{ width: `${((loadingStepIdx + 1) / LOADING_STEPS.length) * 100}%` }}
+                    />
+                  </div>
+
+                  {/* Live Telemetry Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px] font-mono text-foreground/75 max-w-md mx-auto pt-2">
+                    <div className="p-2 rounded-xl bg-white/5 border border-white/10">
+                      <span className="text-[#5EEAD4] block font-bold">1280px</span>
+                      <span>Canvas WebP</span>
+                    </div>
+                    <div className="p-2 rounded-xl bg-white/5 border border-white/10">
+                      <span className="text-[#5EEAD4] block font-bold">Dual Model</span>
+                      <span>Vision Pipeline</span>
+                    </div>
+                    <div className="p-2 rounded-xl bg-white/5 border border-white/10 col-span-2 sm:col-span-1">
+                      <span className="text-emerald-400 block font-bold">Sub-Pixel</span>
+                      <span>Lesion Mapping</span>
+                    </div>
+                  </div>
                 </div>
               )}
 
