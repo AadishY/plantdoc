@@ -22,12 +22,15 @@ export const PlantDocHeroStage: React.FC = () => {
   const stageRef = useRef<HTMLDivElement>(null);
   const flowerContainerRef = useRef<HTMLDivElement>(null);
   const maskCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const baseLayerRef = useRef<HTMLDivElement>(null);
   const topLayerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const maskCanvas = document.createElement('canvas');
+    const invCanvas = document.createElement('canvas');
     maskCanvasRef.current = maskCanvas;
     const ctx = maskCanvas.getContext('2d');
+    const invCtx = invCanvas.getContext('2d');
     if (!ctx) return;
 
     let points: TrailPoint[] = [];
@@ -47,8 +50,12 @@ export const PlantDocHeroStage: React.FC = () => {
       const rect = topLayerRef.current.getBoundingClientRect();
       const isMobile = window.innerWidth < 768;
       const scaleFactor = isMobile ? 3 : 2;
-      maskCanvas.width = Math.max(50, Math.round(rect.width / scaleFactor));
-      maskCanvas.height = Math.max(50, Math.round(rect.height / scaleFactor));
+      const w = Math.max(50, Math.round(rect.width / scaleFactor));
+      const h = Math.max(50, Math.round(rect.height / scaleFactor));
+      maskCanvas.width = w;
+      maskCanvas.height = h;
+      invCanvas.width = w;
+      invCanvas.height = h;
     };
 
     updateCanvasSize();
@@ -227,7 +234,7 @@ export const PlantDocHeroStage: React.FC = () => {
     }
 
     const isMobileDevice = typeof window !== 'undefined' && window.innerWidth < 768;
-    const scaledHeadR = isMobileDevice ? TRAIL_HEAD_R * 0.36 : TRAIL_HEAD_R * 0.52;
+    const scaledHeadR = isMobileDevice ? TRAIL_HEAD_R * 0.32 : TRAIL_HEAD_R * 0.64;
 
     const renderLoop = () => {
       if (!isPageVisible || !isIntersecting) {
@@ -237,29 +244,29 @@ export const PlantDocHeroStage: React.FC = () => {
 
       time += 0.016;
       const targetR = hovering ? scaledHeadR : 0;
-      headRadius += (targetR - headRadius) * (hovering ? 0.28 : 0.08);
+      headRadius += (targetR - headRadius) * (hovering ? 0.32 : 0.12);
 
-      // Smooth cursor interpolation directly centered on cursor tip
+      // Ultra-smooth spring cursor interpolation
       if (hovering && mousePos.x !== -9999) {
         if (smoothX === -9999) {
           smoothX = mousePos.x;
           smoothY = mousePos.y;
         } else {
-          smoothX += (mousePos.x - smoothX) * 0.40;
-          smoothY += (mousePos.y - smoothY) * 0.40;
+          smoothX += (mousePos.x - smoothX) * 0.36;
+          smoothY += (mousePos.y - smoothY) * 0.36;
         }
 
-        // Add trailing points as the cursor moves
+        // Add trailing points with fluid spacing
         const dist = Math.hypot(smoothX - lastX, smoothY - lastY);
-        if (dist >= TRAIL_SAMPLE_DIST && headRadius > 2) {
+        if (dist >= 3.5 && headRadius > 2) {
           points.push({
             x: smoothX,
             y: smoothY,
-            r: headRadius * 0.88,
-            alpha: 0.95,
+            r: headRadius * 0.90,
+            alpha: 0.96,
             seed: Math.random() * 100
           });
-          const maxPoints = isMobileDevice ? 85 : TRAIL_MAX_POINTS;
+          const maxPoints = isMobileDevice ? 90 : TRAIL_MAX_POINTS;
           if (points.length > maxPoints) {
             points.shift();
           }
@@ -269,9 +276,9 @@ export const PlantDocHeroStage: React.FC = () => {
       }
 
       // In-place decay: 0 garbage collection allocations per frame!
-      // Balanced organic linger (0.965 fade speed creates ~1.8s smooth trailing wake)
-      const fadeSpeed = isMobileDevice ? 0.965 : TRAIL_FADE_SPEED;
-      const radiusDecay = isMobileDevice ? 0.996 : 0.994;
+      // Silky organic linger wake
+      const fadeSpeed = isMobileDevice ? 0.968 : TRAIL_FADE_SPEED;
+      const radiusDecay = isMobileDevice ? 0.997 : 0.994;
 
       for (let i = points.length - 1; i >= 0; i--) {
         const p = points[i];
@@ -286,6 +293,10 @@ export const PlantDocHeroStage: React.FC = () => {
         if (points.length === 0 && !hovering && headRadius < 0.5) {
           if (topLayerRef.current && topLayerRef.current.style.opacity !== '0') {
             topLayerRef.current.style.opacity = '0';
+          }
+          if (baseLayerRef.current && baseLayerRef.current.style.maskImage !== 'none') {
+            baseLayerRef.current.style.maskImage = 'none';
+            baseLayerRef.current.style.webkitMaskImage = 'none';
           }
         } else {
           ctx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
@@ -305,9 +316,10 @@ export const PlantDocHeroStage: React.FC = () => {
             ctx.fill();
           }
 
-          // Apply real-time canvas mask to top pathology layer
+          const dataUrl = maskCanvas.toDataURL();
+
+          // Apply real-time canvas mask to top pathology layer (reveals diseased plant)
           if (topLayerRef.current) {
-            const dataUrl = maskCanvas.toDataURL();
             topLayerRef.current.style.maskImage = `url(${dataUrl})`;
             topLayerRef.current.style.webkitMaskImage = `url(${dataUrl})`;
             topLayerRef.current.style.maskSize = '100% 100%';
@@ -315,6 +327,24 @@ export const PlantDocHeroStage: React.FC = () => {
             topLayerRef.current.style.maskRepeat = 'no-repeat';
             topLayerRef.current.style.webkitMaskRepeat = 'no-repeat';
             topLayerRef.current.style.opacity = '1';
+          }
+
+          // Apply inverse mask to base layer (cuts out healthy flower under cursor so necrotic holes show background)
+          if (invCtx && baseLayerRef.current) {
+            invCtx.clearRect(0, 0, invCanvas.width, invCanvas.height);
+            invCtx.fillStyle = '#ffffff';
+            invCtx.fillRect(0, 0, invCanvas.width, invCanvas.height);
+            invCtx.globalCompositeOperation = 'destination-out';
+            invCtx.drawImage(maskCanvas, 0, 0);
+            invCtx.globalCompositeOperation = 'source-over';
+
+            const invDataUrl = invCanvas.toDataURL();
+            baseLayerRef.current.style.maskImage = `url(${invDataUrl})`;
+            baseLayerRef.current.style.webkitMaskImage = `url(${invDataUrl})`;
+            baseLayerRef.current.style.maskSize = '100% 100%';
+            baseLayerRef.current.style.webkitMaskSize = '100% 100%';
+            baseLayerRef.current.style.maskRepeat = 'no-repeat';
+            baseLayerRef.current.style.webkitMaskRepeat = 'no-repeat';
           }
         }
       }
@@ -405,14 +435,19 @@ export const PlantDocHeroStage: React.FC = () => {
           {/* Synchronized Transformed Image Layer Wrapper */}
           <div className="relative w-full h-full flex items-start justify-center pointer-events-none transform scale-[1.18] translate-y-[22%] sm:scale-[1.08] sm:translate-y-[15%]">
             
-            {/* Base Layer: Front Healthy Foliage (main.webp) */}
-            <img 
-              src="/main.webp" 
-              alt="Healthy Foliage Specimen"
-              className="w-full h-full object-contain object-top filter drop-shadow-[0_25px_60px_rgba(0,0,0,0.9)]"
-              loading="eager"
-              decoding="async"
-            />
+            {/* Base Layer: Front Healthy Foliage (main.webp) with dynamic inverse mask */}
+            <div 
+              ref={baseLayerRef}
+              className="w-full h-full flex items-start justify-center will-change-[mask-image]"
+            >
+              <img 
+                src="/main.webp" 
+                alt="Healthy Foliage Specimen"
+                className="w-full h-full object-contain object-top filter drop-shadow-[0_25px_60px_rgba(0,0,0,0.9)]"
+                loading="eager"
+                decoding="async"
+              />
+            </div>
 
             {/* Reveal Top Layer: Diseased Foliage (main_disease.webp) Morph Masked (100% 1:1 Cursor Centered) */}
             <div 
@@ -420,13 +455,10 @@ export const PlantDocHeroStage: React.FC = () => {
               className="absolute inset-0 flex items-start justify-center pointer-events-none transition-opacity duration-150 will-change-[mask-image,opacity]"
               style={{ opacity: 0 }}
             >
-              {/* Dark Void Underlay (Prevents healthy flower from showing through necrotic holes) */}
-              <div className="absolute inset-0 bg-[#040805] pointer-events-none" />
-
               <img 
                 src="/main_disease.webp" 
                 alt=""
-                className="relative z-10 w-full h-full object-contain object-top filter brightness-[1.04] contrast-[1.12] saturate-[1.16] drop-shadow-[0_0_30px_rgba(239,68,68,0.45)] drop-shadow-[0_0_10px_rgba(245,158,11,0.25)]"
+                className="w-full h-full object-contain object-top filter brightness-[1.04] contrast-[1.12] saturate-[1.16] drop-shadow-[0_0_30px_rgba(239,68,68,0.45)] drop-shadow-[0_0_10px_rgba(245,158,11,0.25)]"
                 loading="eager"
                 decoding="async"
               />
@@ -439,14 +471,14 @@ export const PlantDocHeroStage: React.FC = () => {
       <div className="flex-1" />
 
       {/* Two Elevated Action Buttons (Pushed to left & right with wide central gap) */}
-      <div className="relative z-30 flex flex-row items-center justify-between w-full max-w-[310px] sm:max-w-[420px] mx-auto mb-2 sm:mb-2.5 pb-0.5 px-1 pointer-events-auto">
+      <div className="relative z-30 flex flex-row items-center justify-between w-full max-w-[310px] sm:max-w-[500px] md:max-w-[540px] mx-auto mb-2 sm:mb-3 pb-0.5 px-1 pointer-events-auto">
         {/* Button 1: Diagnose Plant Photo (Turquoise-Emerald Beacon) */}
         <Button 
           asChild 
-          className="relative group overflow-hidden bg-gradient-to-r from-[#2DD4BF] via-[#10B981] to-[#059669] hover:from-[#5EEAD4] hover:via-[#34D399] hover:to-[#10B981] text-black font-extrabold px-3 sm:px-5 py-2 sm:py-3.5 rounded-full shadow-[0_0_30px_rgba(45,212,191,0.5)] transition-all duration-300 hover:scale-105 hover:shadow-[0_0_45px_rgba(45,212,191,0.75)] text-[10px] sm:text-xs border border-[#5EEAD4]/60 cursor-pointer shrink-0"
+          className="relative group overflow-hidden bg-gradient-to-r from-[#2DD4BF] via-[#10B981] to-[#059669] hover:from-[#5EEAD4] hover:via-[#34D399] hover:to-[#10B981] text-black font-extrabold px-3 sm:px-7 md:px-8 py-2 sm:py-4 md:py-5 rounded-full shadow-[0_0_30px_rgba(45,212,191,0.5)] transition-all duration-300 hover:scale-105 hover:shadow-[0_0_50px_rgba(45,212,191,0.85)] text-[10px] sm:text-sm md:text-base border border-[#5EEAD4]/60 cursor-pointer shrink-0"
         >
-          <Link to="/diagnose" className="flex items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap">
-            <Scan className="h-3 sm:h-3.5 w-3 sm:w-3.5 transition-transform duration-300 group-hover:rotate-90 group-hover:scale-110" />
+          <Link to="/diagnose" className="flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap">
+            <Scan className="h-3 sm:h-4.5 md:h-5 w-3 sm:w-4.5 md:w-5 transition-transform duration-300 group-hover:rotate-90 group-hover:scale-110" />
             <span className="tracking-tight sm:tracking-wide font-bold">Diagnose Plant</span>
           </Link>
         </Button>
@@ -455,10 +487,10 @@ export const PlantDocHeroStage: React.FC = () => {
         <Button 
           asChild 
           variant="outline" 
-          className="relative group overflow-hidden bg-black/55 hover:bg-black/85 text-white font-semibold px-3 sm:px-5 py-2 sm:py-3.5 rounded-full backdrop-blur-2xl transition-all duration-300 hover:scale-105 text-[10px] sm:text-xs border border-white/20 hover:border-[#2DD4BF]/60 hover:text-[#5EEAD4] shadow-[0_4px_20px_rgba(0,0,0,0.5)] hover:shadow-[0_0_25px_rgba(45,212,191,0.35)] cursor-pointer shrink-0"
+          className="relative group overflow-hidden bg-black/55 hover:bg-black/85 text-white font-semibold px-3 sm:px-7 md:px-8 py-2 sm:py-4 md:py-5 rounded-full backdrop-blur-2xl transition-all duration-300 hover:scale-105 text-[10px] sm:text-sm md:text-base border border-white/20 hover:border-[#2DD4BF]/60 hover:text-[#5EEAD4] shadow-[0_4px_20px_rgba(0,0,0,0.5)] hover:shadow-[0_0_30px_rgba(45,212,191,0.4)] cursor-pointer shrink-0"
         >
-          <Link to="/recommend" className="flex items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap">
-            <Wand2 className="h-3 sm:h-3.5 w-3 sm:w-3.5 text-[#2DD4BF] transition-transform duration-300 group-hover:scale-125 group-hover:rotate-12" />
+          <Link to="/recommend" className="flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap">
+            <Wand2 className="h-3 sm:h-4.5 md:h-5 w-3 sm:w-4.5 md:w-5 text-[#2DD4BF] transition-transform duration-300 group-hover:scale-125 group-hover:rotate-12" />
             <span className="tracking-tight sm:tracking-wide group-hover:text-[#5EEAD4] transition-colors">Recommendations</span>
           </Link>
         </Button>
@@ -472,17 +504,17 @@ export const PlantDocHeroStage: React.FC = () => {
           <div className="text-white font-medium">intelligently localized.</div>
         </div>
 
-        {/* Center Scroll Prompt (Luxury Liquid Glassmorphism Pill) */}
+        {/* Center Scroll Prompt (Luxury Liquid Glassmorphism Pill - Enhanced on PC) */}
         <button 
           onClick={scrollToNextSection}
-          className="pointer-events-auto mx-auto h-6 sm:h-7 px-3.5 sm:px-4.5 flex items-center gap-1.5 text-white/90 hover:text-[#5EEAD4] transition-all duration-300 bg-gradient-to-r from-black/60 via-black/40 to-black/60 hover:from-black/80 hover:to-black/80 backdrop-blur-2xl rounded-full border border-white/20 hover:border-[#2DD4BF]/60 shadow-[0_4px_20px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.25)] group cursor-pointer"
+          className="pointer-events-auto mx-auto h-6 sm:h-8 md:h-9 px-3.5 sm:px-5 md:px-6 flex items-center gap-1.5 sm:gap-2 text-white/90 hover:text-[#5EEAD4] transition-all duration-300 bg-gradient-to-r from-black/60 via-black/40 to-black/60 hover:from-black/80 hover:to-black/80 backdrop-blur-2xl rounded-full border border-white/20 hover:border-[#2DD4BF]/60 shadow-[0_4px_20px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.25)] group cursor-pointer"
         >
-          <span className="relative flex h-1.5 w-1.5 shrink-0">
+          <span className="relative flex h-1.5 sm:h-2 w-1.5 sm:w-2 shrink-0">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#2DD4BF] opacity-75" />
-            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#2DD4BF]" />
+            <span className="relative inline-flex rounded-full h-1.5 sm:h-2 w-1.5 sm:w-2 bg-[#2DD4BF]" />
           </span>
-          <span className="font-sans font-medium text-[9.5px] sm:text-[11px] tracking-wide">Explore Platform</span>
-          <ChevronDown className="h-3 w-3 text-[#2DD4BF] animate-bounce group-hover:translate-y-0.5 transition-transform shrink-0" />
+          <span className="font-sans font-medium text-[9.5px] sm:text-xs md:text-sm tracking-wide">Explore Platform</span>
+          <ChevronDown className="h-3 sm:h-4 w-3 sm:w-4 text-[#2DD4BF] animate-bounce group-hover:translate-y-0.5 transition-transform shrink-0" />
         </button>
 
         {/* Right Corner Copy */}
