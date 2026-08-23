@@ -383,17 +383,18 @@ export const PlantDocHeroStage: React.FC = () => {
 
   const scrollToNextSection = () => {
     const lenis = (window as any).__lenis;
+    const target = document.getElementById('features-section');
+    if (!target) return;
+
     if (lenis) {
-      lenis.scrollTo('#features-section', { 
-        duration: 1.1, 
-        easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-        offset: 0
+      lenis.scrollTo(target, { 
+        duration: 1.35, 
+        easing: (t: number) => 1 - Math.pow(1 - t, 3.5), // Butter-smooth cubic-bezier deceleration
+        offset: 0,
+        lock: false
       });
     } else {
-      const nextSection = document.getElementById('features-section');
-      if (nextSection) {
-        nextSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
