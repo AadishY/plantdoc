@@ -230,6 +230,16 @@ const RecommendPage = () => {
   // Search Filter
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Synchronize Lenis scroll engine when recommendations or loading state changes
+  React.useEffect(() => {
+    const lenis = (window as any).__lenis;
+    if (lenis) {
+      setTimeout(() => {
+        lenis.resize();
+      }, 100);
+    }
+  }, [recommendations, isLoading]);
+
   // Manual Trigger: Auto-detect climate when button clicked
   const handleAutoDetectClimate = async () => {
     if (!country.trim() || !state.trim()) {

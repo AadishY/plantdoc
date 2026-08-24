@@ -164,29 +164,61 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
               className="w-full h-full object-contain max-h-[460px] transition-all rounded-2xl" 
             />
 
-            {/* High-Tech Holographic Scanning Laser & HUD Overlay */}
+            {/* High-Tech Holographic Scanning Laser & HUD Matrix Overlay */}
             {isLoading && (
-              <div className="absolute inset-0 bg-black/35 backdrop-blur-[1.5px] pointer-events-none z-30 overflow-hidden">
-                {/* Sweeping Laser Beam */}
-                <motion.div 
-                  className="w-full h-1.5 bg-gradient-to-r from-transparent via-[#2DD4BF] to-transparent shadow-[0_0_25px_#2DD4BF,0_0_8px_#5EEAD4]"
-                  animate={{ y: ['0%', '420px', '0%'] }}
-                  transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+              <div className="absolute inset-0 bg-black/45 backdrop-blur-[1px] pointer-events-none z-30 overflow-hidden flex items-center justify-center">
+                {/* 1. Subtle Holographic Coordinate Grid Overlay */}
+                <div 
+                  className="absolute inset-0 opacity-15" 
+                  style={{
+                    backgroundImage: 'linear-gradient(to right, rgba(45, 212, 191, 0.4) 1px, transparent 1px), linear-gradient(to bottom, rgba(45, 212, 191, 0.4) 1px, transparent 1px)',
+                    backgroundSize: '28px 28px'
+                  }}
                 />
 
-                {/* HUD Corner Reticles */}
-                <div className="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-[#2DD4BF] opacity-80" />
-                <div className="absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 border-[#2DD4BF] opacity-80" />
-                <div className="absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 border-[#2DD4BF] opacity-80" />
-                <div className="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-[#2DD4BF] opacity-80" />
+                {/* 2. Primary High-Intensity Emerald Laser Beam */}
+                <motion.div 
+                  className="absolute left-0 right-0 h-1.5 bg-gradient-to-r from-transparent via-[#2DD4BF] to-transparent shadow-[0_0_30px_#2DD4BF,0_0_12px_#5EEAD4] z-20"
+                  animate={{ y: ['-200px', '220px', '-200px'] }}
+                  transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+                />
 
-                {/* Top Telemetry Status Pill */}
-                <div className="absolute top-4 left-1/2 transform -translate-x-1/2 px-4 py-1 rounded-full bg-black/85 backdrop-blur-xl border border-[#2DD4BF]/50 text-[#5EEAD4] text-[11px] font-mono font-bold shadow-[0_0_20px_rgba(45,212,191,0.4)] flex items-center gap-2">
+                {/* 3. Secondary Trailing Cyan Laser Glow */}
+                <motion.div 
+                  className="absolute left-0 right-0 h-8 bg-gradient-to-b from-[#2DD4BF]/20 via-[#2DD4BF]/5 to-transparent blur-sm z-10"
+                  animate={{ y: ['-200px', '220px', '-200px'] }}
+                  transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+                />
+
+                {/* 4. Dynamic Scanning Lesion Reticle simulation boxes */}
+                <motion.div 
+                  className="absolute w-24 h-20 border border-dashed border-[#5EEAD4]/80 rounded-xl bg-[#2DD4BF]/10 shadow-[0_0_20px_rgba(45,212,191,0.4)] flex items-center justify-center z-15"
+                  animate={{ 
+                    scale: [0.9, 1.08, 0.9],
+                    opacity: [0.4, 0.9, 0.4],
+                    x: ['-20px', '30px', '-20px'],
+                    y: ['-40px', '20px', '-40px']
+                  }}
+                  transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  <span className="text-[9px] font-mono text-[#5EEAD4] font-bold bg-black/80 px-1.5 py-0.5 rounded border border-[#2DD4BF]/40">
+                    SCAN_TARGET
+                  </span>
+                </motion.div>
+
+                {/* 5. Precision HUD Corner Brackets */}
+                <div className="absolute top-4 left-4 w-7 h-7 border-t-2 border-l-2 border-[#2DD4BF] shadow-[0_0_10px_#2DD4BF]" />
+                <div className="absolute top-4 right-4 w-7 h-7 border-t-2 border-r-2 border-[#2DD4BF] shadow-[0_0_10px_#2DD4BF]" />
+                <div className="absolute bottom-4 left-4 w-7 h-7 border-b-2 border-l-2 border-[#2DD4BF] shadow-[0_0_10px_#2DD4BF]" />
+                <div className="absolute bottom-4 right-4 w-7 h-7 border-b-2 border-r-2 border-[#2DD4BF] shadow-[0_0_10px_#2DD4BF]" />
+
+                {/* 6. Top Telemetry Status Pill */}
+                <div className="absolute top-4 left-1/2 transform -translate-x-1/2 px-4 py-1.5 rounded-full bg-black/90 backdrop-blur-2xl border border-[#2DD4BF]/60 text-[#5EEAD4] text-[11px] font-mono font-bold shadow-[0_0_25px_rgba(45,212,191,0.5)] flex items-center gap-2 z-30">
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#2DD4BF] opacity-75" />
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-[#2DD4BF]" />
                   </span>
-                  <span>AI PATHOLOGY SCAN IN PROGRESS</span>
+                  <span>NEURAL FOLIAR SCANNING IN PROGRESS</span>
                 </div>
               </div>
             )}

@@ -114,24 +114,35 @@ function extractJsonFromText(text: string): any {
   return null;
 }
 
-// Resilient fetch wrapper with strict timeout to prevent infinite loading spins
-async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: number = 30000): Promise<Response> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const response = await fetch(url, {
-      ...options,
-      signal: controller.signal
-    });
-    clearTimeout(timeoutId);
-    return response;
-  } catch (error: any) {
-    clearTimeout(timeoutId);
-    if (error.name === 'AbortError') {
-      throw new Error('Connection timed out. Please check your internet connection and try again.');
+// Resilient fetch wrapper with generous 45s timeout and automatic retry on network glitches
+async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: number = 45000, retries: number = 1): Promise<Response> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      if (!response.ok && (response.status >= 500 || response.status === 429) && attempt < retries) {
+        await new Promise(r => setTimeout(r, 1200));
+        continue;
+      }
+      return response;
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+      if (attempt < retries) {
+        await new Promise(r => setTimeout(r, 1200));
+        continue;
+      }
+      if (error.name === 'AbortError') {
+        throw new Error('Connection timed out. Please check your network connection and try again.');
+      }
+      throw error;
     }
-    throw error;
   }
+  throw new Error('Network connection issue detected. Please check your internet connection and try again.');
 }
 
 // User-friendly error message formatter (replaces raw API quotas with clean actionable messages)
@@ -182,29 +193,31 @@ async function fetchSpatialSegmentation(
   apiKey: string
 ): Promise<{ plant_box?: [number, number, number, number]; lesions?: Array<{ label: string; box_2d: [number, number, number, number]; severity: 'low' | 'medium' | 'high' | 'critical'; confidence: number; description?: string }> }> {
   try {
-    const promptText = `You are PlantDoc AI Spatial Vision Diagnostics Engine.
-Your task is to detect precise 2D bounding boxes for all visible disease lesions, necrotic spots, insect feeding holes, chlorotic halo patches, rust pustules, or powdery mildew on this plant foliage.
+    const promptText = `You are PlantDoc AI High-Precision Spatial Vision Diagnostics Engine.
+Your task is to detect precise 2D bounding boxes for ALL visible disease lesions, necrotic spots, insect feeding holes, chlorotic halo patches, rust pustules, cercospora/septoria specks, powdery mildew spots, or damaged tissue across this entire plant foliage.
 
-CRITICAL ACCURACY & LOCALIZATION RULES:
-1. STRICT SPATIAL PRECISION: Every bounding box must tightly wrap the exact perimeter of the specific lesion or hole:
+CRITICAL ACCURACY & EXHAUSTIVE MULTI-SPOT COVERAGE RULES:
+1. EXHAUSTIVE MULTI-LESION DETECTION: Inspect the entire foliar surface systematically across leaf margins, veins, apex, center, and petioles. If there are multiple small lesions, scattered necrotic spots, insect chew holes, rust pustules, or fungal specks across the leaf, detect and localize ALL of them with separate, individual tight bounding boxes (detect up to 30 distinct spots).
+2. DO NOT SKIP SMALL DAMAGE PORTIONS: Every pinpoint lesion, small puncture hole, or minor circular spot must have its own distinct bounding box.
+3. NEVER BUNDLE DISTANT SPOTS: Never group multiple separate spots into one large box. Every individual lesion or hole must have its own tight bounding box.
+4. STRICT SPATIAL PRECISION: Every bounding box [ymin, xmin, ymax, xmax] must tightly wrap the exact perimeter of the specific lesion or hole:
    - ymin: uppermost edge of the infected spot (0 to 1000)
    - xmin: leftmost edge of the infected spot (0 to 1000)
    - ymax: lowermost edge of the infected spot (0 to 1000)
    - xmax: rightmost edge of the infected spot (0 to 1000)
-2. INDIVIDUAL LESION DETECTION: If there are multiple separate spots or insect holes, mark EACH ONE individually. NEVER group multiple distinct spots into one large box. Output separate tight boxes for each individual spot (up to 10 distinct spots).
-3. NO HEALTHY TISSUE: Never place boxes over clean, healthy green leaf tissue.
-4. HEALTHY PLANTS: If the plant specimen is healthy with no disease spots or holes, return "lesions": [].
+5. NO HEALTHY TISSUE: Never place boxes over clean, healthy green leaf tissue.
+6. HEALTHY PLANTS: If the plant specimen is healthy with no disease spots or holes, return "lesions": [].
 
-Output strictly valid JSON:
+Output strictly valid JSON matching this schema:
 {
   "plant_box": [ymin, xmin, ymax, xmax],
   "lesions": [
     {
-      "label": "Short Symptom Name (e.g. Necrotic Spot, Leaf Hole, Mildew Patch)",
+      "label": "Short descriptive symptom name characterizing the foliar defect",
       "box_2d": [ymin, xmin, ymax, xmax],
       "severity": "low" | "medium" | "high" | "critical",
       "confidence": 96.0,
-      "description": "Short 1-sentence info about the affected tissue damage (e.g. Necrotic foliar cell death impairing photosynthesis)"
+      "description": "Concise single-sentence description of the affected cellular tissue damage and physiological impact"
     }
   ]
 }`;
@@ -225,7 +238,7 @@ Output strictly valid JSON:
       ],
       generationConfig: {
         temperature: 0.1,
-        maxOutputTokens: 4096
+        maxOutputTokens: 8192
       }
     };
 
@@ -236,7 +249,7 @@ Output strictly valid JSON:
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       },
-      20000 // 20s timeout for segmentation
+      30000 // 30s timeout for segmentation
     );
 
     if (!response.ok) return { lesions: [] };
@@ -275,24 +288,24 @@ async function fetchClinicalDiagnosis(
   const promptText = `You are the PlantDoc AI Vision Diagnostics Engine. Analyze the provided plant image thoroughly to identify the plant species, diagnose any diseases or nutritional deficiencies, and produce clinical remediation protocols.
 
 CRITICAL RULES:
-1. Identify the exact common name and Latin binomial (e.g. Tomato / Solanum lycopersicum).
+1. Identify the exact common vernacular name and full Latin botanical binomial (Genus species).
 2. If the specimen is HEALTHY, explicitly set:
    - "disease": { "name": "Healthy Specimen / No Disease Detected", "confidence": 98.0, "severity": "Low", "pathogen_type": "None (Healthy)", "health_score": 98, "recovery_prognosis": 100, "spread_risk": "Low" }
    - "treatment": { "immediate_actions": ["No emergency quarantine required."], "organic_remedies": ["Maintain regular watering and balanced sunlight."], "chemical_treatments": ["No chemical fungicides necessary."], "steps": ["1. Continue regular preventive care", "2. Inspect foliage bi-weekly"], "prevention": ["Maintain optimal spacing and airflow"], "timeline": { "day_1_3": "Routine inspection", "week_1_2": "Regular watering", "month_1": "Apply maintenance fertilizer" } }
-3. If DISEASED, pinpoint specific pathogen (Fungal, Bacterial, Viral, Pest, Deficiency).
-4. REAL PRODUCT FERTILIZER MANDATE: In "fertilizer_recommendation", you MUST provide a REAL-WORLD commercial product brand name, manufacturer, and exact formulation (e.g. "Miracle-Gro Water Soluble All Purpose Plant Food (24-8-16)", "FoxFarm Grow Big Liquid Concentrate (6-4-4)", "Espoma Organic Garden-tone (3-4-4)", "Osmocote Smart-Release Plant Food (15-9-12)", "Alaska 5-1-1 Liquid Fish Fertilizer", "Jack's Classic 20-20-20 All Purpose", "Down to Earth Organic Bone Meal (3-15-0)"). DO NOT use generic phrases like "rich nitrogen based fertilizer" or "balanced fertilizer". Always include the exact real brand, NPK ratio, and precise mixing dosage (e.g. "Mix 1/2 tablespoon per gallon of water and apply every 14 days around root zone").
-5. REAL PRODUCT CHEMICAL TREATMENTS MANDATE: In "treatment.chemical_treatments", you MUST specify real commercial product brand names alongside active chemical ingredients and exact mixing dosages (e.g. "Daconil Fungicide Concentrate (Active: Chlorothalonil 29.6%) — Mix 1.5 tbsp (22ml) per gallon of water and spray foliar surfaces until runoff every 7-10 days", "Bonide Copper Fungicide Spray / Dust (Active: Copper Octanoate 10.0%) — Apply 1.5 fl oz per gallon of water", "Spectracide Immunox Multi-Purpose Fungicide (Active: Myclobutanil 1.55%) — Mix 1 fl oz per gallon", "BioAdvanced 3-in-1 Insect, Disease & Mite Control (Active: Tebuconazole 0.8% + Tau-Fluvalinate 0.61%) — Apply 5 tbsp per gallon", "Monterey Garden Insect Spray (Active: Spinosad 0.5%) — Mix 2 fl oz per gallon"). DO NOT output generic chemical names alone.
-6. REAL PRODUCT ORGANIC REMEDIES MANDATE: In "treatment.organic_remedies", you MUST specify real commercial bio-organic product brand names or exact verified biological recipes (e.g. "Southern Ag Triple Action Neem Oil (70% Hydrophobic Extract of Neem Oil) — Mix 2 tbsp per gallon of water with mild soap", "Serenade Garden Disease Control Bio-Fungicide (Active: Bacillus amyloliquefaciens QST 713 strain) — Spray foliar canopy every 7 days", "Monterey Complete Disease Control (Active: Bacillus subtilis) — 1 tbsp per gallon").
+3. If DISEASED, pinpoint the specific pathogen classification (Fungal, Bacterial, Viral, Pest / Insect, Nutrient Deficiency, Abiotic Stress).
+4. REAL PRODUCT FERTILIZER MANDATE: In "fertilizer_recommendation", provide a real-world commercial retail product brand name with its exact manufacturer, complete NPK macronutrient ratio, and precise mixing dilution instructions for root zone or foliar application. Do not output vague generic terms.
+5. REAL PRODUCT CHEMICAL TREATMENTS MANDATE: In "treatment.chemical_treatments", specify real retail commercial fungicide, bactericide, or pesticide brand names, stating the active chemical ingredient, concentration percentage, and exact volumetric mixing dosage per gallon or liter of water with safety intervals.
+6. REAL PRODUCT ORGANIC REMEDIES MANDATE: In "treatment.organic_remedies", specify real commercial bio-organic product brand names, biological agents, or verified organic formulations with exact volumetric preparation ratios and application schedules.
 
 CRITICAL: Output ONLY a valid JSON object matching this schema:
 
 {
-  "plant": "Common name of the plant (e.g. Tomato, Monstera, Rose)",
-  "scientific_name": "Latin botanical name (e.g. Solanum lycopersicum)",
-  "family": "Botanical family (e.g. Solanaceae)",
+  "plant": "Common name of the plant",
+  "scientific_name": "Full Latin botanical binomial (Genus species)",
+  "family": "Botanical family classification",
   "accuracy": 96.5,
   "disease": {
-    "name": "Precise disease name or 'Healthy / No Disease Detected'",
+    "name": "Precise pathology disease name or 'Healthy / No Disease Detected'",
     "confidence": 94.0,
     "severity": "Low" | "Medium" | "High" | "Critical",
     "pathogen_type": "Fungal" | "Bacterial" | "Viral" | "Pest / Insect" | "Nutrient Deficiency" | "Abiotic Stress",
@@ -303,61 +316,61 @@ CRITICAL: Output ONLY a valid JSON object matching this schema:
   "affected_parts": ["Leaves", "Stem", "Fruit"],
   "symptoms_breakdown": [
     {
-      "symptom": "Yellowing leaf margins with brown necrotic centers",
-      "severity": "Moderate"
+      "symptom": "Detailed clinical description of observed foliar discoloration, necrosis, or tissue deformation",
+      "severity": "Low" | "Moderate" | "High" | "Severe"
     }
   ],
   "causes": [
-    "Primary pathogen or environmental stress factor",
-    "Secondary contributing cultural condition"
+    "Primary pathogen etiology or environmental stress factor",
+    "Secondary contributing microclimate condition"
   ],
   "treatment": {
     "immediate_actions": [
-      "Isolate the plant immediately to prevent cross-contamination",
-      "Prune and dispose of severely infected leaves using sanitized shears"
+      "Physical quarantine and environmental isolation instructions",
+      "Sanitary pruning procedure with tool disinfection guidelines"
     ],
     "organic_remedies": [
-      "Southern Ag Triple Action Neem Oil — Mix 2 tbsp per gallon of water and spray foliar surfaces every 7 days",
-      "Serenade Garden Disease Control (Bacillus subtilis bio-fungicide) — Apply in early morning to colonize leaf surface"
+      "OMRI-listed organic brand or bio-fungicide with exact concentration and spraying intervals",
+      "Biological control agent or natural foliar treatment recipe"
     ],
     "chemical_treatments": [
-      "Daconil Fungicide Concentrate (Chlorothalonil 29.6%) — Mix 1.5 tbsp per gallon of water and spray foliage thoroughly every 7-10 days",
-      "Bonide Liquid Copper Fungicide (Copper Octanoate 10%) — Mix 1.5 fl oz per gallon of water at first symptom onset"
+      "Commercial retail fungicide or pesticide brand with active ingredient, percentage, and exact dilution per gallon/liter",
+      "Protective contact or systemic treatment with application frequency and safety interval"
     ],
     "steps": [
-      "1. Isolate and prune infected foliage",
-      "2. Disinfect pruning tools with 70% isopropyl alcohol",
-      "3. Apply targeted organic or chemical antifungal treatment",
-      "4. Adjust watering routine to water at the soil base only"
+      "1. Immediate physical quarantine and sanitation",
+      "2. Disinfection of horticultural tools with 70% alcohol",
+      "3. Curative chemical or biological foliar spray application",
+      "4. Modification of irrigation method and canopy aeration"
     ],
     "prevention": [
-      "Ensure adequate 30-40cm plant spacing for proper airflow",
-      "Avoid overhead watering; irrigate in early morning at soil level",
-      "Apply organic mulch around the base to prevent soil splash"
+      "Optimal plant spacing distance and airflow requirements",
+      "Drip or base irrigation schedule avoiding leaf wetness",
+      "Soil mulching and pathogen barrier maintenance"
     ],
     "timeline": {
-      "day_1_3": "Prune infected tissue and isolate plant; apply initial treatment",
-      "week_1_2": "Monitor new growth for spot recurrence; repeat foliar spray",
-      "month_1": "Assess overall recovery and resume balanced fertilization"
+      "day_1_3": "Initial quarantine, infected tissue pruning, and first treatment application",
+      "week_1_2": "Foliar monitoring for lesion recurrence and secondary booster spray",
+      "month_1": "Long-term vigor assessment and resumption of balanced fertilization"
     }
   },
   "fertilizer_recommendation": {
-    "type": "Miracle-Gro Water Soluble All Purpose Plant Food (24-8-16) or FoxFarm Grow Big (6-4-4)",
-    "application": "Dilute 1/2 tablespoon per gallon of water and apply every 14 days around the root zone to promote foliar recovery",
-    "npk_ratio": "24-8-16",
-    "soil_ph_advice": "Maintain soil pH between 6.0 and 6.8 for optimal nutrient bioavailability"
+    "type": "Specific commercial product brand name with complete NPK grade",
+    "application": "Precise dilution ratio and root or foliar application frequency",
+    "npk_ratio": "Numerical NPK ratio",
+    "soil_ph_advice": "Recommended target soil pH range for optimal nutrient bioavailability"
   },
   "care_recommendations": [
-    "Provide 6-8 hours of bright indirect or filtered direct sunlight",
-    "Allow top 2 inches of soil to dry out between waterings",
-    "Maintain ambient humidity around 50-60% with good ventilation"
+    "Required daily sunlight duration and exposure type",
+    "Soil moisture management and irrigation schedule",
+    "Ambient relative humidity and temperature range"
   ],
   "about_plant": {
-    "description": "Botanical description of the plant species, growth characteristics, and native habitat",
-    "origin": "Native geographic origin and climate zone",
-    "common_uses": ["Culinary", "Ornamental", "Medicinal"],
-    "growing_conditions": "Preferred soil, light, temperature (18-28°C), and water conditions",
-    "toxicity_warning": "Non-toxic to pets / Toxic to cats and dogs if ingested"
+    "description": "Comprehensive botanical profile, morphological characteristics, and ecological adaptations",
+    "origin": "Native geographic origin and indigenous climate zone",
+    "common_uses": ["Culinary", "Ornamental", "Medicinal", "Agricultural"],
+    "growing_conditions": "Ideal substrate composition, thermal envelope, and moisture parameters",
+    "toxicity_warning": "Specific pet and livestock toxicity status"
   }
 }
 
@@ -378,7 +391,7 @@ Return ONLY the JSON. No markdown commentary.`;
       }
     ],
     generationConfig: {
-      temperature: 0.2,
+      temperature: 0.1,
       maxOutputTokens: 8192
     }
   };
@@ -392,7 +405,7 @@ Return ONLY the JSON. No markdown commentary.`;
       },
       body: JSON.stringify(payload)
     },
-    30000 // 30s timeout
+    45000 // 45s timeout
   );
 
   if (!response.ok) {
@@ -647,7 +660,7 @@ export const getPlantRecommendations = async (
     const promptText = `You are the PlantDoc AI Botanical Recommendation Engine.
 Suggest EXACTLY 6 distinct, thrive-tested plant species suited for these environmental conditions and category:
 
-- Category Filter: "${category}" (e.g. if 'Crops', suggest food/grain/vegetable crops; if 'Fruit', suggest fruit trees/berries; if 'Flower', suggest flowering ornamentals; if 'Herbs', suggest culinary/medicinal herbs; if 'Mix', provide a balanced mix of crops, flowers, and fruits).
+- Category Filter: "${category}" (When 'Crops', provide food and vegetable crops; when 'Fruit', provide fruit trees and berry bushes; when 'Flower', provide flowering ornamentals; when 'Herbs', provide culinary and medicinal herbs; when 'Mix', provide a balanced blend).
 - Geographic Region: ${locationStr}
 - Average Temperature: ${temperature}°C
 - Annual Rainfall: ${rainfall}mm
@@ -660,9 +673,9 @@ Output ONLY a JSON array of 6 objects matching this schema:
 [
   {
     "id": "plant-1",
-    "name": "Common Plant Name (e.g. Lavender, Roma Tomato, Dwarf Meyer Lemon)",
-    "scientificName": "Accurate Latin botanical binomial (e.g. Lavandula angustifolia, Solanum lycopersicum)",
-    "description": "Comprehensive description of the plant and why it thrives in these exact climate parameters in ${locationStr}.",
+    "name": "Widely recognized common vernacular plant name",
+    "scientificName": "Accurate Latin botanical binomial (Genus species)",
+    "description": "Comprehensive agronomic profile detailing why this species thrives under these exact temperature, rainfall, and soil parameters in ${locationStr}.",
     "matchScore": 95,
     "sunlight": "Full Sun" | "Partial Shade" | "Full Shade",
     "waterNeeds": "Low" | "Medium" | "High",
@@ -670,9 +683,9 @@ Output ONLY a JSON array of 6 objects matching this schema:
     "growthRate": "Slow" | "Medium" | "Fast",
     "season": "Spring / Summer",
     "careInstructions": [
-      "Provide well-draining soil and water at the base",
-      "Apply balanced organic fertilizer during early vegetative phase",
-      "Prune dead foliage to maintain airflow"
+      "Substrate preparation and moisture management guideline",
+      "Macro-nutrient fertilization schedule during vegetative and reproductive phases",
+      "Canopy maintenance and pest prevention procedure"
     ],
     "compatibilityReason": "Thrives in ${temperature}°C temperatures and ${rainfall}mm rainfall conditions in ${locationStr}."
   }
@@ -696,7 +709,7 @@ Return ONLY the JSON array.`;
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       },
-      30000 // 30s timeout
+      45000 // 45s timeout
     );
 
     if (!response.ok) {

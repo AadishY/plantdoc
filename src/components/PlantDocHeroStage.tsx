@@ -246,6 +246,8 @@ export const PlantDocHeroStage: React.FC = () => {
     const isMobileDevice = typeof window !== 'undefined' && window.innerWidth < 768;
     const scaledHeadR = isMobileDevice ? TRAIL_HEAD_R * 0.32 : TRAIL_HEAD_R * 0.64;
 
+    let wasIdle = false;
+
     const renderLoop = () => {
       if (!isPageVisible || !isIntersecting) {
         animFrameId = 0;
@@ -258,6 +260,7 @@ export const PlantDocHeroStage: React.FC = () => {
 
       // Ultra-smooth spring cursor interpolation
       if (hovering && mousePos.x !== -9999) {
+        wasIdle = false;
         if (smoothX === -9999) {
           smoothX = mousePos.x;
           smoothY = mousePos.y;
@@ -276,7 +279,7 @@ export const PlantDocHeroStage: React.FC = () => {
             alpha: 0.96,
             seed: Math.random() * 100
           });
-          const maxPoints = isMobileDevice ? 90 : TRAIL_MAX_POINTS;
+          const maxPoints = isMobileDevice ? 65 : TRAIL_MAX_POINTS;
           if (points.length > maxPoints) {
             points.shift();
           }
@@ -286,9 +289,9 @@ export const PlantDocHeroStage: React.FC = () => {
       }
 
       // In-place decay: 0 garbage collection allocations per frame!
-      // Silky organic linger wake
-      const fadeSpeed = isMobileDevice ? 0.968 : TRAIL_FADE_SPEED;
-      const radiusDecay = isMobileDevice ? 0.997 : 0.994;
+      // Slightly extended linger wake on mobile touch for richer visibility; crisp decay on PC
+      const fadeSpeed = isMobileDevice ? 0.962 : TRAIL_FADE_SPEED;
+      const radiusDecay = isMobileDevice ? 0.996 : 0.994;
 
       for (let i = points.length - 1; i >= 0; i--) {
         const p = points[i];
@@ -301,14 +304,18 @@ export const PlantDocHeroStage: React.FC = () => {
 
       if (maskCanvas.width > 0 && maskCanvas.height > 0) {
         if (points.length === 0 && !hovering && headRadius < 0.5) {
-          if (topLayerRef.current && topLayerRef.current.style.opacity !== '0') {
-            topLayerRef.current.style.opacity = '0';
-          }
-          if (baseLayerRef.current && baseLayerRef.current.style.maskImage !== 'none') {
-            baseLayerRef.current.style.maskImage = 'none';
-            baseLayerRef.current.style.webkitMaskImage = 'none';
+          if (!wasIdle) {
+            wasIdle = true;
+            if (topLayerRef.current) {
+              topLayerRef.current.style.opacity = '0';
+            }
+            if (baseLayerRef.current) {
+              baseLayerRef.current.style.maskImage = 'none';
+              baseLayerRef.current.style.webkitMaskImage = 'none';
+            }
           }
         } else {
+          wasIdle = false;
           ctx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
 
           // 1. Draw decaying trailing morph blobs with feathered transparency
@@ -388,9 +395,8 @@ export const PlantDocHeroStage: React.FC = () => {
 
     if (lenis) {
       lenis.scrollTo(target, { 
-        duration: 1.45, 
-        easing: (t: number) => 1 - Math.pow(1 - t, 3.5), // Butter-smooth cubic-bezier deceleration
-        offset: -15,
+        duration: 0.85, 
+        offset: -20,
         lock: false
       });
     } else {
@@ -436,7 +442,7 @@ export const PlantDocHeroStage: React.FC = () => {
         {/* FLOWER: ANCHORED AT BOTTOM OF 1ST SLIDE ON BOTH MOBILE & PC */}
         <div 
           ref={flowerContainerRef}
-          className="absolute bottom-0 left-1/2 transform -translate-x-1/2 z-20 w-[96vw] sm:w-[78vw] md:w-[66vw] lg:w-[54vw] max-w-[740px] h-[78vh] sm:h-[84vh] md:h-[88vh] max-h-[890px] overflow-hidden flex items-end justify-center pointer-events-auto cursor-crosshair touch-none"
+          className="absolute bottom-0 left-1/2 transform -translate-x-1/2 z-20 w-[96vw] sm:w-[78vw] md:w-[66vw] lg:w-[54vw] max-w-[740px] h-[78vh] sm:h-[84vh] md:h-[88vh] max-h-[890px] overflow-hidden flex items-end justify-center pointer-events-auto cursor-crosshair touch-pan-y"
           title="Move cursor or drag finger over the flower to reveal AI pathology layer"
         >
           {/* Synchronized Transformed Image Layer Wrapper */}

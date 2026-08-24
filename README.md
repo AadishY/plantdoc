@@ -12,7 +12,7 @@
 ---
 
 <p align="center">
-  <img src="bannerr.jpg" alt="PlantDoc AI Showcase Banner" width="100%" style="border-radius: 14px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); border: 1px solid rgba(45, 212, 191, 0.2);" />
+  <img src="public/bannerr.jpg" alt="PlantDoc AI Showcase Banner" width="100%" style="border-radius: 14px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); border: 1px solid rgba(45, 212, 191, 0.2);" />
 </p>
 
 ---
@@ -45,12 +45,44 @@ Formulates full clinical pathology dossiers including diagnostic match certainty
 
 ---
 
-### 💊 3. Real Commercial Product Prescriptions & 5-Tier Treatment Matrix
-Prescribes exact commercial retail brands (e.g. *Daconil Fungicide*, *Bonide Liquid Copper*, *Southern Ag Neem Oil*, *Miracle-Gro Water Soluble All Purpose*, *FoxFarm Grow Big*) with precise dilution dosages and structured 30-day recovery timelines.
+### 🔬 3. Diagnostic Result Case Studies & Lesion Segments
+Explore real-world botanical pathology diagnoses, sub-pixel multi-spot lesion bounding boxes, and clinical telemetry dossiers across diverse foliar diseases:
 
+<details>
+<summary><b>🔍 Expand to View Real-World Diagnostic Case Studies (Specimens 1–6)</b></summary>
+<br/>
+
+#### Specimen Analysis & Clinical Protocol Overview
 <p align="center">
   <img src="public/demo/diagonosis%202.webp" alt="Clinical Treatment Protocol & Inspector" width="92%" style="border-radius: 12px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.1);" />
 </p>
+
+#### Case Study #1: Early Blight & Foliar Necrosis Localization
+<p align="center">
+  <img src="public/demo/diagnosis-ex1.webp" alt="Diagnosis Case Study 1 - Early Blight" width="92%" style="border-radius: 12px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.1);" />
+</p>
+
+#### Case Study #2: Multi-Spot Septoria & Concentric Ring Lesions
+<p align="center">
+  <img src="public/demo/diagnosis-ex2.webp" alt="Diagnosis Case Study 2 - Septoria Spot" width="92%" style="border-radius: 12px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.1);" />
+</p>
+
+#### Case Study #3: Powdery Mildew & Chlorotic Halo Spread
+<p align="center">
+  <img src="public/demo/diagnosis-ex3.webp" alt="Diagnosis Case Study 3 - Powdery Mildew" width="92%" style="border-radius: 12px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.1);" />
+</p>
+
+#### Case Study #4: Bacterial Leaf Spot & Marginal Burn
+<p align="center">
+  <img src="public/demo/diagnosis-ex4.webp" alt="Diagnosis Case Study 4 - Bacterial Spot" width="92%" style="border-radius: 12px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.1);" />
+</p>
+
+#### Case Study #5: Rust Pustules & Micro-Spot Localization
+<p align="center">
+  <img src="public/demo/diagnosis-ex5.webp" alt="Diagnosis Case Study 5 - Rust Pustules" width="92%" style="border-radius: 12px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.1);" />
+</p>
+
+</details>
 
 ---
 
