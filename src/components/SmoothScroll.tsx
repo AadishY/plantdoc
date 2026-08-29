@@ -13,16 +13,17 @@ export const SmoothScroll: React.FC<SmoothScrollProps> = ({ children }) => {
   const lenisRef = useRef<Lenis | null>(null);
 
   useEffect(() => {
-    // Initialize Lenis with fluid inertia and snappy high-FPS response
+    // Initialize Lenis with natural physics, immediate responsiveness and zero floaty drag
     const lenis = new Lenis({
-      duration: 0.8,
+      duration: 0.95,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: 'vertical',
       gestureOrientation: 'vertical',
       smoothWheel: true,
       wheelMultiplier: 1.0,
-      touchMultiplier: 1.2,
+      touchMultiplier: 1.0,
       syncTouch: false,
+      autoResize: true,
     });
 
     lenisRef.current = lenis;
@@ -37,9 +38,22 @@ export const SmoothScroll: React.FC<SmoothScrollProps> = ({ children }) => {
     };
 
     gsap.ticker.add(updateTicker);
-    gsap.ticker.lagSmoothing(0);
+    gsap.ticker.lagSmoothing(500, 33);
+
+    // Dynamic height observer to keep Lenis synchronized on dynamic page mutations
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(() => {
+        lenis.resize();
+        ScrollTrigger.refresh();
+      });
+      resizeObserver.observe(document.body);
+    }
 
     return () => {
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
       gsap.ticker.remove(updateTicker);
       lenis.destroy();
       lenisRef.current = null;

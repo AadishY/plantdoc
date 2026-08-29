@@ -16,10 +16,11 @@ import {
   Sparkles,
   Droplets,
   Scissors,
-  Sun,
-  Wind
+  Copy,
+  Check
 } from 'lucide-react';
 import { DiagnosisResult } from '@/types/diagnosis';
+import { toast } from 'sonner';
 
 interface ClinicalTreatmentProtocolProps {
   result: DiagnosisResult;
@@ -27,13 +28,7 @@ interface ClinicalTreatmentProtocolProps {
 
 export const ClinicalTreatmentProtocol: React.FC<ClinicalTreatmentProtocolProps> = ({ result }) => {
   const [completedSteps, setCompletedSteps] = useState<Record<number, boolean>>({});
-
-  const toggleStep = (idx: number) => {
-    setCompletedSteps(prev => ({
-      ...prev,
-      [idx]: !prev[idx]
-    }));
-  };
+  const [hasCopied, setHasCopied] = useState(false);
 
   const immediateActions = result.treatment.immediate_actions && result.treatment.immediate_actions.length > 0
     ? result.treatment.immediate_actions
@@ -47,19 +42,19 @@ export const ClinicalTreatmentProtocol: React.FC<ClinicalTreatmentProtocolProps>
   const organicRemedies = result.treatment.organic_remedies && result.treatment.organic_remedies.length > 0
     ? result.treatment.organic_remedies
     : [
-        "Cold-Pressed Pure Neem Oil Spray: Mix 5ml pure neem oil + 2ml mild liquid soap per 1 liter of lukewarm water. Spray top and undersides of leaves every 7 days.",
-        "Biological Bio-Fungicide: Spray Bacillus subtilis or Trichoderma harzianum bio-agent in early morning to colonize leaf surfaces and outcompete pathogens.",
-        "Potassium Bicarbonate Foliar Wash: Dissolve 3g potassium bicarbonate in 1L water to alter foliar pH and inhibit fungal spore germination.",
+        "Southern Ag Triple Action Neem Oil: Mix 2 tbsp per gallon of water with mild soap. Spray top and undersides of leaves every 7 days.",
+        "Serenade Garden Disease Control (Bacillus subtilis bio-fungicide): Spray foliar canopy in early morning to outcompete fungal pathogens.",
+        "Potassium Bicarbonate Foliar Wash: Dissolve 3g potassium bicarbonate in 1L water to alter foliar pH and inhibit spore germination.",
         "Organic Mulching Barrier: Apply 5cm of straw or bark mulch around base to prevent fungal spores in soil from splashing onto lower leaves."
       ];
 
   const chemicalTreatments = result.treatment.chemical_treatments && result.treatment.chemical_treatments.length > 0
     ? result.treatment.chemical_treatments
     : [
-        "Copper Hydroxide / Copper Octanoate: Apply 2.5g/L broad-spectrum bio-compatible copper fungicide at first sign of lesions; repeat every 10-14 days.",
-        "Chlorothalonil (Protective Contact): Apply at labeled dosage (2ml/L) to coat uninfected healthy leaves and prevent spore penetration.",
-        "Systemic Triazole / Strobilurin (Curative): For severe systemic infections, apply Azoxystrobin or Difenoconazole to cure internal vascular mycelium.",
-        "Safety Protocol: Wear protective gloves and eyewear; apply in early morning or late evening during calm wind to protect pollinators."
+        "Daconil Fungicide Concentrate (Chlorothalonil 29.6%): Mix 1.5 tbsp (22ml) per gallon of water and spray foliar surfaces until runoff every 7-10 days.",
+        "Bonide Liquid Copper Fungicide (Copper Octanoate 10.0%): Apply 1.5 fl oz per gallon of water at first symptom onset.",
+        "Spectracide Immunox Multi-Purpose Fungicide (Myclobutanil 1.55%): Mix 1 fl oz per gallon for curative systemic vascular mycelium control.",
+        "Safety Protocol: Wear protective gloves and eyewear; apply in early morning or late evening during calm wind."
       ];
 
   const preventionTips = result.treatment.prevention && result.treatment.prevention.length > 0
@@ -71,9 +66,34 @@ export const ClinicalTreatmentProtocol: React.FC<ClinicalTreatmentProtocolProps>
         "Sterilize Potting Media: Ensure pots have multiple drainage holes and use fresh, pathogen-free potting substrates."
       ];
 
+  const totalSteps = immediateActions.length;
+  const completedCount = Object.values(completedSteps).filter(Boolean).length;
+  const progressPercent = totalSteps > 0 ? Math.round((completedCount / totalSteps) * 100) : 0;
+
+  const toggleStep = (idx: number) => {
+    setCompletedSteps(prev => ({
+      ...prev,
+      [idx]: !prev[idx]
+    }));
+  };
+
+  const handleCopyProtocol = () => {
+    const text = `🌿 CLINICAL TREATMENT DOSSIER: ${result.plant} (${result.scientific_name || ''})\n` +
+      `Diagnosis: ${result.disease.name} (Severity: ${result.disease.severity})\n\n` +
+      `EMERGENCY STEPS:\n${immediateActions.map((a, i) => `${i + 1}. ${a}`).join('\n')}\n\n` +
+      `BIO-ORGANIC REMEDIES:\n${organicRemedies.map((r, i) => `• ${r}`).join('\n')}\n\n` +
+      `CHEMICAL FORMULATIONS:\n${chemicalTreatments.map((c, i) => `• ${c}`).join('\n')}\n\n` +
+      `FERTILIZER:\n${result.fertilizer_recommendation?.type || 'Balanced NPK'} (${result.fertilizer_recommendation?.application || ''})`;
+
+    navigator.clipboard.writeText(text);
+    setHasCopied(true);
+    toast.success('Clinical treatment protocol copied to clipboard!');
+    setTimeout(() => setHasCopied(false), 2500);
+  };
+
   return (
     <EnhancedCard glassIntensity="intense" borderGlow={true} className="overflow-hidden">
-      <EnhancedCardHeader className="bg-black/30 border-b border-white/10 pb-4">
+      <EnhancedCardHeader className="bg-black/40 border-b border-white/10 pb-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
             <div className="p-2.5 rounded-xl bg-plantDoc-primary/20 border border-plantDoc-primary/40 text-plantDoc-primary">
@@ -84,25 +104,34 @@ export const ClinicalTreatmentProtocol: React.FC<ClinicalTreatmentProtocolProps>
                 Clinical Treatment & Remediation Protocol
               </EnhancedCardTitle>
               <p className="text-xs text-foreground/75 mt-0.5">
-                Multi-tier botanical intervention tailored for <strong className="text-white">{result.disease.name}</strong> on <strong className="text-plantDoc-primary">{result.plant}</strong>
+                Targeted therapeutic matrix formulated for <strong className="text-white">{result.disease.name}</strong> on <strong className="text-plantDoc-primary">{result.plant}</strong>
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center flex-wrap gap-2">
             <Badge className="bg-red-500/20 text-red-300 border border-red-500/30 text-xs px-2.5 py-1">
               {result.disease.severity} Urgency
             </Badge>
             <Badge className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs px-2.5 py-1">
               Prognosis: {result.disease.recovery_prognosis || 85}%
             </Badge>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleCopyProtocol}
+              className="text-xs h-7 sm:h-8 px-2.5 text-white hover:text-[#5EEAD4] border-white/20 hover:bg-white/10 rounded-lg flex items-center gap-1.5"
+            >
+              {hasCopied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+              <span>{hasCopied ? 'Copied' : 'Copy'}</span>
+            </Button>
           </div>
         </div>
       </EnhancedCardHeader>
 
       <EnhancedCardContent className="p-0">
         <Tabs defaultValue="emergency" className="w-full">
-          <TabsList className="w-full grid grid-cols-2 md:grid-cols-5 rounded-none bg-black/40 border-b border-white/10 p-0 h-auto">
+          <TabsList className="w-full grid grid-cols-2 md:grid-cols-5 rounded-none bg-black/50 border-b border-white/10 p-0 h-auto">
             <TabsTrigger 
               value="emergency" 
               className="py-3.5 text-xs md:text-sm data-[state=active]:bg-red-500/20 data-[state=active]:text-red-400 font-semibold gap-1.5"
@@ -140,19 +169,27 @@ export const ClinicalTreatmentProtocol: React.FC<ClinicalTreatmentProtocolProps>
             </TabsTrigger>
           </TabsList>
 
-          <div className="p-6">
-            {/* Tab 1: Emergency Triage Checklist */}
+          <div className="p-4 sm:p-6">
+            {/* Tab 1: Emergency Triage Checklist with Completion Progress Bar */}
             <TabsContent value="emergency" className="mt-0 space-y-4">
-              <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/25 flex items-start gap-3 text-xs text-red-200">
-                <AlertTriangle className="h-5 w-5 text-red-400 shrink-0 mt-0.5" />
-                <div>
-                  <h4 className="font-semibold text-red-300 text-sm">Critical First 24-48 Hours</h4>
-                  <p className="mt-0.5 text-red-200/80 leading-relaxed">
-                    Check off each action step below as you execute emergency sanitation to arrest localized sporulation.
-                  </p>
+              <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/25 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-red-200">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 text-red-400 shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="font-semibold text-red-300 text-sm">Critical First 24–48 Hours Triage</h4>
+                    <p className="mt-0.5 text-red-200/80 leading-relaxed">
+                      Complete each sterilization and pruning task below to arrest spore propagation.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0 bg-black/40 px-3 py-1.5 rounded-xl border border-red-500/30">
+                  <span className="text-[11px] font-mono text-white/80">{completedCount}/{totalSteps} Tasks</span>
+                  <span className="text-xs font-mono font-bold text-emerald-400">({progressPercent}%)</span>
                 </div>
               </div>
 
+              {/* Interactive Checklist */}
               <div className="space-y-2.5">
                 {immediateActions.map((action, idx) => {
                   const isChecked = !!completedSteps[idx];
@@ -183,47 +220,108 @@ export const ClinicalTreatmentProtocol: React.FC<ClinicalTreatmentProtocolProps>
 
             {/* Tab 2: Bio & Organic Remedies */}
             <TabsContent value="organic" className="mt-0 space-y-4">
-              <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-start gap-3 text-xs text-emerald-200">
+              <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-start gap-3 text-xs text-emerald-200">
                 <Sprout className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="font-semibold text-emerald-300 text-sm">Eco-Friendly & Biological Arsenal</h4>
+                  <h4 className="font-semibold text-emerald-300 text-sm">OMRI-Listed & Bio-Organic Arsenal</h4>
                   <p className="mt-0.5 text-emerald-200/80 leading-relaxed">
-                    Safe for home gardeners, edible vegetable crops, children, and domestic pets.
+                    Zero toxic synthetic residue. Safe for organic vegetables, domestic pets, and beneficial pollinators.
                   </p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                 {organicRemedies.map((remedy, idx) => (
-                  <div key={idx} className="p-4 rounded-xl bg-black/30 border border-white/10 flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 font-bold text-xs">
+                  <div key={idx} className="p-4 rounded-2xl bg-black/40 border border-white/10 flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center shrink-0 font-bold text-xs">
                       #{idx + 1}
                     </div>
                     <p className="text-xs text-foreground/90 leading-relaxed">{remedy}</p>
                   </div>
                 ))}
               </div>
+
+              {/* Bio-Immunity Enhancers Card */}
+              <div className="p-4 rounded-2xl bg-emerald-950/20 border border-emerald-500/20 space-y-2">
+                <div className="flex items-center gap-2 text-xs font-bold text-emerald-300">
+                  <Sparkles className="h-4 w-4 text-emerald-400" />
+                  <span>Botanical Bio-Synergy Recommendations</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-[11px] text-foreground/80 pt-1">
+                  <div className="p-2.5 rounded-xl bg-black/30 border border-white/5">
+                    <strong className="text-white block mb-0.5">Foliar Potassium Silicate:</strong>
+                    Hardens leaf cell walls against spore puncture.
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-black/30 border border-white/5">
+                    <strong className="text-white block mb-0.5">Mycorrhizal Fungi:</strong>
+                    Colonizes roots to increase drought & disease resistance.
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-black/30 border border-white/5">
+                    <strong className="text-white block mb-0.5">Aerated Compost Tea:</strong>
+                    Supplies beneficial bacteria to outcompete foliar pathogens.
+                  </div>
+                </div>
+              </div>
             </TabsContent>
 
             {/* Tab 3: Chemical Formulations */}
             <TabsContent value="chemical" className="mt-0 space-y-4">
-              <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/25 flex items-start gap-3 text-xs text-blue-200">
+              <div className="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/25 flex items-start gap-3 text-xs text-blue-200">
                 <FlaskConical className="h-5 w-5 text-blue-400 shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="font-semibold text-blue-300 text-sm">Targeted Active Chemical Ingredients</h4>
+                  <h4 className="font-semibold text-blue-300 text-sm">Targeted Commercial Chemical Formulations</h4>
                   <p className="mt-0.5 text-blue-200/80 leading-relaxed">
-                    Professional curative and systemic formulations for stubborn or rapidly spreading infections.
+                    Prescribed retail brand active ingredients with precise volumetric dilution ratios.
                   </p>
                 </div>
               </div>
 
               <div className="space-y-3">
                 {chemicalTreatments.map((chem, idx) => (
-                  <div key={idx} className="p-4 rounded-xl bg-black/30 border border-white/10 flex items-start gap-3">
-                    <FlaskConical className="h-5 w-5 text-blue-400 shrink-0 mt-0.5" />
+                  <div key={idx} className="p-4 rounded-2xl bg-black/40 border border-white/10 flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center shrink-0">
+                      <FlaskConical className="h-4 w-4" />
+                    </div>
                     <p className="text-xs text-foreground/90 leading-relaxed">{chem}</p>
                   </div>
                 ))}
+              </div>
+
+              {/* Volumetric Mixing Table & PPE Guidelines */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
+                <div className="p-4 rounded-2xl bg-black/40 border border-blue-500/20 space-y-2">
+                  <div className="text-xs font-bold text-blue-300 font-mono flex items-center gap-1.5">
+                    <FlaskConical className="h-3.5 w-3.5 text-blue-400" />
+                    <span>VOLUMETRIC DILUTION MATRIX</span>
+                  </div>
+                  <div className="space-y-1.5 text-[11px] font-mono text-foreground/80">
+                    <div className="flex justify-between py-1 border-b border-white/5">
+                      <span>1 Liter Trigger Sprayer:</span>
+                      <strong className="text-white">4.5 – 5.5 ml (1 tsp)</strong>
+                    </div>
+                    <div className="flex justify-between py-1 border-b border-white/5">
+                      <span>1 Gallon Tank Sprayer:</span>
+                      <strong className="text-white">20 – 25 ml (1.5 tbsp)</strong>
+                    </div>
+                    <div className="flex justify-between py-1">
+                      <span>5 Liter Knapsack Sprayer:</span>
+                      <strong className="text-white">28 – 35 ml (2.0 tbsp)</strong>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-black/40 border border-red-500/20 space-y-2">
+                  <div className="text-xs font-bold text-red-300 font-mono flex items-center gap-1.5">
+                    <ShieldCheck className="h-3.5 w-3.5 text-red-400" />
+                    <span>MANDATORY PPE SAFETY PROTOCOL</span>
+                  </div>
+                  <ul className="text-[11px] text-foreground/80 space-y-1 list-disc list-inside">
+                    <li>Nitrile chemical-resistant protective gloves</li>
+                    <li>N95 or particulate face mask during spraying</li>
+                    <li>Splash-proof eye protection goggles</li>
+                    <li>Observe 4-hour Restricted Entry Interval (REI)</li>
+                  </ul>
+                </div>
               </div>
             </TabsContent>
 
@@ -232,18 +330,18 @@ export const ClinicalTreatmentProtocol: React.FC<ClinicalTreatmentProtocolProps>
               <div className="relative border-l-2 border-plantDoc-primary/40 ml-4 pl-6 space-y-6">
                 {[
                   {
-                    period: "Days 1–3: Emergency Phase",
-                    task: result.treatment.timeline?.day_1_3 || "Sanitize shears, prune heavily infected foliage, isolate specimen, and apply initial contact fungicide spray.",
+                    period: "Days 1–3: Emergency Triage",
+                    task: result.treatment.timeline?.day_1_3 || "Sanitize shears, prune heavily infected foliage, isolate specimen, and apply initial contact spray.",
                     icon: <Scissors className="h-4 w-4 text-red-400" />
                   },
                   {
                     period: "Days 4–14: Active Containment",
-                    task: result.treatment.timeline?.week_1_2 || "Inspect daily for new halo lesions. Apply second bio-fungicide or neem oil booster spray on Day 8. Convert to drip irrigation.",
+                    task: result.treatment.timeline?.week_1_2 || "Inspect daily for new halo lesions. Apply second bio-fungicide or neem oil booster spray on Day 8. Convert to base irrigation.",
                     icon: <Droplets className="h-4 w-4 text-blue-400" />
                   },
                   {
                     period: "Day 15–30: Regeneration & Immunity",
-                    task: result.treatment.timeline?.month_1 || "Observe healthy new bud growth. Apply diluted 10-10-10 organic fertilizer to replenish depleted potassium and strengthen cell walls.",
+                    task: result.treatment.timeline?.month_1 || "Observe healthy new bud growth. Apply diluted organic fertilizer to replenish depleted potassium and strengthen cell walls.",
                     icon: <Sparkles className="h-4 w-4 text-emerald-400" />
                   }
                 ].map((item, idx) => (
@@ -251,7 +349,7 @@ export const ClinicalTreatmentProtocol: React.FC<ClinicalTreatmentProtocolProps>
                     <div className="absolute -left-[33px] top-1 w-5 h-5 rounded-full bg-black border-2 border-plantDoc-primary flex items-center justify-center">
                       <div className="w-2 h-2 rounded-full bg-plantDoc-primary" />
                     </div>
-                    <div className="p-4 rounded-xl bg-black/30 border border-white/10 group-hover:border-plantDoc-primary/40 transition-colors">
+                    <div className="p-4 rounded-2xl bg-black/40 border border-white/10 group-hover:border-plantDoc-primary/40 transition-colors">
                       <div className="flex items-center gap-2 text-xs font-semibold text-plantDoc-primary mb-1">
                         {item.icon}
                         <span>{item.period}</span>
@@ -267,8 +365,10 @@ export const ClinicalTreatmentProtocol: React.FC<ClinicalTreatmentProtocolProps>
             <TabsContent value="prevention" className="mt-0 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                 {preventionTips.map((tip, idx) => (
-                  <div key={idx} className="p-4 rounded-xl bg-black/30 border border-white/10 flex items-start gap-3">
-                    <ShieldCheck className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
+                  <div key={idx} className="p-4 rounded-2xl bg-black/40 border border-white/10 flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center shrink-0">
+                      <ShieldCheck className="h-4 w-4" />
+                    </div>
                     <p className="text-xs text-foreground/90 leading-relaxed">{tip}</p>
                   </div>
                 ))}
@@ -281,4 +381,4 @@ export const ClinicalTreatmentProtocol: React.FC<ClinicalTreatmentProtocolProps>
   );
 };
 
-export default ClinicalTreatmentProtocol;
+export default React.memo(ClinicalTreatmentProtocol);

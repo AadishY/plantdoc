@@ -19,9 +19,16 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  esbuild: {
+    drop: mode === 'production' ? ['console', 'debugger'] : [],
+    legalComments: 'none',
+  },
   build: {
     target: 'es2020',
     cssCodeSplit: true,
+    cssMinify: true,
+    assetsInlineLimit: 4096,
+    reportCompressedSize: false,
     chunkSizeWarningLimit: 800,
     rollupOptions: {
       output: {
