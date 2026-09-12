@@ -210,8 +210,8 @@ export function formatRecommendationError(error: any): string {
     return "PlantDoc AI forgot its gardening tools! Please make sure your environment key is firmly planted in your .env file! 🛠️🌿";
   }
 
-  // 6. Formatting / Parsing error / No matches
-  if (lower.includes('empty response') || lower.includes('parse') || lower.includes('json') || lower.includes('no plant') || lower.includes('could not be matched')) {
+  // 6. Formatting / Parsing error / No matches / Model output error
+  if (lower.includes('empty response') || lower.includes('parse') || lower.includes('json') || lower.includes('no plant') || lower.includes('could not be matched') || lower.includes('model output') || lower.includes('output text') || lower.includes('tool calls')) {
     return "Even our hardiest plants felt a bit shy about those exact climate coordinates! Try tweaking the temperature, rainfall, or soil type slightly! 🌺🍃";
   }
 
@@ -280,8 +280,8 @@ export function formatUserFriendlyError(error: any): string {
     return "PlantDoc AI forgot its magnifying glass! Please ensure your environment key is planted in your .env file! 🔍🌱";
   }
 
-  // 7. Parsing error / Empty response
-  if (lower.includes('empty response') || lower.includes('parse') || lower.includes('json')) {
+  // 7. Parsing error / Empty response / Model output error
+  if (lower.includes('empty response') || lower.includes('parse') || lower.includes('json') || lower.includes('model output') || lower.includes('output text') || lower.includes('tool calls')) {
     return "PlantDoc AI got its leaves in a twist deciphering that specimen! Please center the leaf and let's try another scan! 🌿✨";
   }
 
@@ -407,10 +407,7 @@ Return ONLY a valid JSON object strictly adhering to this schema:
           ],
           generationConfig: {
             temperature: 0.1,
-            maxOutputTokens: 8192,
-            thinkingConfig: {
-              thinkingBudget: 1024
-            }
+            maxOutputTokens: 8192
           }
         };
 
@@ -1620,10 +1617,7 @@ Output ONLY a JSON object:
     contents: [{ parts: [{ text: promptText }] }],
     generationConfig: {
       temperature: 0.1,
-      maxOutputTokens: 2048,
-      thinkingConfig: {
-        thinkingBudget: 1024
-      }
+      maxOutputTokens: 2048
     }
   };
 
@@ -1769,7 +1763,7 @@ export const getPlantRecommendations = async (
       conditionList.push(`- Sunlight Exposure: Flexible / Adaptable`);
     }
 
-    const season = conditions.season;
+    const season = (typeof conditionsOrTemp === 'object' ? (conditionsOrTemp as GrowingConditions).season : undefined) || '';
     if (season && season !== 'All' && season !== 'all') {
       conditionList.push(`- Target Growing & Planting Season: ${season} (Strictly prioritize botanical species that thrive, germinate, bloom, or yield during the ${season} season)`);
     } else {
