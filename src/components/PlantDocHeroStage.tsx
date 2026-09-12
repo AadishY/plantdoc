@@ -33,7 +33,7 @@ export const PlantDocHeroStage: React.FC = () => {
     const invCtx = invCanvas.getContext('2d');
     if (!ctx) return;
 
-    let points: TrailPoint[] = [];
+    const points: TrailPoint[] = [];
     let headRadius = 0;
     let time = 0;
     let animFrameId: number;
@@ -130,9 +130,8 @@ export const PlantDocHeroStage: React.FC = () => {
         const x = (screenX / rect.width) * maskCanvas.width;
         const y = (screenY / rect.height) * maskCanvas.height;
         mousePos = { x, y };
-        if (!hovering) {
-          hovering = true;
-        }
+        hovering = true;
+        startLoop();
       } else {
         hovering = false;
       }
@@ -148,6 +147,7 @@ export const PlantDocHeroStage: React.FC = () => {
         y: (screenY / rect.height) * maskCanvas.height 
       };
       hovering = true;
+      startLoop();
     };
 
     const handleMouseLeave = () => {
@@ -168,6 +168,7 @@ export const PlantDocHeroStage: React.FC = () => {
         const y = (screenY / rect.height) * maskCanvas.height;
         mousePos = { x, y };
         hovering = true;
+        startLoop();
       }
     };
 
@@ -184,6 +185,7 @@ export const PlantDocHeroStage: React.FC = () => {
       smoothX = mousePos.x;
       smoothY = mousePos.y;
       hovering = true;
+      startLoop();
     };
 
     const handleTouchEnd = () => {
@@ -314,6 +316,8 @@ export const PlantDocHeroStage: React.FC = () => {
               baseLayerRef.current.style.webkitMaskImage = 'none';
             }
           }
+          animFrameId = 0;
+          return;
         } else {
           wasIdle = false;
           ctx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
@@ -389,47 +393,37 @@ export const PlantDocHeroStage: React.FC = () => {
   }, []);
 
   const scrollToNextSection = () => {
-    const lenis = (window as any).__lenis;
     const target = document.getElementById('features-section');
     if (!target) return;
-
-    if (lenis) {
-      lenis.scrollTo(target, { 
-        duration: 0.85, 
-        offset: -20,
-        lock: false
-      });
-    } else {
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   return (
     <section 
       ref={stageRef}
-      className="relative w-full h-[calc(100dvh-4rem)] max-h-[calc(100dvh-4rem)] flex flex-col justify-between overflow-hidden select-none box-border px-4 sm:px-8 pb-3 sm:pb-4 cursor-default"
+      className="relative w-full h-[calc(100dvh-4.5rem)] md:h-[calc(100dvh-5rem)] max-h-[calc(100dvh-4.5rem)] md:max-h-[calc(100dvh-5rem)] flex flex-col justify-between overflow-hidden select-none box-border px-4 sm:px-8 pb-3 sm:pb-4 cursor-default transform-gpu"
     >
       {/* 1. Full-Stage Background Depth Wordmark + Lower Flower Border */}
       <div className="absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none z-10">
         
         {/* ✨ CLEAN STEADY EDITORIAL WORDMARK: PLANTDOC (Positioned higher above flower) */}
-        <div className="absolute top-[13%] sm:top-[8%] md:top-[9%] left-0 w-full flex items-center justify-center select-none px-2">
+        <div className="absolute top-[12%] sm:top-[7%] md:top-[8%] left-0 w-full flex items-center justify-center select-none px-2">
           <h1 
             id="plantdoc-title"
             aria-label="PlantDoc"
-            className="text-[15vw] sm:text-[16vw] md:text-[15vw] lg:text-[14vw] font-normal tracking-[0.04em] sm:tracking-[0.06em] uppercase leading-none text-center flex items-center justify-center whitespace-nowrap"
+            className="text-[clamp(2.2rem,13.5vw,9.5rem)] font-normal tracking-[0.03em] sm:tracking-[0.06em] uppercase leading-none text-center flex items-center justify-center whitespace-nowrap drop-shadow-2xl max-w-full"
             style={{ 
               fontFamily: "'Instrument Serif', 'Playfair Display', Georgia, serif"
             }}
           >
             <span 
-              className="inline-block text-white filter drop-shadow-[0_15px_35px_rgba(255,255,255,0.22)]" 
+              className="inline-block text-white filter drop-shadow-[0_15px_35px_rgba(255,255,255,0.25)]" 
               style={{ transform: 'scaleX(1.04)' }}
             >
               PLANT
             </span>
             <span 
-              className="inline-block bg-clip-text text-transparent ml-2 sm:ml-3 filter drop-shadow-[0_15px_40px_rgba(45,212,191,0.45)]"
+              className="inline-block bg-clip-text text-transparent ml-1.5 sm:ml-3 filter drop-shadow-[0_15px_40px_rgba(45,212,191,0.5)]"
               style={{
                 backgroundImage: 'linear-gradient(180deg, #A7F3D0 0%, #34D399 28%, #2DD4BF 60%, #059669 100%)'
               }}
@@ -439,10 +433,10 @@ export const PlantDocHeroStage: React.FC = () => {
           </h1>
         </div>
 
-        {/* FLOWER: ANCHORED AT BOTTOM OF 1ST SLIDE ON BOTH MOBILE & PC */}
+        {/* FLOWER: PERFECTLY CENTERED ANCHORED AT BOTTOM OF 1ST SLIDE */}
         <div 
           ref={flowerContainerRef}
-          className="absolute bottom-0 left-1/2 transform -translate-x-1/2 z-20 w-[96vw] sm:w-[78vw] md:w-[66vw] lg:w-[54vw] max-w-[740px] h-[78vh] sm:h-[84vh] md:h-[88vh] max-h-[890px] overflow-hidden flex items-end justify-center pointer-events-auto cursor-crosshair touch-pan-y"
+          className="absolute bottom-0 inset-x-0 mx-auto z-20 w-[96vw] sm:w-[78vw] md:w-[66vw] lg:w-[54vw] max-w-[740px] h-[78vh] sm:h-[84vh] md:h-[88vh] max-h-[890px] overflow-hidden flex items-end justify-center pointer-events-auto cursor-crosshair touch-pan-y transform-gpu"
           title="Move cursor or drag finger over the flower to reveal AI pathology layer"
         >
           {/* Synchronized Transformed Image Layer Wrapper */}
@@ -455,8 +449,8 @@ export const PlantDocHeroStage: React.FC = () => {
             >
               <img 
                 src="/main.webp" 
-                alt="Healthy Foliage Specimen"
-                className="w-full h-full object-contain object-top filter drop-shadow-[0_25px_60px_rgba(0,0,0,0.9)]"
+                alt="Healthy botanical specimen with vibrant green chlorophyll leaf structure"
+                className="w-full h-full object-contain object-top filter drop-shadow-[0_25px_60px_rgba(0,0,0,0.9)] mx-auto block"
                 loading="eager"
                 decoding="async"
               />
@@ -465,13 +459,13 @@ export const PlantDocHeroStage: React.FC = () => {
             {/* Reveal Top Layer: Diseased Foliage (main_disease.webp) Morph Masked (100% 1:1 Cursor Centered) */}
             <div 
               ref={topLayerRef}
-              className="absolute inset-0 flex items-start justify-center pointer-events-none transition-opacity duration-150 will-change-[mask-image,opacity]"
+              className="absolute inset-0 w-full h-full flex items-start justify-center pointer-events-none transition-opacity duration-150 will-change-[mask-image,opacity]"
               style={{ opacity: 0 }}
             >
               <img 
                 src="/main_disease.webp" 
-                alt=""
-                className="w-full h-full object-contain object-top filter brightness-[1.03] contrast-[1.08] saturate-[1.14] drop-shadow-[0_25px_60px_rgba(0,0,0,0.9)]"
+                alt="Diseased botanical specimen displaying foliar lesions and chlorosis under AI vision inspection"
+                className="w-full h-full object-contain object-top filter brightness-[1.03] contrast-[1.08] saturate-[1.14] drop-shadow-[0_25px_60px_rgba(0,0,0,0.9)] mx-auto block"
                 loading="eager"
                 decoding="async"
               />
@@ -484,14 +478,14 @@ export const PlantDocHeroStage: React.FC = () => {
       <div className="flex-1" />
 
       {/* Two Elevated Action Buttons (Pushed to left & right with wide central gap) */}
-      <div className="relative z-30 flex flex-row items-center justify-between w-full max-w-[310px] sm:max-w-[500px] md:max-w-[540px] mx-auto mb-2 sm:mb-3 pb-0.5 px-1 pointer-events-auto">
+      <div className="relative z-30 flex flex-row items-center justify-between w-full max-w-[320px] sm:max-w-[500px] md:max-w-[560px] mx-auto mb-2 sm:mb-3 pb-0.5 px-1 pointer-events-auto">
         {/* Button 1: Diagnose Plant Photo (Turquoise-Emerald Beacon) */}
         <Button 
           asChild 
-          className="relative group overflow-hidden bg-gradient-to-r from-[#2DD4BF] via-[#10B981] to-[#059669] hover:from-[#5EEAD4] hover:via-[#34D399] hover:to-[#10B981] text-black font-extrabold px-3 sm:px-7 md:px-8 py-2 sm:py-4 md:py-5 rounded-full shadow-[0_0_30px_rgba(45,212,191,0.5)] transition-all duration-300 hover:scale-105 hover:shadow-[0_0_50px_rgba(45,212,191,0.85)] text-[10px] sm:text-sm md:text-base border border-[#5EEAD4]/60 cursor-pointer shrink-0"
+          className="relative group overflow-hidden bg-gradient-to-r from-[#2DD4BF] via-[#10B981] to-[#059669] hover:from-[#5EEAD4] hover:via-[#34D399] hover:to-[#10B981] text-black font-extrabold px-3.5 sm:px-7 md:px-8 py-2.5 sm:py-4 md:py-5 rounded-full shadow-[0_0_30px_rgba(45,212,191,0.55)] transition-all duration-300 hover:scale-105 hover:shadow-[0_0_50px_rgba(45,212,191,0.9)] text-[11px] sm:text-sm md:text-base border border-[#5EEAD4]/60 cursor-pointer shrink-0"
         >
-          <Link to="/diagnose" className="flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap">
-            <Scan className="h-3 sm:h-4.5 md:h-5 w-3 sm:w-4.5 md:w-5 transition-transform duration-300 group-hover:rotate-90 group-hover:scale-110" />
+          <Link to="/diagnose" className="flex items-center justify-center gap-1.5 sm:gap-2 whitespace-nowrap">
+            <Scan className="h-3.5 sm:h-4.5 md:h-5 w-3.5 sm:w-4.5 md:w-5 transition-transform duration-300 group-hover:rotate-90 group-hover:scale-110" />
             <span className="tracking-tight sm:tracking-wide font-bold">Diagnose Plant</span>
           </Link>
         </Button>
@@ -500,10 +494,10 @@ export const PlantDocHeroStage: React.FC = () => {
         <Button 
           asChild 
           variant="outline" 
-          className="relative group overflow-hidden bg-black/55 hover:bg-black/85 text-white font-semibold px-3 sm:px-7 md:px-8 py-2 sm:py-4 md:py-5 rounded-full backdrop-blur-2xl transition-all duration-300 hover:scale-105 text-[10px] sm:text-sm md:text-base border border-white/20 hover:border-[#2DD4BF]/60 hover:text-[#5EEAD4] shadow-[0_4px_20px_rgba(0,0,0,0.5)] hover:shadow-[0_0_30px_rgba(45,212,191,0.4)] cursor-pointer shrink-0"
+          className="relative group overflow-hidden bg-black/60 hover:bg-black/85 text-white font-semibold px-3.5 sm:px-7 md:px-8 py-2.5 sm:py-4 md:py-5 rounded-full backdrop-blur-2xl transition-all duration-300 hover:scale-105 text-[11px] sm:text-sm md:text-base border border-white/20 hover:border-[#2DD4BF]/60 hover:text-[#5EEAD4] shadow-[0_4px_20px_rgba(0,0,0,0.5)] hover:shadow-[0_0_30px_rgba(45,212,191,0.4)] cursor-pointer shrink-0"
         >
-          <Link to="/recommend" className="flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap">
-            <Wand2 className="h-3 sm:h-4.5 md:h-5 w-3 sm:w-4.5 md:w-5 text-[#2DD4BF] transition-transform duration-300 group-hover:scale-125 group-hover:rotate-12" />
+          <Link to="/recommend" className="flex items-center justify-center gap-1.5 sm:gap-2 whitespace-nowrap">
+            <Wand2 className="h-3.5 sm:h-4.5 md:h-5 w-3.5 sm:w-4.5 md:w-5 text-[#2DD4BF] transition-transform duration-300 group-hover:scale-125 group-hover:rotate-12" />
             <span className="tracking-tight sm:tracking-wide group-hover:text-[#5EEAD4] transition-colors">Recommendations</span>
           </Link>
         </Button>
@@ -520,13 +514,13 @@ export const PlantDocHeroStage: React.FC = () => {
         {/* Center Scroll Prompt (Luxury Liquid Glassmorphism Pill - Enhanced on PC) */}
         <button 
           onClick={scrollToNextSection}
-          className="pointer-events-auto mx-auto h-6 sm:h-8 md:h-9 px-3.5 sm:px-5 md:px-6 flex items-center gap-1.5 sm:gap-2 text-white/90 hover:text-[#5EEAD4] transition-all duration-300 bg-gradient-to-r from-black/60 via-black/40 to-black/60 hover:from-black/80 hover:to-black/80 backdrop-blur-2xl rounded-full border border-white/20 hover:border-[#2DD4BF]/60 shadow-[0_4px_20px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.25)] group cursor-pointer"
+          className="pointer-events-auto mx-auto h-7 sm:h-8 md:h-9 px-4 sm:px-5 md:px-6 flex items-center gap-1.5 sm:gap-2 text-white/90 hover:text-[#5EEAD4] transition-all duration-300 bg-gradient-to-r from-black/60 via-black/40 to-black/60 hover:from-black/80 hover:to-black/80 backdrop-blur-2xl rounded-full border border-white/20 hover:border-[#2DD4BF]/60 shadow-[0_4px_20px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.25)] group cursor-pointer"
         >
           <span className="relative flex h-1.5 sm:h-2 w-1.5 sm:w-2 shrink-0">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#2DD4BF] opacity-75" />
             <span className="relative inline-flex rounded-full h-1.5 sm:h-2 w-1.5 sm:w-2 bg-[#2DD4BF]" />
           </span>
-          <span className="font-sans font-medium text-[9.5px] sm:text-xs md:text-sm tracking-wide">Explore Platform</span>
+          <span className="font-sans font-medium text-[10px] sm:text-xs md:text-sm tracking-wide">Explore Platform</span>
           <ChevronDown className="h-3 sm:h-4 w-3 sm:w-4 text-[#2DD4BF] animate-bounce group-hover:translate-y-0.5 transition-transform shrink-0" />
         </button>
 

@@ -6,6 +6,7 @@ import PlantDocHeroStage from "@/components/PlantDocHeroStage";
 import ParallaxSection from "@/components/ParallaxSection";
 import MetricsShowcase from "@/components/MetricsShowcase";
 import SpotlightCard from "@/components/SpotlightCard";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { 
   Sparkles, 
   Scan, 
@@ -50,6 +51,12 @@ const faqs = [
 ];
 
 const Index = () => {
+  useDocumentTitle(
+    "PlantDoc AI — Plant Disease Diagnosis & Care",
+    "Instant AI plant disease diagnosis, leaf lesion segmentation, and clinical treatment protocols.",
+    "/"
+  );
+
   return (
     <div className="flex flex-col min-h-screen relative overflow-x-hidden selection:bg-[#2DD4BF]/30 selection:text-white">
       <Header />

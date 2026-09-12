@@ -8,13 +8,15 @@ Welcome to the **PlantDoc AI** codebase architecture and agent engineering guide
 1. [Executive Summary & Tech Stack](#1-executive-summary--tech-stack)
 2. [Codebase Directory Structure](#2-codebase-directory-structure)
 3. [Vision AI & Diagnostics Architecture](#3-vision-ai--diagnostics-architecture)
-4. [Hero Stage Dual-Masking Mechanics](#4-hero-stage-dual-masking-mechanics)
-5. [Botanical Recommendation & Wikimedia API Engine](#5-botanical-recommendation--wikimedia-api-engine)
-6. [120fps Performance, Motion & Scroll Architecture](#6-120fps-performance-motion--scroll-architecture)
-7. [Design Tokens & UI Component Hierarchy](#7-design-tokens--ui-component-hierarchy)
-8. [Error Resilience & User-Facing Error Mapping](#8-error-resilience--user-facing-error-mapping)
-9. [Build, Bundling & Cloudflare Pages Deployment](#9-build-bundling--cloudflare-pages-deployment)
-10. [Rules & Conventions for AI Agents](#10-rules--conventions-for-ai-agents)
+4. [Scientific Veracity & Anti-Hallucination Protocols](#4-scientific-veracity--anti-hallucination-protocols)
+5. [Spatial Lesion Grounding, IoU & NMS Deduplication](#5-spatial-lesion-grounding-iou--nms-deduplication)
+6. [Hero Stage Dual-Masking Mechanics](#6-hero-stage-dual-masking-mechanics)
+7. [Botanical Recommendation & Wikimedia API Engine](#7-botanical-recommendation--wikimedia-api-engine)
+8. [120fps Performance, Motion & Scroll Architecture](#8-120fps-performance-motion--scroll-architecture)
+9. [Design Tokens & UI Component Hierarchy](#9-design-tokens--ui-component-hierarchy)
+10. [Error Resilience & User-Facing Error Mapping](#10-error-resilience--user-facing-error-mapping)
+11. [Build, Bundling & Cloudflare Pages Deployment](#11-build-bundling--cloudflare-pages-deployment)
+12. [Rules & Conventions for AI Agents](#12-rules--conventions-for-ai-agents)
 
 ---
 
@@ -31,9 +33,23 @@ Welcome to the **PlantDoc AI** codebase architecture and agent engineering guide
   - [GSAP 3](https://greensock.com/gsap/) with `ScrollTrigger`
   - [Framer Motion](https://www.framer.com/motion/) (Micro-interactions & page transitions)
 - **UI Components & Icons**: Radix UI primitives, Lucide React icons, Sonner toast notifications
-- **AI Models**: Google Gemini Vision API (`gemini-2.5-flash` / `gemini-2.0-flash` / `gemini-3.6-flash` endpoints via `v1beta`)
+- **AI Models**: Google Gemini Vision & Gemma Open Model Family (Thinking Enabled):
+  - Clinical Pathology & Dossier Formulation: 3-Tier Model Failover Cascade:
+    1. Primary: `gemini-3.8-flash` (via `v1beta`, with Thinking `thinkingBudget: 1024`)
+    2. Secondary Failover: `gemini-3.7-flash` (via `v1beta`, with Thinking `thinkingBudget: 1024`, alerts user: *"Primary model (gemini-3.8-flash) seems offline or busy. Shifting to the 2nd model (gemini-3.7-flash)..."*)
+    3. Tertiary Failover: `gemini-3.6-flash` (via `v1beta`, alerts user: *"Secondary model (gemini-3.7-flash) seems offline or busy. Shifting to the 3rd model (gemini-3.6-flash)..."*)
+  - Spatial Embodied Grounding & Lesion Segmentation: `gemini-robotics-er-2-preview` (via `v1beta`, with Thinking)
+    - Comprehensive Affected Area Grounding: Detects both macro foliar disease zones (blight scorch, widespread chlorosis, marginal burns) and micro focal spots (fungal pustules, necrotic centers).
+    - Up to 45+ distinct lesion detections with relaxed geometry thresholds and optimized NMS IoU deduplication (`IoU > 0.65`).
+  - Regional Fast Climate Intelligence: `gemini-3.5-flash-lite` (via `v1beta`, with Thinking)
+  - Agronomic Botanical Recommendation: Gemma 4 Open Model Family:
+    - Primary: `gemma-4-26b-a4b-it` (26B Gemma open model with attention routing, fast ~4s response)
+    - Secondary Failover: `gemma-4-31b-it` (31B Gemma open model)
+    - Fast Mode: `groq/compound` with web search
+  - Dynamic 5-Option Growing Season Engine: Filter and curate botanical recommendations by season (`All Seasons`, `Spring`, `Summer`, `Autumn`, `Winter`) with real-time seasonal timeline synchronization.
+  - No Artificial Throttling: Instantaneous execution without client-side waiting limit delays
 - **Data Integrations**: Wikimedia Foundation REST APIs (Authentic scientific botanical photography & taxonomy)
-- **Hosting & Edge Routing**: Cloudflare Pages with `public/_redirects`
+- **Hosting & Edge Routing**: Cloudflare Pages with `public/_redirects`, `public/_headers`, `public/sitemap.xml`, and `public/robots.txt`
 
 ---
 
@@ -46,45 +62,54 @@ plantdoc/
 │   ├── bannerr.jpg                         # 1280x640 Social media & OpenGraph banner
 │   ├── main.webp                           # Base healthy foliage specimen
 │   ├── main_disease.webp                   # Pathology reveal foliage specimen
+│   ├── robots.txt                          # SEO indexing rules & sitemap pointer
+│   ├── sitemap.xml                         # XML search engine sitemap
+│   ├── _headers                            # Cloudflare Pages dynamic and static cache headers
 │   └── _redirects                          # Cloudflare Pages SPA rewrite rule (/* /index.html 200)
 ├── src/
 │   ├── components/
 │   │   ├── ui/                             # Radix UI wrapper primitives (accordion, button, card, dialog, etc.)
 │   │   ├── ClinicalTreatmentProtocol.tsx   # 5-tier remediation checklist & brand prescriptions
-│   │   ├── DiagnosisVisualizations.tsx     # Vital score rings, radar charts, & NPK advice
+│   │   ├── DiagnosisVisualizations.tsx     # Vital rings, radar charts, infection stage horizon, & NPK advice
 │   │   ├── DynamicBackground.tsx           # Canvas spore particles with scroll-pause optimization
 │   │   ├── FixedMobileNav.tsx              # Floating mobile bottom dock navigation
-│   │   ├── Footer.tsx                      # Global footer with navigation links & credits
-│   │   ├── Header.tsx                      # Sticky frosted glass header with navigation
+│   │   ├── Footer.tsx                      # Global footer with navigation, privacy, license & credits
+│   │   ├── Header.tsx                      # Sticky frosted glass header with navigation & GitHub link
 │   │   ├── MetricsShowcase.tsx             # Animated clinical performance metrics & counters
 │   │   ├── ParallaxSection.tsx             # 3D interactive intelligence showcase cards
 │   │   ├── PlantDocHeroStage.tsx           # Dual-masking 100dvh interactive cursor/touch stage
-│   │   ├── PlantSegmentationViewer.tsx     # Interactive foliar lesion bounding box inspector
+│   │   ├── PlantSegmentationViewer.tsx     # Interactive foliar lesion bounding box inspector with NDVI mode
 │   │   ├── ResultComponent.tsx             # Master diagnosis dashboard container
-│   │   ├── ScrollProgressBar.tsx           # Desktop-only top scroll progress indicator
 │   │   ├── SmoothScroll.tsx                # Lenis + GSAP ticker synchronization wrapper
 │   │   ├── SpotlightCard.tsx               # GPU-accelerated mouse spotlight border effect
 │   │   └── UploadComponent.tsx             # Drag-and-drop foliar photo uploader
 │   ├── config/
-│   │   └── api.config.ts                   # Gemini API endpoints & model identifiers
+│   │   └── api.config.ts                   # Gemini API endpoints, models & rate limit config
 │   ├── hooks/
 │   │   ├── use-mobile.tsx                  # Responsive viewport detection hook
+│   │   ├── use-scroll-animation.tsx        # Optimized parallax & active section observers
 │   │   └── use-toast.ts                    # Radix toast state hook
 │   ├── pages/
 │   │   ├── AboutPage.tsx                   # System architecture & developer info
 │   │   ├── DiagnosePage.tsx                # Upload & diagnosis execution view
 │   │   ├── Index.tsx                       # Landing page with hero & parallax sections
-│   │   ├── NotFound.tsx                    # 404 error fallback route
+│   │   ├── NotFound.tsx                    # 404 error fallback route with botanical blessings
+│   │   ├── PrivacyPage.tsx                 # Comprehensive privacy & client-side security policy
 │   │   └── RecommendPage.tsx               # Climate-adaptive botanical recommendation engine
 │   ├── services/
-│   │   ├── api.ts                          # Vision API calls, WebP compressor & error formatter
+│   │   ├── api.ts                          # Vision API calls, WebP compressor, NMS deduplicator & error formatter
 │   │   └── wikimedia.ts                    # Wikimedia REST API client & cache
 │   ├── types/
 │   │   ├── diagnosis.ts                    # Diagnosis result & lesion coordinate interfaces
 │   │   └── recommendation.ts               # Botanical recommendation & climate interfaces
+│   ├── utils/
+│   │   ├── rateLimiter.ts                  # Client-side 3 req/min sliding window rate limiter
+│   │   └── routePreloader.ts               # Proactive route chunk prefetcher
 │   ├── App.tsx                             # React Router configuration & root providers
 │   ├── index.css                           # Custom Tailwind layers, glassmorphism & font tokens
 │   └── main.tsx                            # React DOM entrypoint
+├── CODE_OF_CONDUCT.md                      # Contributor Covenant v2.1 code of conduct
+├── LICENSE                                 # MIT Open Source License
 ├── .env                                    # Environment variables (VITE_GEMINI_API_KEY)
 ├── tailwind.config.ts                      # Tailwind tokens, keyframes & animations
 ├── tsconfig.json                           # TypeScript compiler configuration
@@ -100,13 +125,15 @@ The vision diagnostics pipeline processes user photos through an optimized clien
 ```mermaid
 graph TD
     A[User Foliage Photo] --> B[prepareImageForAPI: Canvas WebP Compression]
-    B --> C{Parallel Execution}
-    C -->|30s Timeout| D[fetchClinicalDiagnosis: Gemini Flash]
-    C -->|20s Timeout| E[fetchSpatialSegmentation: Gemini Flash Lite]
-    D --> F[Merge Telemetry & Real Products]
-    E --> F
-    F --> G[DiagnosisResult Output]
-    G --> H[Interactive Lesion Box Viewer & Clinical Protocol]
+    B --> C{Parallel Dual-Model Execution}
+    C -->|60s Timeout| D[fetchClinicalDiagnosis: Gemini 3.8 Flash with Thinking]
+    C -->|45s Timeout| E[fetchSpatialSegmentation: gemini-robotics-er-2-preview with Thinking]
+    E --> F[calculateBoxIoU + NMS Deduplication Filter]
+    D --> G[Anti-Hallucination & Scientific Veracity Check]
+    F --> H[Merge Validated Telemetry & Real Products]
+    G --> H
+    H --> I[DiagnosisResult Output]
+    I --> J[Interactive Lesion Box Viewer & Clinical Protocol]
 ```
 
 ### Key Implementation Details (`src/services/api.ts`):
@@ -115,16 +142,82 @@ graph TD
    - Encodes as progressive WebP (`0.85` quality) with JPEG fallback.
    - Reduces multi-megabyte DSLR/smartphone uploads down to **~80KB–150KB** (99% network payload reduction), boosting API response latency by **5x–10x**.
 2. **Parallel Dual-Model Pipeline**:
-   - **Model 1 (`fetchClinicalDiagnosis`)**: Generates botanical classification, disease name, confidence scores, real retail brand chemicals (e.g. *Daconil*, *Bonide*), organic recipes, and NPK fertilizer advice.
-   - **Model 2 (`fetchSpatialSegmentation`)**: Computes sub-pixel 2D bounding boxes `[ymin, xmin, ymax, xmax]` tightly wrapping individual lesion spots.
+   - **Model 1 (`fetchClinicalDiagnosis`)**: Generates botanical classification, disease name, confidence scores, real retail brand chemicals (e.g. *Daconil*, *Bonide*), organic recipes, infection stage horizons, and NPK fertilizer advice via `gemini-3.8-flash` with thinking enabled (`thinkingBudget: 1024`). Zero synthetic fallback models; errors format directly into human-friendly diagnostics.
+   - **Model 2 (`fetchSpatialSegmentation`)**: Computes ultra-high-precision 2D bounding boxes `[ymin, xmin, ymax, xmax]` tightly wrapping individual lesion spots, necrotic patches, insect perforations, and symptom halos via spatial embodied reasoning model `gemini-robotics-er-2-preview` with thinking enabled (`thinkingBudget: 1024`).
 3. **Non-Blocking Architecture**:
-   - If segmentation times out (20s) or returns empty, it falls back cleanly to `{ lesions: [] }` so the primary clinical report is **never blocked**.
+   - If segmentation times out (45s) or returns empty, it falls back cleanly to `{ lesions: [] }` so the primary clinical report is **never blocked**.
 
 ---
 
-## 4. Hero Stage Dual-Masking Mechanics
+## 4. Scientific Veracity & Anti-Hallucination Protocols
 
-The hero stage ([PlantDocHeroStage.tsx](file:///c:/Users/Admin/Downloads/plantdoc/plantdoc/src/components/PlantDocHeroStage.tsx)) displays an interactive foliar reveal where hovering or dragging reveals the diseased foliage layer (`main_disease.webp`).
+PlantDoc AI enforces a strict **"No information is strictly better than false information"** standard across both diagnostic and spatial models:
+
+1. **Non-Botanical Specimen Rejection**:
+   - If an uploaded image does NOT contain plant leaves, crops, foliage, or botanical tissue (e.g., human faces, animals, vehicles, indoor objects, food dishes), the model immediately flags the specimen as invalid:
+     - `disease_name`: `"Invalid Non-Plant Specimen"`
+     - `confidence_score`: `0`
+     - `is_healthy`: `false`
+     - `severity`: `"None"`
+     - `diagnosis_summary`: Explicit explanation asking the user to upload a clear foliage specimen.
+2. **Species Identification Confidence Threshold**:
+   - If the botanical species cannot be identified with high scientific certainty (>80%), the system reports `"Cannot identify name"` with an empty scientific binomial, preventing misidentification.
+3. **Specimen Health Integrity**:
+   - If the foliage is physiologically healthy with no pathogen activity:
+     - `is_healthy`: `true`
+     - `disease_name`: `"Healthy Foliage"`
+     - `severity`: `"None"`
+     - `lesions`: `[]` (Strictly zero lesion bounding boxes).
+     - Does NOT invent fictitious diseases or micro-pathologies.
+4. **Diagnostic Ambiguity Handling**:
+   - If symptoms are inconclusive between multiple pathogens (e.g., physiological sunscald vs. bacterial leaf scorch), the diagnosis explicitly notes the ambiguity and lists the primary suspect with clinical differential notes.
+
+---
+
+## 5. Spatial Lesion Grounding, IoU & NMS Deduplication
+
+Spatial lesion localization detects genuine pathogen lesions without ghost artifacts:
+
+### 1. Intersection-over-Union (IoU) Calculation (`calculateBoxIoU`):
+```typescript
+const interYmin = Math.max(yminA, yminB);
+const interXmin = Math.max(xminA, xminB);
+const interYmax = Math.min(ymaxA, ymaxB);
+const interXmax = Math.min(xmaxA, xmaxB);
+
+const interArea = Math.max(0, interYmax - interYmin) * Math.max(0, interXmax - interXmin);
+const unionArea = areaA + areaB - interArea;
+const iou = unionArea > 0 ? interArea / unionArea : 0;
+```
+
+### 2. Non-Maximum Suppression (NMS) Filtering:
+- Sorts candidate lesions by confidence score descending.
+- Discards candidate boxes having `IoU > 0.65` with an already-accepted higher-confidence box. This balanced threshold allows closely clustered multi-lesion groupings (such as Septoria or Cercospora colonies) to remain distinct while reliably eliminating duplicate concentric boxes wrapping the exact same necrotic core.
+
+### 3. Coordinate Normalization & Degenerate Box Purging:
+- Discards sub-microscopic degenerate boxes (< 4x4 coordinate units) and full-image framing boxes (> 96% total image area).
+- Supports broad macro affected area bounding boxes (up to 960x960 coordinate units) and elongated vein/streak lesions (aspect ratio up to 9.0:1).
+- Normalizes coordinates `[ymin, xmin, ymax, xmax]` from 0-1000 or 0-100 scale to exact CSS percentages.
+- Guarantees minimum target dimensions (2.0%) for interactive clickability without visual distortion.
+
+### 4. Comprehensive Multi-Scale Affected Area Grounding:
+- **Macro Disease Sectors**: Segments large-scale foliar blight zones, marginal scorching, extensive powdery mildew mats, and diffuse chlorotic sectors.
+- **Micro Focal Lesions**: Pins down individual fungal fruiting bodies, necrotic puncture centers, water-soaked flecks, and spore pustules (often yielding 10 to 45+ high-precision detections).
+- **Zero Synthetic Fallback Boxes (`PlantSegmentationViewer.tsx`)**:
+  - When `is_healthy` is true or when no focal spots are found, `allLesions` returns `[]`.
+  - Displays a dedicated **Diffuse Pathology Banner** when systemic chlorosis or viral mosaics affect the foliage without discrete focal margins.
+
+### 5. Interactive Lesion Inspection, Telemetry & Stepper:
+- **Lesion Stepper Navigation**: Cycle forward (`ArrowRight` or `ChevronRight`) and backward (`ArrowLeft` or `ChevronLeft`) across all detected lesion spots.
+- **One-Click Telemetry Export**: Exports normalized sub-pixel `[ymin, xmin, ymax, xmax]` coordinate matrix, severity classes, and clinical directives in JSON format to the user's clipboard.
+- **Pathology Taxonomy Normalizer**: Maps botanical aliases (`necrotic_spot`, `chlorotic_halo`, `spore_pustule`, `feeding_perforation`, `blight_scorch`, `water_soaked`, `vein_discoloration`, `mildew_mycelium`) to distinct spectral tokens.
+- **Fullscreen Lightbox HUD**: Supports zoom (`+`, `-`), reset (`0`), pan inspection, and keyboard escape.
+
+---
+
+## 6. Hero Stage Dual-Masking Mechanics
+
+The hero stage ([PlantDocHeroStage.tsx](file:///src/components/PlantDocHeroStage.tsx)) displays an interactive foliar reveal where hovering or dragging reveals the diseased foliage layer (`main_disease.webp`).
 
 ### The Dual-Mask Algorithm:
 1. **Top Pathology Layer (`topLayerRef`)**:
@@ -145,21 +238,31 @@ The hero stage ([PlantDocHeroStage.tsx](file:///c:/Users/Admin/Downloads/plantdo
 
 ---
 
-## 5. Botanical Recommendation & Wikimedia API Engine
+## 7. Botanical Recommendation & Wikimedia API Engine
 
 The recommendation system matches plants against regional environmental parameters (temperature, annual rainfall, humidity, soil type, and pH).
 
 ### Architecture (`src/services/wikimedia.ts` & `api.ts`):
-1. **Zero Mock Synthetic Data**: All recommended plants query the official **Wikimedia Foundation REST API** in real-time.
-2. **Parallel Image & Summary Resolution**:
-   - Queries `https://en.wikipedia.org/api/rest_v1/page/summary/{title}` using the scientific Latin binomial.
-   - Resolves authentic high-resolution thumbnail images, Wikipedia page URLs, and validated botanical summaries.
+1. **Gemma 4 Agronomic Intelligence Pipeline**:
+   - Uses Google's open weights **Gemma 4 model family** via Google AI Studio (`v1beta` endpoint).
+   - **Primary Model**: `gemma-4-26b-a4b-it` (26B Gemma open model with attention routing, achieving blazing fast ~3s–5s response times).
+   - **Secondary Failover**: `gemma-4-31b-it` (31B Gemma open model) if primary is busy.
+   - **Fast Mode (Groq Compound)**: Optional fast toggle executing `groq/compound` with live web search.
+   - Strictly outputs pure JSON arrays adhering to `PlantRecommendation[]` schema with zero markdown preamble or conversational wrappers.
+2. **Zero Mock Synthetic Data via Wikimedia REST API**:
+   - All recommended plants query the official **Wikimedia Foundation REST API** (`https://en.wikipedia.org/api/rest_v1/page/summary/{title}`) in parallel using the scientific Latin binomial.
+   - Resolves authentic high-resolution thumbnail photography, official Wikipedia encyclopedia links, and peer-reviewed botanical descriptions.
    - Implements in-memory caching to eliminate redundant network requests.
-3. **Category Filtering**: Supports filtering by **Mix (Default)**, **Crops & Veggies**, **Fruit Trees**, **Flowers & Ornamentals**, and **Herbs**.
+3. **Category Filtering**: Supports instantaneous category slicing by **Mix (Default)**, **Crops & Veggies**, **Fruit Trees**, **Flowers & Ornamentals**, and **Herbs**.
+4. **Interactive 5-Option Growing Season Engine**:
+   - Provides an interactive season selector: `All Seasons` (Default), `Spring`, `Summer`, `Autumn`, and `Winter`.
+   - Injects the selected season directly into the Gemma 4 system prompt so species are strictly filtered for prime planting windows and cold/heat tolerance.
+   - Computes dynamic seasonal calendars (`ideal_seasons`, `planting_months`, `harvest_timeline`) tailored to the selected planting season.
+   - Visualizes prime season badges across species cards and clinical dossier modals.
 
 ---
 
-## 6. 120fps Performance, Motion & Scroll Architecture
+## 8. 120fps Performance, Motion & Scroll Architecture
 
 PlantDoc AI is engineered for sustained 120Hz display refresh rates on both desktop and mobile devices:
 
@@ -171,14 +274,14 @@ PlantDoc AI is engineered for sustained 120Hz display refresh rates on both desk
 3. **Synchronized Smooth Scroll (`SmoothScroll.tsx`)**:
    - Lenis smooth scroll engine configured with `duration: 1.2s`, `wheelMultiplier: 1.0`, and `touchMultiplier: 1.15`.
    - Connected directly to GSAP's internal RAF ticker with `gsap.ticker.lagSmoothing(500, 33)` to prevent jumpy frame interpolation.
-4. **CSS `content-visibility: auto`**:
-   - Applied to below-the-fold sections in `index.css` to skip layout and paint calculations until approached by the scroll viewport.
+4. **Hook Closure Optimization (`use-scroll-animation.tsx`)**:
+   - `useParallaxScroll` and `useActiveSection` use functional state updaters (`prev => ...`), preventing stale listener teardowns and unnecessary listener re-registrations.
 5. **Component Memoization**:
-   - All high-frequency cards and pages ([DiagnosePage.tsx](file:///c:/Users/Admin/Downloads/plantdoc/plantdoc/src/pages/DiagnosePage.tsx), [RecommendPage.tsx](file:///c:/Users/Admin/Downloads/plantdoc/plantdoc/src/pages/RecommendPage.tsx), [AboutPage.tsx](file:///c:/Users/Admin/Downloads/plantdoc/plantdoc/src/pages/AboutPage.tsx), `ParallaxSection.tsx`) are wrapped in `React.memo`.
+   - All high-frequency cards and pages (`DiagnosePage`, `RecommendPage`, `AboutPage`, `ParallaxSection`, `PlantSegmentationViewer`) use `React.memo`, `useMemo`, and `useCallback` to isolate sub-tree renders.
 
 ---
 
-## 7. Design Tokens & UI Component Hierarchy
+## 9. Design Tokens & UI Component Hierarchy
 
 PlantDoc AI uses a dark botanical luxury aesthetic with frosted glassmorphism:
 
@@ -193,12 +296,12 @@ PlantDoc AI uses a dark botanical luxury aesthetic with frosted glassmorphism:
   - Primary: Gradient `from-[#2DD4BF] via-[#10B981] to-[#059669]` with `text-black font-extrabold`.
   - Secondary/Outline: `bg-black/55 backdrop-blur-2xl border-white/20 text-white hover:text-[#5EEAD4]`.
 - **Responsive Controls**:
-  - PC viewports use `px-8 py-5 text-base` with larger `h-5` icons.
-  - Mobile viewports use `px-3 py-2 text-[10px]` with compact gaps.
+  - PC viewports use `px-8 py-5 text-base` with larger `h-5` icons and desktop-only header GitHub link.
+  - Mobile viewports use `px-3 py-2 text-[10px]` with compact floating dock navigation.
 
 ---
 
-## 8. Error Resilience & User-Facing Error Mapping
+## 10. Error Resilience & User-Facing Error Mapping
 
 Raw API errors, HTTP codes, and quota notices must **never** leak to the user interface.
 
@@ -211,21 +314,23 @@ Raw API errors, HTTP codes, and quota notices must **never** leak to the user in
 | Upstream Server Issue | `500` / `502` / `503` / `504` | *"AI diagnostic servers are momentarily busy. Please try again in a few moments."* |
 | Unusable Photo Format | `400` / Invalid base64 | *"Unable to process the foliage image. Please upload a clear, well-lit photo of the plant."* |
 | Unparseable Model Output | JSON parse error / Empty | *"The diagnosis could not be processed. Please ensure the plant leaf is clearly visible and try again."* |
+| Non-Botanical Object | Model flagged invalid | *"The uploaded image does not appear to contain plant foliage. Please upload a clear photo of plant leaves or crops."* |
 
 ### Loading State Safety:
 All asynchronous calls (`handleDiagnose`, `handleGetRecommendations`) must execute `setIsLoading(false)` inside a mandatory `finally` block to guarantee the UI never gets stuck in a loading state.
 
 ---
 
-## 9. Build, Bundling & Cloudflare Pages Deployment
+## 11. Build, Bundling & Cloudflare Pages Deployment
 
 ### Vite Build Configuration (`vite.config.ts`):
 - **esbuild Dead-Code Stripping**: Automatically drops `console.*` and `debugger` statements in production builds (`legalComments: 'none'`).
 - **Manual Chunk Splitting**:
-  - `vendor-react`: `react`, `react-dom`, `react-router-dom` (~159 KB)
-  - `vendor-animation`: `framer-motion`, `gsap`, `lenis` (~213 KB)
-  - `vendor-radix`: `@radix-ui/*` primitives (~92 KB)
-  - `vendor-icons`: `lucide-react` (~15.9 KB)
+  - `vendor-react`: `react`, `react-dom`, `react-router-dom` (~160 KB)
+  - `vendor-animation`: `framer-motion`, `gsap`, `lenis` (~127 KB)
+  - `vendor-radix`: `@radix-ui/*` primitives (~105 KB)
+  - `vendor-charts`: `recharts` (~375 KB)
+  - `vendor-icons`: `lucide-react` (~23.3 KB)
 - **Asset Inlining Limit**: `4096` bytes.
 
 ### Cloudflare Pages Deployment:
@@ -236,13 +341,14 @@ All asynchronous calls (`handleDiagnose`, `handleGetRecommendations`) must execu
 
 ---
 
-## 10. Rules & Conventions for AI Agents
+## 12. Rules & Conventions for AI Agents
 
 When modifying or extending the PlantDoc AI codebase, you **must** adhere to the following rules:
 
-1. **TypeScript Hygiene**: Maintain **0 compiler errors**. Always verify with `npx tsc --noEmit`.
-2. **Image Attributes**: Never add non-standard `fetchpriority` attributes directly on standard HTML `<img>` elements; use standard React 18 attributes (`loading="eager"` / `loading="lazy"` and `decoding="async"`).
-3. **No Placeholders**: Never insert synthetic placeholder images. Use `fetchPlantWikimediaData` for real botanical media.
-4. **Preserve Dual-Masking Integrity**: When modifying `PlantDocHeroStage.tsx`, ensure `topLayerRef` and `baseLayerRef` masks remain synchronized and zero garbage-collection allocations occur inside `renderLoop`.
-5. **User-Friendly Error Handling**: Always pass API catch errors through `formatUserFriendlyError` before setting error states or displaying toasts.
-6. **Documentation Integrity**: Preserve existing architectural comments and update `README.md` / `walkthrough.md` when introducing new features.
+1. **TypeScript Hygiene**: Maintain **0 compiler errors**. Always verify with `npx tsc --noEmit` or `compile_applet`.
+2. **Scientific Veracity & Anti-Hallucination Mandate**: NEVER invent synthetic fallback bounding boxes or fake diseases. Giving no information is strictly preferred over giving false information.
+3. **Image Attributes**: Never add non-standard `fetchpriority` attributes directly on standard HTML `<img>` elements; use standard React 18 attributes (`loading="eager"` / `loading="lazy"` and `decoding="async"`).
+4. **No Synthetic Placeholders**: Never insert placeholder images. Use `fetchPlantWikimediaData` for real botanical media.
+5. **Preserve Dual-Masking Integrity**: When modifying `PlantDocHeroStage.tsx`, ensure `topLayerRef` and `baseLayerRef` masks remain synchronized and zero garbage-collection allocations occur inside `renderLoop`.
+6. **User-Friendly Error Handling**: Always pass API catch errors through `formatUserFriendlyError` before setting error states or displaying toasts.
+7. **Documentation Integrity**: Preserve existing architectural comments and keep `README.md` and `AGENTS.md` in sync whenever platform capabilities are refined.

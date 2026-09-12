@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 interface UploadComponentProps {
   onImageSelect?: (file: File) => void;
   onImageChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onRemoveImage?: () => void;
   onDrop?: (acceptedFiles: File[]) => void;
   previewUrl?: string | null;
   isLoading?: boolean;
@@ -17,6 +18,7 @@ interface UploadComponentProps {
 const UploadComponent: React.FC<UploadComponentProps> = ({ 
   onImageSelect, 
   onImageChange, 
+  onRemoveImage,
   onDrop,
   previewUrl: externalPreviewUrl,
   isLoading = false,
@@ -97,12 +99,19 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
     handleFile(file);
   };
 
-  const removeImage = () => {
+  const removeImage = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     if (externalPreviewUrl === undefined) {
       setInternalPreviewUrl(null);
     }
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+    if (onRemoveImage) {
+      onRemoveImage();
     }
   };
 
@@ -157,11 +166,11 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
         </div>
       ) : (
         <div className="glass-card rounded-3xl overflow-hidden border border-white/20 shadow-2xl relative">
-          <div className="relative min-h-[350px] max-h-[460px] bg-black/60 flex items-center justify-center overflow-hidden">
+          <div className="relative min-h-[300px] sm:min-h-[350px] max-h-[460px] bg-black/60 flex items-center justify-center overflow-hidden w-full">
             <img 
               src={previewUrl} 
-              alt="Plant Preview" 
-              className="w-full h-full object-contain max-h-[460px] transition-all rounded-2xl" 
+              alt="Uploaded plant foliage specimen preview ready for AI diagnosis" 
+              className="w-full h-full object-contain max-h-[460px] transition-all rounded-2xl max-w-full" 
             />
 
             {/* High-Tech Holographic Scanning Laser & HUD Matrix Overlay */}
@@ -169,48 +178,53 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
               <div className="absolute inset-0 bg-black/45 backdrop-blur-[1px] pointer-events-none z-30 overflow-hidden flex items-center justify-center">
                 {/* 1. Subtle Holographic Coordinate Grid Overlay */}
                 <div 
-                  className="absolute inset-0 opacity-15" 
+                  className="absolute inset-0 opacity-20 pointer-events-none" 
                   style={{
-                    backgroundImage: 'linear-gradient(to right, rgba(45, 212, 191, 0.4) 1px, transparent 1px), linear-gradient(to bottom, rgba(45, 212, 191, 0.4) 1px, transparent 1px)',
-                    backgroundSize: '28px 28px'
+                    backgroundImage: 'linear-gradient(to right, rgba(45, 212, 191, 0.35) 1px, transparent 1px), linear-gradient(to bottom, rgba(45, 212, 191, 0.35) 1px, transparent 1px)',
+                    backgroundSize: '24px 24px'
                   }}
                 />
 
-                {/* 2. Primary High-Intensity Emerald Laser Beam */}
+                {/* 2. Primary High-Intensity Emerald Laser Beam (Sweeping vertically across container) */}
                 <motion.div 
-                  className="absolute left-0 right-0 h-1.5 bg-gradient-to-r from-transparent via-[#2DD4BF] to-transparent shadow-[0_0_30px_#2DD4BF,0_0_12px_#5EEAD4] z-20"
-                  animate={{ y: ['-200px', '220px', '-200px'] }}
-                  transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+                  className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#2DD4BF] to-transparent shadow-[0_0_25px_#2DD4BF,0_0_12px_#5EEAD4] z-20"
+                  animate={{ top: ['0%', '100%', '0%'] }}
+                  transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
                 />
 
                 {/* 3. Secondary Trailing Cyan Laser Glow */}
                 <motion.div 
-                  className="absolute left-0 right-0 h-8 bg-gradient-to-b from-[#2DD4BF]/20 via-[#2DD4BF]/5 to-transparent blur-sm z-10"
-                  animate={{ y: ['-200px', '220px', '-200px'] }}
-                  transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+                  className="absolute left-0 right-0 h-12 bg-gradient-to-b from-[#2DD4BF]/25 via-[#2DD4BF]/8 to-transparent blur-md z-10"
+                  animate={{ top: ['-2%', '96%', '-2%'] }}
+                  transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
                 />
 
-                {/* 4. Dynamic Scanning Lesion Reticle simulation boxes */}
+                {/* 4. Dynamic Scanning Lesion Reticle simulation box 1 */}
                 <motion.div 
-                  className="absolute w-24 h-20 border border-dashed border-[#5EEAD4]/80 rounded-xl bg-[#2DD4BF]/10 shadow-[0_0_20px_rgba(45,212,191,0.4)] flex items-center justify-center z-15"
+                  className="absolute w-28 h-24 border border-dashed border-[#5EEAD4] rounded-xl bg-[#2DD4BF]/15 shadow-[0_0_25px_rgba(45,212,191,0.5)] flex flex-col items-center justify-between p-1.5 z-15"
                   animate={{ 
-                    scale: [0.9, 1.08, 0.9],
-                    opacity: [0.4, 0.9, 0.4],
-                    x: ['-20px', '30px', '-20px'],
-                    y: ['-40px', '20px', '-40px']
+                    scale: [0.95, 1.05, 0.95],
+                    opacity: [0.6, 1, 0.6],
+                    x: ['-25px', '35px', '-25px'],
+                    y: ['-35px', '25px', '-35px']
                   }}
-                  transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                 >
-                  <span className="text-[9px] font-mono text-[#5EEAD4] font-bold bg-black/80 px-1.5 py-0.5 rounded border border-[#2DD4BF]/40">
-                    SCAN_TARGET
+                  <div className="w-full flex items-center justify-between text-[8px] font-mono text-[#5EEAD4]">
+                    <span>LOC: 2D_GRID</span>
+                    <span>98.4%</span>
+                  </div>
+                  <div className="w-2 h-2 rounded-full bg-[#5EEAD4] animate-ping" />
+                  <span className="text-[9px] font-mono text-[#5EEAD4] font-bold bg-black/85 px-2 py-0.5 rounded border border-[#2DD4BF]/50">
+                    FOLIAR_DIAGNOSTICS
                   </span>
                 </motion.div>
 
                 {/* 5. Precision HUD Corner Brackets */}
-                <div className="absolute top-4 left-4 w-7 h-7 border-t-2 border-l-2 border-[#2DD4BF] shadow-[0_0_10px_#2DD4BF]" />
-                <div className="absolute top-4 right-4 w-7 h-7 border-t-2 border-r-2 border-[#2DD4BF] shadow-[0_0_10px_#2DD4BF]" />
-                <div className="absolute bottom-4 left-4 w-7 h-7 border-b-2 border-l-2 border-[#2DD4BF] shadow-[0_0_10px_#2DD4BF]" />
-                <div className="absolute bottom-4 right-4 w-7 h-7 border-b-2 border-r-2 border-[#2DD4BF] shadow-[0_0_10px_#2DD4BF]" />
+                <div className="absolute top-4 left-4 w-7 h-7 border-t-2 border-l-2 border-[#2DD4BF] shadow-[0_0_12px_#2DD4BF]" />
+                <div className="absolute top-4 right-4 w-7 h-7 border-t-2 border-r-2 border-[#2DD4BF] shadow-[0_0_12px_#2DD4BF]" />
+                <div className="absolute bottom-4 left-4 w-7 h-7 border-b-2 border-l-2 border-[#2DD4BF] shadow-[0_0_12px_#2DD4BF]" />
+                <div className="absolute bottom-4 right-4 w-7 h-7 border-b-2 border-r-2 border-[#2DD4BF] shadow-[0_0_12px_#2DD4BF]" />
 
                 {/* 6. Top Telemetry Status Pill */}
                 <div className="absolute top-4 left-1/2 transform -translate-x-1/2 px-4 py-1.5 rounded-full bg-black/90 backdrop-blur-2xl border border-[#2DD4BF]/60 text-[#5EEAD4] text-[11px] font-mono font-bold shadow-[0_0_25px_rgba(45,212,191,0.5)] flex items-center gap-2 z-30">
@@ -218,19 +232,21 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#2DD4BF] opacity-75" />
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-[#2DD4BF]" />
                   </span>
-                  <span>NEURAL FOLIAR SCANNING IN PROGRESS</span>
+                  <span>NEURAL FOLIAR SCANNING ACTIVE</span>
                 </div>
               </div>
             )}
 
             {!isLoading && (
               <Button 
+                type="button"
                 variant="destructive"
-                onClick={removeImage}
-                className="absolute top-3 right-3 rounded-full shadow-xl bg-red-600 hover:bg-red-700 h-9 w-9 p-0"
+                onClick={(e) => removeImage(e)}
+                className="absolute top-3 right-3 rounded-full shadow-2xl bg-red-600/90 hover:bg-red-600 text-white h-9 w-9 p-0 z-40 cursor-pointer border border-white/20 transition-all hover:scale-110 active:scale-95"
                 size="icon"
                 disabled={isLoading}
-                title="Remove image"
+                title="Remove foliage specimen"
+                aria-label="Remove image"
               >
                 <X className="h-4 w-4" />
               </Button>

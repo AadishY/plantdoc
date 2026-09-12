@@ -15,13 +15,27 @@ export interface PlantRecommendation {
   growthTime?: string;
   growthRate?: string;
   waterNeeds: string;
+  waterRating?: number; // 1-5 droplets
   sunlight: string;
+  sunlightType?: 'Full Sun' | 'Partial Sun' | 'Shade';
   description: string;
   careInstructions: string[];
   bestSeason?: string;
   season?: string;
   soilPreference?: string;
+  soilPhRange?: string; // e.g. "6.0 – 6.8"
+  growthVelocityDays?: string; // e.g. "65–80 Days"
+  pestResistance?: 'High' | 'Moderate' | 'Exceptional';
+  hardinessRating?: string; // e.g. "USDA 4–9"
   companionPlants?: string[];
+  companionAvoid?: string[];
+  seasonalCalendar?: {
+    spring: boolean;
+    summer: boolean;
+    autumn: boolean;
+    winter: boolean;
+    bestMonth?: string;
+  };
   idealTemperature?: {
     min: number;
     max: number;
@@ -38,17 +52,23 @@ export interface PlantRecommendation {
   links?: PlantLink[];
 }
 
+export type PlantingSeason = 'All' | 'Spring' | 'Summer' | 'Autumn' | 'Winter';
+
 export interface GrowingConditions {
-  nitrogen: number;
-  phosphorus: number;
-  potassium: number;
-  ph: number;
-  rainfall: number;
-  temperature: number;
-  humidity: number;
-  country: string;
-  state: string;
+  country?: string;
+  state?: string;
   city?: string;
-  soilType: string;
-  sunlight: string;
+  nitrogen?: number;
+  phosphorus?: number;
+  potassium?: number;
+  ph?: number;
+  rainfall?: number;
+  temperature?: number;
+  humidity?: number;
+  soilType?: string;
+  sunlight?: string;
+  season?: string;
+  plantCount?: number;
+  mode?: 'smart' | 'fast';
 }
+

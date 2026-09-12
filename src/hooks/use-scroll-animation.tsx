@@ -50,24 +50,22 @@ export const useParallaxScroll = (speed: number = 0.2): [RefObject<HTMLElement>,
   
   useEffect(() => {
     let rafId: number;
-    let lastScrollY = window.scrollY;
     let ticking = false;
     
     const handleScroll = () => {
-      lastScrollY = window.scrollY;
-      
       if (!ticking) {
         rafId = requestAnimationFrame(() => {
-          if (!ref.current) return;
+          if (!ref.current) {
+            ticking = false;
+            return;
+          }
           
           const { top } = ref.current.getBoundingClientRect();
           const windowHeight = window.innerHeight;
           const viewportOffset = top - windowHeight;
           const scrollOffset = Math.max(0, -viewportOffset * speed);
           
-          if (Math.abs(scrollOffset - offset) > 2) {
-            setOffset(scrollOffset);
-          }
+          setOffset(prev => Math.abs(scrollOffset - prev) > 2 ? scrollOffset : prev);
           
           ticking = false;
         });
@@ -78,6 +76,7 @@ export const useParallaxScroll = (speed: number = 0.2): [RefObject<HTMLElement>,
     
     // Use passive event listener for better performance
     window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
     
     return () => {
       window.removeEventListener('scroll', handleScroll);
@@ -109,9 +108,7 @@ export const useActiveSection = (sections: string[], offset: number = 100): stri
             if (!section) continue;
             
             if (section.offsetTop <= scrollPosition) {
-              if (activeSection !== sections[i]) {
-                setActiveSection(sections[i]);
-              }
+              setActiveSection(prev => prev !== sections[i] ? sections[i] : prev);
               break;
             }
           }
@@ -133,7 +130,7 @@ export const useActiveSection = (sections: string[], offset: number = 100): stri
         cancelAnimationFrame(rafId);
       }
     };
-  }, [sections, offset, activeSection]);
+  }, [sections, offset]);
   
   return activeSection;
 };

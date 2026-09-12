@@ -22,11 +22,6 @@ const InteractiveParallax: React.FC<InteractiveParallaxProps> = ({
   const rafRef = useRef<number | null>(null);
   const lastMoveTime = useRef<number>(0);
   
-  // Don't apply effects on mobile for better performance
-  if (!shouldUseEffects) {
-    return <div className={className}>{children}</div>;
-  }
-  
   // Optimized handler using requestAnimationFrame and throttling
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!ref.current || rafRef.current) return;
@@ -71,6 +66,11 @@ const InteractiveParallax: React.FC<InteractiveParallaxProps> = ({
       }
     };
   }, []);
+
+  // Don't apply effects on mobile for better performance
+  if (!shouldUseEffects) {
+    return <div className={className}>{children}</div>;
+  }
   
   return (
     <motion.div

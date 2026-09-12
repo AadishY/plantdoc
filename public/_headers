@@ -1,0 +1,37 @@
+# Cloudflare Pages Dynamic and Static Caching Configuration
+
+# Static Fingerprinted Assets (1 year immutable cache)
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+  X-Content-Type-Options: nosniff
+
+# Botanical Specimen Images & Media (7 days cache with stale-while-revalidate)
+/*.webp
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+  Access-Control-Allow-Origin: *
+
+/*.png
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+
+/*.jpg
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+
+/*.svg
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+
+# SEO Sitemaps and Robots
+/sitemap.xml
+  Cache-Control: public, max-age=86400, stale-while-revalidate=43200
+  Content-Type: application/xml; charset=utf-8
+
+/robots.txt
+  Cache-Control: public, max-age=86400, stale-while-revalidate=43200
+  Content-Type: text/plain; charset=utf-8
+
+# Dynamic SPA HTML Shell (always validate freshness, but allow fast 304s)
+/*
+  Cache-Control: public, max-age=0, must-revalidate
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(self), microphone=(), geolocation=()

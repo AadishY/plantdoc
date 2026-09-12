@@ -6,8 +6,8 @@ import { componentTagger } from "lovable-tagger";
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
-    host: "::",
-    port: 8080,
+    host: "0.0.0.0",
+    port: 3000,
   },
   plugins: [
     react(),
@@ -44,6 +44,7 @@ export default defineConfig(({ mode }) => ({
             '@radix-ui/react-slider',
             '@radix-ui/react-select'
           ],
+          'vendor-charts': ['recharts'],
           'vendor-icons': ['lucide-react']
         }
       }

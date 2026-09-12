@@ -46,7 +46,8 @@ export async function fetchPlantWikimediaData(
         headers: {
           'Api-User-Agent': API_CONFIG.WIKIMEDIA_USER_AGENT,
           'Accept': 'application/json'
-        }
+        },
+        signal: AbortSignal.timeout ? AbortSignal.timeout(3000) : undefined
       });
 
       if (res.ok) {
@@ -68,7 +69,7 @@ export async function fetchPlantWikimediaData(
         }
       }
     } catch (e) {
-      console.warn(`Wikipedia summary error for "${term}":`, e);
+      // Non-blocking fallback
     }
     return null;
   };
@@ -84,7 +85,8 @@ export async function fetchPlantWikimediaData(
       const res = await fetch(url, {
         headers: {
           'Api-User-Agent': API_CONFIG.WIKIMEDIA_USER_AGENT
-        }
+        },
+        signal: AbortSignal.timeout ? AbortSignal.timeout(3000) : undefined
       });
 
       if (res.ok) {

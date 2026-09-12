@@ -97,23 +97,83 @@ Selects top botanical species matching your regional climate (temperature, rainf
 
 ## ✨ Key Platform Features
 
-| Capability | Technical Implementation | Benefit |
+| Capability | Technical Implementation | Practical Clinical Benefit |
 | :--- | :--- | :--- |
-| **Sub-Pixel Spatial Lesion Boxes** | Parallel Gemini Vision segmentation model | Exact 2D bounding boxes around individual spots |
-| **Real Commercial Prescriptions** | Validated retail formulations (*Daconil*, *Bonide*, *Miracle-Gro*) | Precise chemical & organic mixing dosages |
-| **Client-Side WebP Compression** | Offscreen HTML5 Canvas downsampler | **99% payload reduction** (~80KB transfers, 5x speedup) |
-| **Interactive Dual-Mask Hero** | Synchronized `topLayerRef` + `baseLayerRef` masks | Necrotic holes reveal background; 0 dark blobs in air |
-| **Verified Botanical Taxonomy** | Live Wikimedia Foundation REST APIs | **Zero synthetic mock images**; authentic high-res data |
-| **120Hz Kinetic Inertia Scroll** | Lenis smooth scroll + GSAP RAF ticker sync | Buttery-smooth, jitter-free scroll pacing |
-| **Zero GC Animation Loops** | In-place reverse mutation & `Float32Array` buffers | **0 bytes per frame allocations**; 0 frame drops |
+| **Scientific Veracity & Anti-Hallucination** | Dual-tier verification & specimen validation | **Zero fabricated diseases**: explicitly rejects non-botanical images or marks ambiguous foliage as inconclusive. |
+| **Multi-Scale Spatial Lesion Grounding** | `gemini-robotics-er-2-preview` + NMS IoU filtering | Pinpoints both **macro affected disease zones** (blight scorch, marginal burn) and **micro focal spots** (10 to 45+ detections, `IoU > 0.65`). |
+| **Gemma 4 Climate Recommendation Engine** | `gemma-4-26b-a4b-it` (Primary) & `gemma-4-31b-it` (Failover) | High-speed agronomic matching (~4s response) against regional temperature, precipitation, and soil profiles. |
+| **Interactive 5-Option Season Engine** | Real-time seasonal planting calendar sync | Curates species by seasonal window (**All Seasons**, **Spring**, **Summer**, **Autumn**, **Winter**) with timeline badges. |
+| **Spectral NDVI Chlorophyll Analysis** | Simulated multispectral foliar mapping | Visualizes photosynthetic vigor, chlorophyll breakdown, and sub-clinical symptom margins. |
+| **Infection Stage & Severity Horizon** | Dynamic progression timeline with phase details | Interactive 4-phase progression tracker revealing symptoms and intervention windows per stage. |
+| **5-Tier Clinical Treatment Matrix** | Validated retail formulations (*Daconil*, *Bonide*, *Monterey*) | Exact commercial chemical, bio-fungicidal, and organic mixing ratios and application cycles. |
+| **Client-Side WebP Downsampling** | Offscreen HTML5 Canvas downsampler | **99% network payload reduction** (~80KB transfers, 5x–10x API latency speedup). |
+| **Interactive Dual-Mask Hero Stage** | Synchronized `topLayerRef` + `baseLayerRef` masks | Necrotic holes reveal background; zero dark shapes rendered over typography in empty air. |
+| **Verified Botanical Taxonomy** | Live Wikimedia Foundation REST APIs | **Zero synthetic mock images**; authentic high-res botanical taxonomy and care guides. |
+| **120Hz Kinetic Inertia Scroll** | Lenis smooth scroll + GSAP RAF ticker sync | Buttery-smooth, jitter-free kinetic scroll pacing across desktop and mobile. |
+| **Zero-Allocation Animation Loops** | In-place reverse mutation & `Float32Array` buffers | **0 bytes per frame allocations**; completely eliminates garbage-collection frame drops. |
+
+---
+
+## 🔬 Diagnostics & Anti-Hallucination Pipeline
+
+PlantDoc AI operates on a rigorous, two-stage clinical verification pipeline designed so that **no information is strictly preferred over false information**:
+
+```
+[ User Foliage Upload ]
+         │
+         ▼
+[ Offscreen Canvas Compression (WebP @ 0.85, 1280px max) ]
+         │
+         ├─────────────────────────────────────────┐
+         ▼                                         ▼
+[ Clinical Pathology Engine ]             [ Spatial Lesion Grounding ]
+Primary: gemini-3.8-flash                 Model: gemini-robotics-er-2-preview
+Failovers: 3.7-flash -> 3.6-flash          - Macro disease zones + micro spot grounding
+- Botanical validity check                - Sub-pixel bounding boxes [ymin, xmin, ymax, xmax]
+- Species identification (>80% cert)      - Coordinate normalization (0-1000 -> CSS %)
+- Health verification (no ghost disease)  - IoU Calculation & Non-Maximum Suppression (IoU > 0.65)
+- Commercial prescription dossier         - Broad aspect ratio tolerance (up to 9.0:1)
+         │                                         │
+         └────────────────────┬────────────────────┘
+                              ▼
+           [ Unified Clinical Dossier & Telemetry ]
+           - Interactive Foliar Lesion Inspector (10-45+ detections)
+           - Spectral NDVI Chlorophyll Mode
+           - 5-Tier Remediation Matrix & Retail Brand Prescriptions
+```
+
+---
+
+## 🌾 Botanical Recommendation & Seasonal Intelligence Engine
+
+```
+[ Regional Climate Parameters (Temp, Rain, Soil, pH) + Planting Season ]
+                                │
+                                ▼
+              [ Gemma 4 Open Model Family Pipeline ]
+        Primary: gemma-4-26b-a4b-it  |  Failover: gemma-4-31b-it
+          (Fast Mode Optional: groq/compound with Web Search)
+                                │
+                                ▼
+                [ Wikimedia REST API Engine ]
+      Parallel Latin Binomial Resolution (Thumbnails + Care Guides)
+                                │
+                                ▼
+           [ Climate-Matched Botanical Recommendations ]
+           - Seasonal suitability tags (Spring, Summer, Autumn, Winter)
+           - NPK demands, sunlight hours, water frequency & companion plants
+           - One-click JSON Dossier Export & Fullscreen Botanical Dossier
+```
 
 ---
 
 ## ⚡ Performance Benchmarks
 
 - **Display Refresh Rate**: Locked **120fps / 60fps** with zero garbage-collection stutter.
-- **Client-Side Image Pre-Processing**: `<50ms` progressive WebP encoding.
-- **Production Bundle Size**: Optimized Rollup chunks (`vendor-icons` trimmed 41% to 15.9 KB).
+- **Client-Side Image Pre-Processing**: `<50ms` progressive WebP encoding on offscreen Canvas.
+- **Payload Compression**: 10MB+ raw DSLR files compressed to **~80KB–150KB** prior to cloud transit.
+- **Production Bundle Size**: Optimized Rollup manual chunks (`vendor-react`, `vendor-animation`, `vendor-radix`, `vendor-charts`, `vendor-icons`).
+- **Gemma Recommendation Latency**: Fast ~3s–5s response via `gemma-4-26b-a4b-it`.
 - **CSS Paint Optimization**: `content-visibility: auto` skips offscreen paint passes.
 - **Idle Power Draw**: **0% CPU/GPU overhead** when canvas stages scroll out of viewport.
 
@@ -129,8 +189,8 @@ Selects top botanical species matching your regional climate (temperature, rainf
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/AadishY/PlantDoc.git
-   cd PlantDoc
+   git clone https://github.com/AadishY/plantdoc.git
+   cd plantdoc
    ```
 
 2. **Install dependencies:**
@@ -139,16 +199,23 @@ Selects top botanical species matching your regional climate (temperature, rainf
    ```
 
 3. **Configure Environment Variables:**
-   Create a `.env` file in the root directory:
+   Create a `.env` file in the root directory (see `.env.example`):
    ```env
+   # Required: Google Gemini API Key (Gemini Vision & Gemma models)
    VITE_GEMINI_API_KEY=your_gemini_api_key_here
+
+   # Optional: Groq API Key (for Fast Mode compound search)
+   VITE_GROQ_API_KEY=your_groq_api_key_here
+
+   # Recommended: Custom Wikimedia User-Agent for REST API compliance
+   VITE_WIKIMEDIA_USER_AGENT=PlantDoc/1.0 (https://plantdoc.app; contact@plantdoc.app)
    ```
 
 4. **Launch Development Server:**
    ```bash
    npm run dev
    ```
-   Open [http://localhost:8080](http://localhost:8080) in your browser.
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 5. **Build for Production:**
    ```bash

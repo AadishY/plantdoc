@@ -97,6 +97,11 @@ const Footer: React.FC = () => {
                   <span>About Engine</span>
                 </Link>
               </li>
+              <li>
+                <Link to="/privacy" className="text-foreground/70 hover:text-[#5EEAD4] transition-colors flex items-center gap-1">
+                  <span>Privacy Policy</span>
+                </Link>
+              </li>
             </ul>
           </div>
           
@@ -133,9 +138,33 @@ const Footer: React.FC = () => {
           </div>
         </div>
 
-        {/* Bottom copyright line */}
-        <div className="relative z-10 pt-3 sm:pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-1.5 sm:gap-3 text-[10px] sm:text-[11px] text-foreground/60 text-center sm:text-left">
-          <p>&copy; {currentYear} PlantDoc AI • By Aadish Kumar Yadav</p>
+        {/* Bottom copyright line & Legal Links */}
+        <div className="relative z-10 pt-3 sm:pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-3 text-[10px] sm:text-[11px] text-foreground/60 text-center sm:text-left">
+          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-3 gap-y-1">
+            <p>&copy; {currentYear} PlantDoc AI • By Aadish Kumar Yadav</p>
+            <span className="hidden sm:inline text-white/20">•</span>
+            <Link to="/privacy" className="text-[#5EEAD4]/80 hover:text-[#5EEAD4] underline-offset-2 hover:underline transition-colors">
+              Privacy Policy
+            </Link>
+            <span className="text-white/20">•</span>
+            <a 
+              href="https://github.com/AadishY/plantdoc/blob/main/LICENSE" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-foreground/60 hover:text-[#5EEAD4] transition-colors"
+            >
+              MIT License
+            </a>
+            <span className="text-white/20">•</span>
+            <a 
+              href="https://github.com/AadishY/plantdoc/blob/main/CODE_OF_CONDUCT.md" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-foreground/60 hover:text-[#5EEAD4] transition-colors"
+            >
+              Code of Conduct
+            </a>
+          </div>
           <p className="font-mono text-[#5EEAD4]/90 flex items-center justify-center gap-1.5 text-[9px] sm:text-[11px]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#2DD4BF]" />
             Verified Wikimedia REST API

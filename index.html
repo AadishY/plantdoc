@@ -1,30 +1,46 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
     <title>PlantDoc AI — Plant Disease Diagnosis & Care</title>
     <meta name="description" content="Instant AI plant disease diagnosis, leaf lesion segmentation, and clinical treatment protocols." />
+    <meta name="keywords" content="plant disease diagnosis, AI plant doctor, plant pathology, leaf lesion segmentation, botanical diagnosis, crop disease identifier, gardening AI, plant care remedies" />
     <meta name="author" content="Aadish Kumar Yadav" />
+    <link rel="canonical" href="https://plantdoc.ai" />
 
-    <!-- Open Graph / Social Meta -->
+    <!-- Open Graph / Facebook -->
+    <meta property="og:site_name" content="PlantDoc AI" />
     <meta property="og:title" content="PlantDoc AI — Plant Disease Diagnosis & Care" />
     <meta property="og:description" content="Instant AI plant disease diagnosis, leaf lesion segmentation, and clinical treatment protocols." />
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://plantdoc.ai" />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:image" content="/bannerr.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1280" />
+    <meta property="og:image:height" content="640" />
+    <meta property="og:image:alt" content="PlantDoc AI - Foliar Pathology and Botanical Diagnostics Preview Banner" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@PlantDocAI" />
+    <meta name="twitter:creator" content="@PlantDocAI" />
     <meta name="twitter:title" content="PlantDoc AI — Plant Disease Diagnosis & Care" />
     <meta name="twitter:description" content="Instant AI plant disease diagnosis, leaf lesion segmentation, and clinical treatment protocols." />
     <meta name="twitter:image" content="/bannerr.jpg" />
+    <meta name="twitter:image:alt" content="PlantDoc AI - Foliar Pathology and Botanical Diagnostics Preview Banner" />
 
-    <!-- Favicon -->
+    <!-- Favicon & Touch Icons -->
     <link rel="icon" href="/favicon.ico" type="image/x-icon" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     
+    <!-- Hero Image Preloads for Instant Visual Paint -->
+    <link rel="preload" as="image" href="/main.webp" type="image/webp" />
+    <link rel="preload" as="image" href="/main_disease.webp" type="image/webp" />
+
     <!-- DNS Prefetch & High-Speed API Warmup -->
     <link rel="preconnect" href="https://generativelanguage.googleapis.com" crossorigin />
     <link rel="dns-prefetch" href="https://generativelanguage.googleapis.com" />
@@ -33,11 +49,48 @@
     <link rel="preconnect" href="https://en.wikipedia.org" crossorigin />
     <link rel="dns-prefetch" href="https://en.wikipedia.org" />
 
-    <!-- Additional Meta Tags -->
-    <meta name="robots" content="index, follow" />
+    <!-- Additional Meta Tags & Mobile Browser Chrome -->
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <meta name="theme-color" content="#040805" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="PlantDoc AI" />
+    <meta name="application-name" content="PlantDoc AI" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <!-- JSON-LD Structured Data Schema for Search Engines (SEO) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "PlantDoc AI",
+      "alternateName": "PlantDoc",
+      "url": "https://plantdoc.ai",
+      "description": "Instant AI plant disease diagnosis, leaf lesion segmentation, and clinical treatment protocols.",
+      "applicationCategory": "BotanicalApplication",
+      "operatingSystem": "All",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Person",
+        "name": "Aadish Kumar Yadav",
+        "url": "https://github.com/AadishY"
+      },
+      "featureList": [
+        "Instant Foliar Disease Detection",
+        "Sub-pixel Lesion Spatial Segmentation",
+        "Clinical Treatment and Prescription Formulations",
+        "Climate-Adaptive Botanical Recommendations",
+        "Verified Wikimedia Foundation Biological Media"
+      ],
+      "screenshot": "https://plantdoc.ai/bannerr.jpg"
+    }
+    </script>
   </head>
-  <body>
+  <body class="bg-[#040805] text-white antialiased overflow-x-hidden selection:bg-[#2DD4BF]/30 selection:text-white">
     <div id="root"></div>
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>

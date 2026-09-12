@@ -1,38 +1,42 @@
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@/components/ThemeProvider';
-import { Toaster } from '@/components/ui/toaster';
-import AnimatedLoader from '@/components/ui/animated-loader';
+import { Toaster as RadixToaster } from '@/components/ui/toaster';
+import { Toaster as SonnerToaster } from '@/components/ui/sonner';
 import DynamicBackground from '@/components/DynamicBackground';
 import SiteLoader from '@/components/SiteLoader';
 import SmoothScroll from '@/components/SmoothScroll';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import ScrollToTop from '@/components/ScrollToTop';
+import PageLoadingFallback from '@/components/PageLoadingFallback';
+import { preloadAllRoutes } from '@/utils/routePreloader';
 
 // Lazily load components for better performance
 const TextHighlighter = lazy(() => import('@/components/TextHighlighter'));
 
-// Preload critical pages
+// Preload critical landing page
 import Index from '@/pages/Index';
 
-// Lazily load less frequently accessed pages
+// Lazily load routes with instant prefetch support
 const DiagnosePage = lazy(() => import('@/pages/DiagnosePage'));
 const RecommendPage = lazy(() => import('@/pages/RecommendPage'));
 const AboutPage = lazy(() => import('@/pages/AboutPage'));
+const PrivacyPage = lazy(() => import('@/pages/PrivacyPage'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 
-// Fallback loading component for lazy-loaded routes
-const PageLoading = () => (
-  <div className="h-screen w-full flex flex-col items-center justify-center">
-    <AnimatedLoader size="lg" color="primary" text="Loading PlantDoc..." />
-  </div>
-);
-
 function App() {
+  // Silently warm and cache route chunks during browser idle time for 0ms transitions
+  useEffect(() => {
+    preloadAllRoutes();
+  }, []);
+
   return (
     <ThemeProvider defaultTheme="dark" storageKey="plantdoc-theme">
       <ErrorBoundary>
-        {/* Smooth Lenis Inertia Scroll */}
+        {/* Smooth Lenis Inertia Scroll & Scroll Restoration */}
         <SmoothScroll>
+          <ScrollToTop />
+          
           {/* Initial load splash */}
           <SiteLoader />
           
@@ -42,22 +46,27 @@ function App() {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/diagnose" element={
-              <Suspense fallback={<PageLoading />}>
+              <Suspense fallback={<PageLoadingFallback title="Mounting Diagnostics" subtitle="Preparing foliar neural models & lesion vision..." />}>
                 <DiagnosePage />
               </Suspense>
             } />
             <Route path="/recommend" element={
-              <Suspense fallback={<PageLoading />}>
+              <Suspense fallback={<PageLoadingFallback title="Mounting Recommendations" subtitle="Loading botanical taxonomy & climate algorithms..." />}>
                 <RecommendPage />
               </Suspense>
             } />
             <Route path="/about" element={
-              <Suspense fallback={<PageLoading />}>
+              <Suspense fallback={<PageLoadingFallback title="Mounting Architecture" subtitle="Loading system specifications & technology stack..." />}>
                 <AboutPage />
               </Suspense>
             } />
+            <Route path="/privacy" element={
+              <Suspense fallback={<PageLoadingFallback title="Mounting Privacy Policy" subtitle="Loading data protection & privacy guidelines..." />}>
+                <PrivacyPage />
+              </Suspense>
+            } />
             <Route path="*" element={
-              <Suspense fallback={<PageLoading />}>
+              <Suspense fallback={<PageLoadingFallback title="Loading Page" subtitle="Resolving navigation route..." />}>
                 <NotFound />
               </Suspense>
             } />
@@ -67,7 +76,8 @@ function App() {
           <Suspense fallback={null}>
             <TextHighlighter />
           </Suspense>
-          <Toaster />
+          <RadixToaster />
+          <SonnerToaster />
         </SmoothScroll>
       </ErrorBoundary>
     </ThemeProvider>
