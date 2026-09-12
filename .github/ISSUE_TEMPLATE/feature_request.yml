@@ -1,0 +1,58 @@
+name: 💡 Feature Request
+description: Propose a new feature, model integration, or enhancement for PlantDoc AI
+title: "[Feature]: "
+labels: ["enhancement", "idea"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have an idea to make PlantDoc AI more powerful, accurate, or faster? Let's discuss it!
+  - type: input
+    id: feature-title
+    attributes:
+      label: Feature Concept
+      description: A concise summary of your proposal.
+      placeholder: "e.g., Add export of clinical treatment PDF report"
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or Clinical Need
+      description: Is your feature request related to a specific limitation or pain point?
+      placeholder: "e.g., Commercial farmers often need to print or email a diagnostic summary to their pesticide supplier..."
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution & Architecture
+      description: Describe how this feature should function and any technical components involved.
+      placeholder: "e.g., Generate a printable HTML/CSS or PDF dossier directly on the client side containing the lesion coordinates and chemical dosage schedule..."
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Any other approaches or existing workarounds you've explored.
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - "AI Models (Gemini Vision, Gemma, Robotics)"
+        - "Foliar Lesion Grounding & Segmentation"
+        - "Agronomic Recommendations & Climate Presets"
+        - "UI / UX / 120fps Kinetic Motion"
+        - "Data Export & Telemetry"
+        - "Developer Experience & Tooling"
+        - "Other"
+    validations:
+      required: true
+  - type: checkboxes
+    id: willingness
+    attributes:
+      label: Contribution Willingness
+      options:
+        - label: I am willing to submit a Pull Request to implement this feature.

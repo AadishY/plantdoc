@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📖 Architecture & Developer Guide
+    url: https://github.com/AadishY/plantdoc/blob/main/AGENTS.md
+    about: Review complete neural models, anti-hallucination protocols, and engineering architecture.
+  - name: 🛡️ Security Vulnerability Reporting
+    url: https://github.com/AadishY/plantdoc/blob/main/SECURITY.md
+    about: Privately report a security vulnerability or sensitive exposure.

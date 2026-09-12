@@ -1,0 +1,43 @@
+name: 🌿 Botanical / Pathology Correction
+description: Report a botanical misidentification, lesion false positive, or clinical prescription correction
+title: "[Pathology]: "
+labels: ["botany", "clinical-veracity"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Accurate botanical science and anti-hallucination veracity are foundational to PlantDoc AI. If our AI models misclassified a plant species, misdiagnosed a foliar disease, or recommended an incorrect treatment, please report it here.
+  - type: input
+    id: specimen
+    attributes:
+      label: Plant Species (Common & Scientific Binomial)
+      placeholder: "e.g., Solanum lycopersicum (Tomato)"
+    validations:
+      required: true
+  - type: input
+    id: reported-disease
+    attributes:
+      label: Diagnosis Reported by PlantDoc AI
+      placeholder: "e.g., Early Blight (Alternaria solani)"
+    validations:
+      required: true
+  - type: input
+    id: actual-disease
+    attributes:
+      label: Actual Pathology / Physiological Condition
+      placeholder: "e.g., Physiological Leaf Roll or Magnesium Deficiency"
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Scientific Rationale & References
+      description: Cite university extension services, peer-reviewed botanical literature, or distinguishing morphological characteristics.
+      placeholder: "e.g., According to Cornell Agronomy Extension, Alternaria concentric rings have dark fungal spores in center, whereas this lesion exhibits no fungal structures..."
+    validations:
+      required: true
+  - type: textarea
+    id: treatment-adjustment
+    attributes:
+      label: Proposed Treatment Adjustment (Optional)
+      description: If the chemical active ingredient or organic remediation needs updating, provide the correct guidance.
