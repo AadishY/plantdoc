@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Leaf, Heart, Github, Instagram, Scan, Wand2 } from "lucide-react";
+import { Leaf, Heart, Github, Scan, Wand2 } from "lucide-react";
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
@@ -43,15 +43,6 @@ const Footer: React.FC = () => {
                   title="GitHub"
                 >
                   <Github className="h-3.5 w-3.5" />
-                </a>
-                <a
-                  href="https://instagram.com/yo.akatsuki"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-2 rounded-xl bg-[#2DD4BF]/15 text-[#5EEAD4] border border-[#2DD4BF]/40 transition-all"
-                  title="Instagram"
-                >
-                  <Instagram className="h-3.5 w-3.5" />
                 </a>
               </div>
             </div>
@@ -120,15 +111,6 @@ const Footer: React.FC = () => {
                 title="GitHub Repository"
               >
                 <Github className="h-4 w-4" />
-              </a>
-              <a
-                href="https://instagram.com/yo.akatsuki"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-3 rounded-2xl bg-[#2DD4BF]/15 hover:bg-[#2DD4BF]/30 text-[#5EEAD4] border border-[#2DD4BF]/40 transition-all hover:scale-105 shadow-[0_0_15px_rgba(45,212,191,0.2)]"
-                title="Instagram Profile"
-              >
-                <Instagram className="h-4 w-4" />
               </a>
             </div>
             
