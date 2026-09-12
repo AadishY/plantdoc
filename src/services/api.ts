@@ -681,7 +681,8 @@ CRITICAL: Output ONLY a valid JSON object matching this schema:
     "suspect_category": "Pests" | "Pathogens" | "Abiotic / Environmental Stress",
     "health_score": 75,
     "recovery_prognosis": 85,
-    "spread_risk": "Low" | "Medium" | "High" | "Critical"
+    "spread_risk": "Low" | "Medium" | "High" | "Critical",
+    "diagnosis_summary": "Concise 2-3 sentence clinical summary of the diagnosis, observed symptoms, and prognosis."
   },
   "primary_suspect": {
     "name": "The explicit name of the issue",
@@ -1214,7 +1215,8 @@ Output ONLY a valid JSON object matching this schema:
     "suspect_category": "Pests" | "Pathogens" | "Abiotic / Environmental Stress",
     "health_score": 75,
     "recovery_prognosis": 85,
-    "spread_risk": "Low" | "Medium" | "High" | "Critical"
+    "spread_risk": "Low" | "Medium" | "High" | "Critical",
+    "diagnosis_summary": "Concise 2-3 sentence clinical summary of the diagnosis, observed symptoms, and prognosis."
   },
   "primary_suspect": {
     "name": "The explicit name of the issue",

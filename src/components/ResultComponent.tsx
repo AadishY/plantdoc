@@ -15,7 +15,7 @@ import {
   Clock
 } from 'lucide-react';
 import { DiagnosisResult, PrimarySuspect } from '@/types/diagnosis';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { EnhancedCard, EnhancedCardHeader, EnhancedCardTitle } from '@/components/ui/enhanced-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -290,8 +290,7 @@ PRESCRIPTION TREATMENT:
       )}
 
       {/* 2. Primary Pathology Header & Host Specimen */}
-      {
-        <motion.div variants={itemVariants}>
+      <motion.div variants={itemVariants}>
           <EnhancedCard glassIntensity="intense" borderGlow={true} className="bg-black/55 backdrop-blur-2xl rounded-3xl border border-white/20 overflow-hidden shadow-2xl">
             <EnhancedCardHeader className="pb-5 pt-5 border-b border-white/10">
               <div>
@@ -367,7 +366,7 @@ PRESCRIPTION TREATMENT:
             </EnhancedCardHeader>
           </EnhancedCard>
         </motion.div>
-      (
+
 
       {/* 3. Clinical Treatment Protocol */}
       <motion.div variants={itemVariants}>
@@ -385,8 +384,7 @@ PRESCRIPTION TREATMENT:
       </motion.div>
 
       {/* 6. Primary Suspect & Classification Matrix */}
-      {
-        <motion.div variants={itemVariants}>
+      <motion.div variants={itemVariants}>
           <div className={`p-5 sm:p-6 rounded-3xl bg-black/60 backdrop-blur-2xl border ${categoryConf.cardGlow} space-y-4 relative overflow-hidden transition-all duration-300`}>
             {/* Top Suspect Header & Category Tag */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
@@ -475,7 +473,7 @@ PRESCRIPTION TREATMENT:
             </div>
           </div>
         </motion.div>
-      )}
+
 
       {/* 7. Vital Metrics & Prognosis Visualizations */}
       <motion.div variants={itemVariants}>

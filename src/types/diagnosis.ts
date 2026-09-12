@@ -45,6 +45,7 @@ export interface DiagnosisResult {
     recovery_prognosis?: number; // 0 - 100%
     spread_risk?: 'Low' | 'Medium' | 'High' | 'Critical';
     suspect_category?: 'Pests' | 'Pathogens' | 'Abiotic / Environmental Stress';
+    diagnosis_summary?: string; // Clinical summary paragraph
   };
   primary_suspect?: PrimarySuspect;
   segmentation?: PlantSegmentation;
