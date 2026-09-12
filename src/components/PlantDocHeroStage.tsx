@@ -184,16 +184,19 @@ export const PlantDocHeroStage: React.FC = () => {
       if (!topLayerRef.current || e.touches.length === 0) return;
       const touch = e.touches[0];
 
-      // Yield to native scroll for clear vertical swipes (raised threshold to 22px to allow diagonal drags to still reveal)
+      // Yield to native scroll for clear vertical swipes
       const deltaX = Math.abs(touch.clientX - touchStartX);
       const deltaY = Math.abs(touch.clientY - touchStartY);
       if (deltaY > 22 && deltaY > deltaX * 1.8) {
         isVerticalSwipe = true;
         hovering = false;
-        return;
+        return; // Let native scroll handle this
       }
 
       if (isVerticalSwipe) return;
+
+      // Horizontal / reveal drag: prevent page scroll so finger controls the reveal
+      e.preventDefault();
 
       const rect = topLayerRef.current.getBoundingClientRect();
       const screenX = touch.clientX - rect.left;
@@ -234,7 +237,7 @@ export const PlantDocHeroStage: React.FC = () => {
       stage.addEventListener('mouseenter', handleMouseEnter, { passive: true });
       stage.addEventListener('mouseleave', handleMouseLeave, { passive: true });
       stage.addEventListener('touchstart', handleTouchStart, { passive: true });
-      stage.addEventListener('touchmove', handleTouchMove, { passive: true });
+      stage.addEventListener('touchmove', handleTouchMove, { passive: false });
       stage.addEventListener('touchend', handleTouchEnd, { passive: true });
       stage.addEventListener('touchcancel', handleTouchEnd, { passive: true });
     }

@@ -1,32 +1,18 @@
 import React, { useState } from 'react';
 import { 
   Leaf, 
-  ShieldAlert, 
   ShieldCheck, 
   Microscope, 
   Sparkles, 
-  Activity, 
   HelpCircle, 
   AlertTriangle, 
-  Dna, 
   Bug, 
   Sun, 
-  ThermometerSun, 
-  Droplet, 
-  HeartHandshake, 
   CheckCircle2, 
-  CalendarDays, 
-  Target, 
-  FileText, 
-  Layers, 
-  ArrowRight,
   Copy,
   Check,
   Printer,
-  SlidersHorizontal,
-  Clock,
-  TrendingUp,
-  GitCompare
+  Clock
 } from 'lucide-react';
 import { DiagnosisResult, PrimarySuspect } from '@/types/diagnosis';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -45,10 +31,7 @@ interface ResultComponentProps {
   imageUrl?: string | null;
 }
 
-type ViewMode = 'all' | 'lesions' | 'treatment' | 'prognosis' | 'differential';
-
 const ResultComponent: React.FC<ResultComponentProps> = ({ result, imageUrl }) => {
-  const [activeViewMode, setActiveViewMode] = useState<ViewMode>('all');
   const [hasCopiedSummary, setHasCopiedSummary] = useState(false);
 
   const isHealthy = 
@@ -276,127 +259,22 @@ PRESCRIPTION TREATMENT:
   const categoryConf = getCategoryConfig(suspect.category);
   const CategoryIcon = categoryConf.icon;
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.08
-      }
-    }
-  };
-
   const itemVariants = {
-    hidden: { opacity: 0, y: 12 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } }
+    hidden: { opacity: 0, y: 8 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.2 } }
   };
 
   return (
-    <motion.div 
+    <motion.div
       className="space-y-6"
-      variants={containerVariants}
       initial="hidden"
       animate="visible"
+      variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0 } } }}
     >
-      {/* Dynamic Interactive Toolbar & Dossier Actions Bar */}
-      <motion.div variants={itemVariants} className="p-4 sm:p-5 rounded-3xl bg-black/60 backdrop-blur-2xl border border-white/15 space-y-3.5 shadow-xl">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-          {/* View Filter Mode Switcher */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 scrollbar-none">
-            <span className="text-[11px] font-mono text-white/50 uppercase tracking-wider mr-1.5 flex items-center gap-1 shrink-0">
-              <SlidersHorizontal className="h-3.5 w-3.5 text-[#2DD4BF]" />
-              <span>View:</span>
-            </span>
 
-            {[
-              { id: 'all' as ViewMode, label: 'Full Dossier', icon: Layers },
-              { id: 'lesions' as ViewMode, label: 'Lesion Reticle', icon: Target },
-              { id: 'treatment' as ViewMode, label: 'Prescriptions', icon: ShieldCheck },
-              { id: 'prognosis' as ViewMode, label: '30-Day Recovery', icon: TrendingUp },
-              ...(!isHealthy ? [{ id: 'differential' as ViewMode, label: 'Pathogen Compare', icon: GitCompare }] : [])
-            ].map(tab => {
-              const Icon = tab.icon;
-              const isActive = activeViewMode === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveViewMode(tab.id)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 border flex items-center gap-1.5 shrink-0 ${
-                    isActive
-                      ? 'bg-[#2DD4BF] text-black border-[#2DD4BF] font-extrabold shadow-[0_0_15px_rgba(45,212,191,0.35)] scale-105'
-                      : 'bg-white/5 text-white/75 border-white/10 hover:bg-white/10 hover:text-white'
-                  }`}
-                >
-                  <Icon className={`h-3.5 w-3.5 ${isActive ? 'text-black' : 'text-[#2DD4BF]'}`} />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Quick Actions: Copy & Print */}
-          <div className="flex items-center gap-2 self-end lg:self-auto shrink-0">
-            {/* Quarantine Urgency Tag */}
-            {!isHealthy && quarantineHours > 0 && (
-              <div className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-mono">
-                <Clock className="h-3.5 w-3.5 text-rose-400 animate-pulse" />
-                <span>Quarantine: <strong className="text-white">Within {quarantineHours}h</strong></span>
-              </div>
-            )}
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleCopySummary}
-              className="h-9 px-3.5 rounded-full bg-white/5 border-white/20 text-white hover:bg-[#2DD4BF]/20 hover:text-[#5EEAD4] text-xs gap-1.5 transition-all"
-            >
-              {hasCopiedSummary ? (
-                <>
-                  <Check className="h-3.5 w-3.5 text-emerald-400" />
-                  <span className="text-emerald-300">Copied</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="h-3.5 w-3.5 text-[#2DD4BF]" />
-                  <span>Copy Dossier</span>
-                </>
-              )}
-            </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handlePrintDossier}
-              className="h-9 px-3.5 rounded-full bg-white/5 border-white/20 text-white hover:bg-white/15 text-xs gap-1.5 transition-all"
-              title="Print or export PDF dossier"
-            >
-              <Printer className="h-3.5 w-3.5 text-white/80" />
-              <span>Print / PDF</span>
-            </Button>
-          </div>
-        </div>
-
-        {/* Model Execution & Failover Notice Bar */}
-        {(result.diagnosedByModel || result.modelShiftNotice) && (
-          <div className="pt-2.5 border-t border-white/10 flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
-            {result.diagnosedByModel && (
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-white/70">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#2DD4BF] animate-pulse" />
-                <span><strong className="text-[#5EEAD4]">PlantDoc AI</strong></span>
-              </div>
-            )}
-            {result.modelShiftNotice && (
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300">
-                <AlertTriangle className="h-3 w-3 text-amber-400 shrink-0" />
-                <span>{result.modelShiftNotice}</span>
-              </div>
-            )}
-          </div>
-        )}
-      </motion.div>
 
       {/* 1. Computer Vision Lesion Segmentation Overlay */}
-      {imageUrl && (activeViewMode === 'all' || activeViewMode === 'lesions') && (
+      {imageUrl && (
         <motion.div variants={itemVariants}>
           <PlantSegmentationViewer
             imageUrl={imageUrl}
@@ -412,7 +290,7 @@ PRESCRIPTION TREATMENT:
       )}
 
       {/* 2. Primary Pathology Header & Host Specimen */}
-      {(activeViewMode === 'all' || activeViewMode === 'lesions') && (
+      {
         <motion.div variants={itemVariants}>
           <EnhancedCard glassIntensity="intense" borderGlow={true} className="bg-black/55 backdrop-blur-2xl rounded-3xl border border-white/20 overflow-hidden shadow-2xl">
             <EnhancedCardHeader className="pb-5 pt-5 border-b border-white/10">
@@ -422,28 +300,30 @@ PRESCRIPTION TREATMENT:
                     <Leaf className="h-3.5 w-3.5" />
                     <span>Clinical Botanical Report</span>
                   </div>
-                  
                   <Badge className="bg-[#2DD4BF] text-black font-extrabold text-xs px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-[0_0_12px_rgba(45,212,191,0.35)]">
                     <Sparkles className="h-3 w-3" />
                     {result.accuracy ? `${result.accuracy.toFixed(1)}% Match` : 'AI Confirmed'}
                   </Badge>
-                  
                   <Badge className={`${getSeverityColor(result.disease.severity)} rounded-full text-xs px-2.5 py-0.5 font-bold flex items-center gap-1`}>
                     <AlertTriangle className="h-3 w-3" />
                     {result.disease.severity} Severity
                   </Badge>
-                  
                   <Badge className="bg-white/10 text-white text-xs border border-white/15 rounded-full px-2.5 py-0.5 flex items-center gap-1">
                     <CategoryIcon className="h-3 w-3 text-amber-400" />
                     {result.disease.pathogen_type || 'Biological Pathogen'}
                   </Badge>
+                  {quarantineHours > 0 && (
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-mono">
+                      <Clock className="h-3.5 w-3.5 text-rose-400 animate-pulse" />
+                      <span>Quarantine: <strong className="text-white">Within {quarantineHours}h</strong></span>
+                    </div>
+                  )}
                 </div>
 
                 <EnhancedCardTitle className="text-2xl md:text-3xl font-black bg-gradient-to-r from-white via-emerald-100 to-[#2DD4BF] bg-clip-text text-transparent flex items-center gap-2 flex-wrap">
                   <span>{result.disease.name || 'Diagnosis: Foliar Pathology Identified'}</span>
                 </EnhancedCardTitle>
 
-                {/* Specimen Identification info */}
                 <div className="mt-2.5 flex items-center gap-2 flex-wrap text-sm text-foreground/85">
                   <span className="text-white/60 font-mono text-xs uppercase tracking-wider">Host Specimen:</span>
                   {isUnidentifiedPlant ? (
@@ -466,35 +346,46 @@ PRESCRIPTION TREATMENT:
                     </div>
                   )}
                 </div>
+
+                {(result.diagnosedByModel || result.modelShiftNotice) && (
+                  <div className="mt-3 pt-3 border-t border-white/10 flex flex-wrap items-center gap-2 text-xs font-mono">
+                    {result.diagnosedByModel && (
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-white/70">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#2DD4BF] animate-pulse" />
+                        <span><strong className="text-[#5EEAD4]">PlantDoc AI</strong></span>
+                      </div>
+                    )}
+                    {result.modelShiftNotice && (
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300">
+                        <AlertTriangle className="h-3 w-3 text-amber-400 shrink-0" />
+                        <span>{result.modelShiftNotice}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </EnhancedCardHeader>
           </EnhancedCard>
         </motion.div>
-      )}
+      (
 
       {/* 3. Clinical Treatment Protocol */}
-      {(activeViewMode === 'all' || activeViewMode === 'treatment') && (
-        <motion.div variants={itemVariants}>
-          <ClinicalTreatmentProtocol result={result} />
-        </motion.div>
-      )}
+      <motion.div variants={itemVariants}>
+        <ClinicalTreatmentProtocol result={result} />
+      </motion.div>
 
-      {/* 4. Botanical Differential Diagnosis Card */}
-      {!isHealthy && (activeViewMode === 'all' || activeViewMode === 'differential') && (
-        <motion.div variants={itemVariants}>
-          <DifferentialDiagnosisCard result={result} />
-        </motion.div>
-      )}
+      {/* 4. Botanical Differential Diagnosis */}
+      <motion.div variants={itemVariants}>
+        <DifferentialDiagnosisCard result={result} />
+      </motion.div>
 
-      {/* 5. 30-Day Prognosis & Dynamic Recovery Simulator */}
-      {(activeViewMode === 'all' || activeViewMode === 'prognosis') && (
-        <motion.div variants={itemVariants}>
-          <InteractiveRecoveryTimeline result={result} />
-        </motion.div>
-      )}
+      {/* 5. 30-Day Recovery Simulator */}
+      <motion.div variants={itemVariants}>
+        <InteractiveRecoveryTimeline result={result} />
+      </motion.div>
 
-      {/* 6. Primary Suspect & Classification Matrix Showcase */}
-      {!isHealthy && (activeViewMode === 'all' || activeViewMode === 'differential') && (
+      {/* 6. Primary Suspect & Classification Matrix */}
+      {
         <motion.div variants={itemVariants}>
           <div className={`p-5 sm:p-6 rounded-3xl bg-black/60 backdrop-blur-2xl border ${categoryConf.cardGlow} space-y-4 relative overflow-hidden transition-all duration-300`}>
             {/* Top Suspect Header & Category Tag */}
@@ -587,11 +478,34 @@ PRESCRIPTION TREATMENT:
       )}
 
       {/* 7. Vital Metrics & Prognosis Visualizations */}
-      {(activeViewMode === 'all' || activeViewMode === 'prognosis') && (
-        <motion.div variants={itemVariants}>
-          <DiagnosisVisualizations result={result} />
-        </motion.div>
-      )}
+      <motion.div variants={itemVariants}>
+        <DiagnosisVisualizations result={result} />
+      </motion.div>
+
+      {/* Bottom Action Bar: Copy Dossier + Print / Save PDF */}
+      <motion.div variants={itemVariants}>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2 pb-1">
+          <Button
+            variant="outline"
+            onClick={handleCopySummary}
+            className="w-full sm:w-auto h-11 px-6 rounded-full bg-white/5 border-white/20 text-white hover:bg-[#2DD4BF]/20 hover:text-[#5EEAD4] text-sm gap-2 transition-all"
+          >
+            {hasCopiedSummary ? (
+              <><Check className="h-4 w-4 text-emerald-400" /><span className="text-emerald-300">Copied!</span></>
+            ) : (
+              <><Copy className="h-4 w-4 text-[#2DD4BF]" /><span>Copy Clinical Dossier</span></>
+            )}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handlePrintDossier}
+            className="w-full sm:w-auto h-11 px-6 rounded-full bg-white/5 border-white/20 text-white hover:bg-white/15 text-sm gap-2 transition-all"
+          >
+            <Printer className="h-4 w-4 text-white/80" />
+            <span>Print / Save PDF</span>
+          </Button>
+        </div>
+      </motion.div>
     </motion.div>
   );
 };
