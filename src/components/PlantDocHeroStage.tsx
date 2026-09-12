@@ -184,10 +184,10 @@ export const PlantDocHeroStage: React.FC = () => {
       if (!topLayerRef.current || e.touches.length === 0) return;
       const touch = e.touches[0];
 
-      // If user is initiating a vertical scroll (swiping down or up), let native browser scroll take over
+      // Yield to native scroll for clear vertical swipes (raised threshold to 22px to allow diagonal drags to still reveal)
       const deltaX = Math.abs(touch.clientX - touchStartX);
       const deltaY = Math.abs(touch.clientY - touchStartY);
-      if (deltaY > 8 && deltaY > deltaX) {
+      if (deltaY > 22 && deltaY > deltaX * 1.8) {
         isVerticalSwipe = true;
         hovering = false;
         return;
@@ -203,6 +203,11 @@ export const PlantDocHeroStage: React.FC = () => {
         const x = (screenX / rect.width) * maskCanvas.width;
         const y = (screenY / rect.height) * maskCanvas.height;
         mousePos = { x, y };
+        // Seed smooth position immediately on first move to eliminate "catch-up" lag
+        if (smoothX === -9999 || smoothY === -9999) {
+          smoothX = x;
+          smoothY = y;
+        }
         hovering = true;
         startLoop();
       }
@@ -275,7 +280,7 @@ export const PlantDocHeroStage: React.FC = () => {
     }
 
     const isMobileDevice = typeof window !== 'undefined' && window.innerWidth < 768;
-    const scaledHeadR = isMobileDevice ? TRAIL_HEAD_R * 0.32 : TRAIL_HEAD_R * 0.64;
+    const scaledHeadR = isMobileDevice ? TRAIL_HEAD_R * 0.55 : TRAIL_HEAD_R * 0.64;
 
     let wasIdle = false;
 

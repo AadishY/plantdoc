@@ -57,12 +57,113 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ result, imageUrl }) =
     result.disease.name.toLowerCase().includes('no disease') ||
     result.disease.severity?.toLowerCase() === 'none';
 
+  const isInvalidSpecimen =
+    result.plant?.toLowerCase().includes('non-botanical') ||
+    result.plant?.toLowerCase().includes('non botanical') ||
+    result.disease.name?.toLowerCase().includes('no plant detected') ||
+    result.disease.name?.toLowerCase().includes('invalid') ||
+    result.disease.name?.toLowerCase().includes('invalid non-plant') ||
+    (result.disease.confidence === 0 && result.accuracy === 0);
+
   const isUnidentifiedPlant = 
     !result.plant || 
     result.plant.toLowerCase().includes('cannot identify') || 
     result.plant.toLowerCase().includes('cant identify') ||
     result.plant.toLowerCase().includes('unknown') ||
     result.plant.toLowerCase().includes('unidentified');
+
+  // ── Simple result card for healthy or invalid specimens ──────────────────
+  if (isHealthy || isInvalidSpecimen) {
+    const isInvalid = isInvalidSpecimen;
+    const summaryText = isInvalid
+      ? (result.causes?.[0] || 'The uploaded image does not appear to contain plant foliage. Please upload a clear, well-lit photo of a leaf or stem.')
+      : `${isUnidentifiedPlant ? 'Your plant specimen' : result.plant} appears completely healthy with no signs of disease, pests, or nutrient deficiencies detected.`;
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
+        className="flex flex-col items-center gap-6"
+      >
+        {/* Status card */}
+        <div className={`w-full rounded-3xl border backdrop-blur-2xl shadow-2xl overflow-hidden ${
+          isInvalid
+            ? 'bg-black/60 border-amber-500/30 shadow-[0_0_40px_rgba(245,158,11,0.1)]'
+            : 'bg-black/60 border-emerald-500/30 shadow-[0_0_40px_rgba(16,185,129,0.12)]'
+        }`}>
+          <div className="flex flex-col md:flex-row gap-0">
+            {/* Uploaded image preview */}
+            {imageUrl && (
+              <div className="md:w-64 lg:w-80 shrink-0 overflow-hidden rounded-t-3xl md:rounded-l-3xl md:rounded-tr-none">
+                <img
+                  src={imageUrl}
+                  alt="Analyzed specimen"
+                  className="w-full h-48 md:h-full object-cover"
+                />
+              </div>
+            )}
+
+            {/* Message body */}
+            <div className="flex-1 p-6 sm:p-8 flex flex-col justify-center gap-4">
+              {/* Status badge + icon */}
+              <div className="flex items-center gap-3">
+                <div className={`p-3 rounded-2xl ${isInvalid ? 'bg-amber-500/20 border border-amber-500/40' : 'bg-emerald-500/20 border border-emerald-500/40'}`}>
+                  {isInvalid
+                    ? <AlertTriangle className="h-6 w-6 text-amber-400" />
+                    : <ShieldCheck className="h-6 w-6 text-emerald-400" />
+                  }
+                </div>
+                <div>
+                  <div className={`text-xs font-mono font-bold uppercase tracking-widest mb-0.5 ${isInvalid ? 'text-amber-400' : 'text-emerald-400'}`}>
+                    {isInvalid ? 'Invalid Specimen' : 'Healthy Specimen'}
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-black text-white leading-tight">
+                    {isInvalid
+                      ? 'No Plant Detected'
+                      : isUnidentifiedPlant
+                        ? 'Your Plant is Healthy! 🌿'
+                        : `${result.plant} — Healthy! 🌿`}
+                  </h2>
+                </div>
+              </div>
+
+              {/* Summary message */}
+              <p className="text-sm sm:text-base text-white/80 leading-relaxed">
+                {summaryText}
+              </p>
+
+              {/* Tips / care advice */}
+              {!isInvalid && result.care_recommendations && result.care_recommendations.length > 0 && (
+                <div className="p-4 rounded-2xl bg-emerald-950/30 border border-emerald-500/20 space-y-2">
+                  <span className="text-xs font-mono font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <Leaf className="h-3.5 w-3.5" /> Preventive Care Tips
+                  </span>
+                  <ul className="space-y-1">
+                    {result.care_recommendations.slice(0, 3).map((tip, i) => (
+                      <li key={i} className="flex items-start gap-2 text-xs text-white/75">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                        <span>{tip}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Model info tag */}
+              {result.diagnosedByModel && (
+                <div className="flex items-center gap-1.5 text-[11px] font-mono text-white/40">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#2DD4BF] animate-pulse" />
+                  <span>Analyzed by <strong className="text-[#5EEAD4]">PlantDoc AI</strong></span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+  // ── End simple card ───────────────────────────────────────────────────────
 
   // Quarantine urgency
   const quarantineHours = result.quarantine_urgency_hours ?? (
