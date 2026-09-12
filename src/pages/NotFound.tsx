@@ -58,7 +58,7 @@ const NotFound: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen relative overflow-x-hidden selection:bg-[#2DD4BF]/30 selection:text-white bg-[#060a08]">
+    <div className="flex flex-col min-h-screen relative overflow-x-hidden selection:bg-[#2DD4BF]/30 selection:text-white bg-[#060a08] touch-pan-y">
       <Header />
 
       <main className="flex-1 container mx-auto px-4 py-8 sm:py-16 relative z-10 flex flex-col items-center justify-center">

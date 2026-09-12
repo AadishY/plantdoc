@@ -278,6 +278,10 @@ PlantDoc AI is engineered for sustained 120Hz display refresh rates on both desk
    - `useParallaxScroll` and `useActiveSection` use functional state updaters (`prev => ...`), preventing stale listener teardowns and unnecessary listener re-registrations.
 5. **Component Memoization**:
    - All high-frequency cards and pages (`DiagnosePage`, `RecommendPage`, `AboutPage`, `ParallaxSection`, `PlantSegmentationViewer`) use `React.memo`, `useMemo`, and `useCallback` to isolate sub-tree renders.
+6. **Mobile Touch & Inertial Panning Architecture**:
+   - Explicitly enforces `touch-action: pan-y;` on `html`, `body`, root page wrappers, and `PlantDocHeroStage`.
+   - Eliminates restrictive `height: -webkit-fill-available` on `html` and `overscroll-behavior-y: none` to prevent mobile Safari/Chromium gesture deadlocks.
+   - Intelligent Touch Yield: In `PlantDocHeroStage`, if a vertical swipe is detected (`deltaY > 8 && deltaY > deltaX`), canvas mutation loops yield immediately so the mobile OS compositor maintains buttery 120fps touch scrolling.
 
 ---
 

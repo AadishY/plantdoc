@@ -136,7 +136,7 @@ const AboutPage: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen flex flex-col relative overflow-x-hidden">
+    <div className="min-h-screen flex flex-col relative overflow-x-hidden touch-pan-y">
       <Header />
       
       <main className="flex-1 py-12 md:py-16 container mx-auto px-4 relative z-10">

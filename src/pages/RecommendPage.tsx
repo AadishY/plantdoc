@@ -867,7 +867,7 @@ const RecommendPage = () => {
   }, [recommendations, favorites]);
 
   return (
-    <div className="flex flex-col min-h-screen relative">
+    <div className="flex flex-col min-h-screen relative touch-pan-y">
       <Header sticky={false} />
       
       <main className="flex-grow container mx-auto px-4 py-8 md:py-12 relative z-10">

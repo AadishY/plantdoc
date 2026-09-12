@@ -156,25 +156,17 @@ export const PlantDocHeroStage: React.FC = () => {
       lastY = -9999;
     };
 
-    const handleTouchMove = (e: TouchEvent) => {
-      if (!topLayerRef.current || e.touches.length === 0) return;
-      const touch = e.touches[0];
-      const rect = topLayerRef.current.getBoundingClientRect();
-      const screenX = touch.clientX - rect.left;
-      const screenY = touch.clientY - rect.top;
-
-      if (screenX >= -40 && screenX <= rect.width + 40 && screenY >= -40 && screenY <= rect.height + 40) {
-        const x = (screenX / rect.width) * maskCanvas.width;
-        const y = (screenY / rect.height) * maskCanvas.height;
-        mousePos = { x, y };
-        hovering = true;
-        startLoop();
-      }
-    };
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let isVerticalSwipe = false;
 
     const handleTouchStart = (e: TouchEvent) => {
       if (!topLayerRef.current || e.touches.length === 0) return;
       const touch = e.touches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+      isVerticalSwipe = false;
+
       const rect = topLayerRef.current.getBoundingClientRect();
       const screenX = touch.clientX - rect.left;
       const screenY = touch.clientY - rect.top;
@@ -188,11 +180,48 @@ export const PlantDocHeroStage: React.FC = () => {
       startLoop();
     };
 
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!topLayerRef.current || e.touches.length === 0) return;
+      const touch = e.touches[0];
+
+      // If user is initiating a vertical scroll (swiping down or up), let native browser scroll take over
+      const deltaX = Math.abs(touch.clientX - touchStartX);
+      const deltaY = Math.abs(touch.clientY - touchStartY);
+      if (deltaY > 8 && deltaY > deltaX) {
+        isVerticalSwipe = true;
+        hovering = false;
+        return;
+      }
+
+      if (isVerticalSwipe) return;
+
+      const rect = topLayerRef.current.getBoundingClientRect();
+      const screenX = touch.clientX - rect.left;
+      const screenY = touch.clientY - rect.top;
+
+      if (screenX >= -40 && screenX <= rect.width + 40 && screenY >= -40 && screenY <= rect.height + 40) {
+        const x = (screenX / rect.width) * maskCanvas.width;
+        const y = (screenY / rect.height) * maskCanvas.height;
+        mousePos = { x, y };
+        hovering = true;
+        startLoop();
+      }
+    };
+
     const handleTouchEnd = () => {
       hovering = false;
+      isVerticalSwipe = false;
       lastX = -9999;
       lastY = -9999;
     };
+
+    const handleWindowScroll = () => {
+      if (window.scrollY > 20 && hovering) {
+        hovering = false;
+        stopLoop();
+      }
+    };
+    window.addEventListener('scroll', handleWindowScroll, { passive: true });
 
     const stage = stageRef.current;
     if (stage) {
@@ -373,6 +402,7 @@ export const PlantDocHeroStage: React.FC = () => {
 
     return () => {
       stopLoop();
+      window.removeEventListener('scroll', handleWindowScroll);
       clearTimeout(resizeTimer);
       window.removeEventListener('resize', debouncedResize);
       document.removeEventListener('visibilitychange', handleVisibility);
@@ -401,7 +431,7 @@ export const PlantDocHeroStage: React.FC = () => {
   return (
     <section 
       ref={stageRef}
-      className="relative w-full h-[calc(100dvh-4.5rem)] md:h-[calc(100dvh-5rem)] max-h-[calc(100dvh-4.5rem)] md:max-h-[calc(100dvh-5rem)] flex flex-col justify-between overflow-hidden select-none box-border px-4 sm:px-8 pb-3 sm:pb-4 cursor-default transform-gpu"
+      className="relative w-full h-[calc(100dvh-4.5rem)] md:h-[calc(100dvh-5rem)] max-h-[calc(100dvh-4.5rem)] md:max-h-[calc(100dvh-5rem)] flex flex-col justify-between overflow-hidden select-none box-border px-4 sm:px-8 pb-3 sm:pb-4 cursor-default transform-gpu touch-pan-y"
     >
       {/* 1. Full-Stage Background Depth Wordmark + Lower Flower Border */}
       <div className="absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none z-10">

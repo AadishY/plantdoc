@@ -58,7 +58,7 @@ const Index = () => {
   );
 
   return (
-    <div className="flex flex-col min-h-screen relative overflow-x-hidden selection:bg-[#2DD4BF]/30 selection:text-white">
+    <div className="flex flex-col min-h-screen relative overflow-x-hidden selection:bg-[#2DD4BF]/30 selection:text-white touch-pan-y">
       <Header />
       
       {/* 🌿 1. Page 1 Hero: Strict 100dvh Zero-Overflow Stage */}

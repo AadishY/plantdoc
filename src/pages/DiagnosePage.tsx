@@ -213,7 +213,7 @@ const DiagnosePage: React.FC = () => {
   const CurrentPhaseIcon = DIAGNOSIS_PHASES[loadingStepIdx]?.icon || Leaf;
 
   return (
-    <div className="min-h-screen flex flex-col relative overflow-x-hidden pb-12">
+    <div className="min-h-screen flex flex-col relative overflow-x-hidden pb-12 touch-pan-y">
       <Header />
       
       <main className="flex-1 py-8 md:py-12 container mx-auto px-4 relative z-10">

@@ -54,7 +54,7 @@ const PrivacyPage: React.FC = () => {
   ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#060a08] text-white selection:bg-[#2DD4BF]/30 selection:text-white relative overflow-x-hidden">
+    <div className="flex flex-col min-h-screen bg-[#060a08] text-white selection:bg-[#2DD4BF]/30 selection:text-white relative overflow-x-hidden touch-pan-y">
       <Header />
 
       {/* Ambient Atmospheric Glows */}
