@@ -165,9 +165,16 @@ export function formatRecommendationError(error: any): string {
     return msg;
   }
 
-  // 1a. Daily Limit / TPD exceeded
-  if (lower.includes('tokens per day') || lower.includes('tpd') || lower.includes('daily') || lower.includes('per day')) {
-    return "PlantDoc AI has maxed out its daily sunbathing quota for Fast Mode! Please switch to Smart Mode above for instant botanical recommendations! ☀️🌻";
+  // 1a. Daily Limit / TPD exceeded / OpenRouter free-models-per-day
+  if (
+    lower.includes('tokens per day') || 
+    lower.includes('tpd') || 
+    lower.includes('daily') || 
+    lower.includes('per day') || 
+    lower.includes('free-models-per-day') ||
+    lower.includes('free model requests per day')
+  ) {
+    return "PlantDoc AI has reached its OpenRouter daily free quota (50 requests/day for this key)! Please switch to Smart Mode above for instant, unlimited botanical recommendations! ☀️🌻";
   }
 
   // 1b. Quota / Rate limit (429) / TPM / Tokens / Busy / Capacity / Request too large (413)
@@ -1813,7 +1820,7 @@ Important botanical instructions:
 
     let candidatePlants: any[] = [];
 
-    // FAST MODE (OpenRouter Free Models: dots-studio/dots-3-note-preview:free with automatic failover to openrouter/free)
+    // FAST MODE: OpenRouter Free Models Cascade (High-speed biological/botanical specialist with multi-tier failover)
     if (recMode === 'fast') {
       console.log(`[PlantDoc OpenRouter] Fetching plant recommendations via OpenRouter Free models...`);
 
@@ -1835,38 +1842,26 @@ Output ONLY a valid JSON array of exactly ${plantCount} objects strictly matchin
     "description": "Concise agronomic profile detailing why this species thrives in this climate and season.",
     "matchScore": 96,
     "sunlight": "Full Sun",
-    "sunlightType": "Full Sun",
     "waterNeeds": "Medium",
-    "waterRating": 3,
-    "soilPreference": "Well-draining soil",
+    "soilPreference": "Well-draining loam",
     "soilPhRange": "6.0 - 6.8",
-    "growthRate": "Moderate",
-    "growthTime": "75-80 days",
-    "growthVelocityDays": "75 days",
-    "pestResistance": "High",
-    "hardinessRating": "Hardy",
+    "growthVelocityDays": "70-80 days",
     "season": "${season && season !== 'All' ? season : 'Spring / Summer'}",
-    "seasonalCalendar": { "spring": true, "summer": true, "autumn": false, "winter": false, "bestMonth": "April" },
-    "companionPlants": ["Companion 1"],
-    "companionAvoid": ["Incompatible 1"],
-    "careInstructions": ["Water regularly", "Provide 6+ hours sunlight"],
-    "compatibilityReason": "Verified for ${locationStr || 'this climate'}."
+    "careInstructions": ["Water regularly", "Provide adequate sunlight"]
   }
 ]
 Return strictly raw JSON.`;
 
-      const openRouterModels = [
-        API_CONFIG.OPENROUTER_RECOMMENDATION_MODEL, // "dots-studio/dots-3-note-preview:free"
-        API_CONFIG.OPENROUTER_FALLBACK_MODEL        // "openrouter/free"
-      ];
+      const openRouterModels = API_CONFIG.OPENROUTER_RECOMMENDATION_MODELS;
+
+      let lastErrorDetail = '';
 
       for (const modelName of openRouterModels) {
         try {
           console.log(`[PlantDoc OpenRouter] Attempting recommendation formulation via ${modelName}...`);
 
           const controller = new AbortController();
-          // Timeout: 15s for primary preview model to failover swiftly if queued, 35s for router
-          const timeoutMs = modelName.includes('dots') ? 15000 : 35000;
+          const timeoutMs = 20000; // 20s per model attempt
           const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
           const response = await fetch(`${API_CONFIG.OPENROUTER_BASE_URL}/chat/completions`, {
@@ -1885,15 +1880,20 @@ Return strictly raw JSON.`;
                   content: openRouterPrompt
                 }
               ],
-              temperature: 0.3,
-              max_tokens: 4000
+              temperature: 0.2
             }),
             signal: controller.signal
           });
           clearTimeout(timeoutId);
 
           if (!response.ok) {
-            console.warn(`[PlantDoc OpenRouter] Model ${modelName} returned HTTP ${response.status}`);
+            let errMsg = `HTTP ${response.status}`;
+            try {
+              const errJson = await response.json();
+              errMsg = errJson?.error?.message || errMsg;
+            } catch {}
+            lastErrorDetail = errMsg;
+            console.warn(`[PlantDoc OpenRouter] Model ${modelName} returned error: ${errMsg}`);
             continue;
           }
 
@@ -1915,14 +1915,22 @@ Return strictly raw JSON.`;
           }
           console.warn(`[PlantDoc OpenRouter] Model ${modelName} response did not contain expected plant array, checking fallback...`);
         } catch (modelErr: any) {
+          lastErrorDetail = modelErr?.message || lastErrorDetail;
           console.warn(`[PlantDoc OpenRouter] Model ${modelName} issue, shifting to failover model:`, modelErr?.message || modelErr);
         }
       }
 
       if (!Array.isArray(candidatePlants) || candidatePlants.length === 0) {
-        throw new Error("No plant recommendations could be formulated for these exact parameters.");
+        if (apiKey) {
+          console.warn(`[PlantDoc OpenRouter] OpenRouter free tier limit reached (${lastErrorDetail}). Seamlessly falling back to Smart Mode (Gemma 4)...`);
+        } else {
+          throw new Error(lastErrorDetail || "No plant recommendations could be formulated for these exact parameters.");
+        }
       }
-    } else {
+    }
+
+    // SMART MODE (or seamless fallback from Fast Mode if OpenRouter quota is exhausted):
+    if (!Array.isArray(candidatePlants) || candidatePlants.length === 0) {
       // SMART MODE: Gemma Open Model Family (Primary 26B Gemma 4 as user requested, failover to 31B)
       const gemmaPrompt = `${promptText}\n\nOutput ONLY the valid JSON array of objects. Think concisely and do not output conversational commentary.`;
 

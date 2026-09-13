@@ -13,8 +13,13 @@ export const API_CONFIG = {
   GROQ_DIAGNOSIS_MODEL: "qwen/qwen3.8-27b", // Groq Fast Vision Model with max reasoning effort
 
   // OpenRouter Fast Mode Models (Botanical Recommendation)
-  OPENROUTER_RECOMMENDATION_MODEL: "inclusionai/ling-3.0-flash-sante:free", // Primary OpenRouter Free Model
-  OPENROUTER_FALLBACK_MODEL: "openrouter/free", // Secondary OpenRouter Free Failover
+  OPENROUTER_RECOMMENDATION_MODELS: [
+    "inclusionai/ling-3.0-flash-sante:free", // Primary: High-speed biological & botanical specialist (~6-10s)
+    "nex-agi/nex-n2.5-mini:free",            // Secondary Failover: Ultra-fast general LLM (~3s)
+    "liquid/lfm-2.5-2.6b:free",              // Tertiary Failover: Fast lightweight LLM (~8s)
+    "dots-studio/dots-3-note-preview:free"   // Quaternary Failover: Deep reasoning model
+  ] as const,
+  OPENROUTER_RECOMMENDATION_MODEL: "inclusionai/ling-3.0-flash-sante:free",
   OPENROUTER_BASE_URL: "https://openrouter.ai/api/v1",
 
   SEGMENTATION_MODEL: "gemini-robotics-er-2-preview", // PlantDoc Spatial Embodied Reasoning & Lesion Segmentation (Always Google AI)

@@ -46,9 +46,11 @@ Welcome to the **PlantDoc AI** codebase architecture and agent engineering guide
     - Smart Mode (Gemma 4 Open Model Family):
       - Primary: `gemma-4-26b-a4b-it` (26B Gemma open model with attention routing, fast ~4s response)
       - Secondary Failover: `gemma-4-31b-it` (31B Gemma open model)
-    - Fast Mode (OpenRouter Free Models):
-      - Primary: `dots-studio/dots-3-note-preview:free`
-      - Automatic Failover: `openrouter/free` (Instant resilient free router)
+    - Fast Mode (OpenRouter Free Models Cascade):
+      - Primary: `inclusionai/ling-3.0-flash-sante:free` (Biological/botanical specialist, ~6-10s)
+      - Secondary Failover: `nex-agi/nex-n2.5-mini:free` (Ultra-fast ~3s general LLM)
+      - Tertiary Failover: `liquid/lfm-2.5-2.6b:free` (Lightweight ~8s LLM)
+      - Quaternary Failover: `dots-studio/dots-3-note-preview:free` (Deep reasoning model)
   - Dynamic 5-Option Growing Season Engine: Filter and curate botanical recommendations by season (`All Seasons`, `Spring`, `Summer`, `Autumn`, `Winter`) with real-time seasonal timeline synchronization.
   - No Artificial Throttling: Instantaneous execution without client-side waiting limit delays
 - **Data Integrations**: Wikimedia Foundation REST APIs (Authentic scientific botanical photography & taxonomy)
@@ -250,7 +252,7 @@ The recommendation system matches plants against regional environmental paramete
    - Uses Google's open weights **Gemma 4 model family** via Google AI Studio (`v1beta` endpoint).
    - **Primary Model**: `gemma-4-26b-a4b-it` (26B Gemma open model with attention routing, achieving blazing fast ~3s–5s response times).
    - **Secondary Failover**: `gemma-4-31b-it` (31B Gemma open model) if primary is busy.
-   - **Fast Mode (OpenRouter Free Cascade)**: High-speed botanical formulation via primary model `dots-studio/dots-3-note-preview:free` with instant automatic failover to `openrouter/free`.
+   - **Fast Mode (OpenRouter Free Cascade)**: High-speed botanical formulation via primary model `inclusionai/ling-3.0-flash-sante:free` (~6-10s) with automatic failover to `nex-agi/nex-n2.5-mini:free`, `liquid/lfm-2.5-2.6b:free`, and `dots-studio/dots-3-note-preview:free`.
    - Strictly outputs pure JSON arrays adhering to `PlantRecommendation[]` schema with zero markdown preamble or conversational wrappers.
 2. **Zero Mock Synthetic Data via Wikimedia REST API**:
    - All recommended plants query the official **Wikimedia Foundation REST API** (`https://en.wikipedia.org/api/rest_v1/page/summary/{title}`) in parallel using the scientific Latin binomial.
