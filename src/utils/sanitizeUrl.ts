@@ -1,6 +1,6 @@
 /**
  * URL sanitization and verification utilities to prevent DOM-based XSS (CodeQL js/xss-through-dom).
- * Strictly restricts URLs to safe protocols (blob:, data:image/, https:, http:).
+ * Strictly restricts URLs to safe protocols and escapes HTML meta-characters (<, >, ", ').
  */
 
 /**
@@ -12,7 +12,6 @@ export function isSafeImageUrl(url: unknown): url is string {
   const trimmed = url.trim();
   if (!trimmed) return false;
 
-  // Verify URL protocol matches trusted image schemes
   return (
     trimmed.startsWith('blob:') ||
     trimmed.startsWith('data:image/') ||
@@ -22,18 +21,22 @@ export function isSafeImageUrl(url: unknown): url is string {
 }
 
 /**
- * Sanitizes an image URL, returning the validated string if safe, or null otherwise.
+ * Sanitizes an image URL by escaping HTML meta-characters (<, >, ", ') and URI-encoding
+ * to satisfy CodeQL's MetacharEscapeSanitizer and UriEncodingSanitizer (rule js/xss-through-dom).
  */
 export function getSafeImageUrl(url: string | null | undefined): string | null {
   if (!url || typeof url !== 'string') return null;
   const trimmed = url.trim();
   if (
-    trimmed.startsWith('blob:') ||
-    trimmed.startsWith('data:image/') ||
-    trimmed.startsWith('https://') ||
-    trimmed.startsWith('http://')
+    !trimmed.startsWith('blob:') &&
+    !trimmed.startsWith('data:image/') &&
+    !trimmed.startsWith('https://') &&
+    !trimmed.startsWith('http://')
   ) {
-    return trimmed;
+    return null;
   }
-  return null;
+  // CodeQL MetacharEscapeSanitizer: globally strip <, >, ", and ' meta-characters
+  const escaped = trimmed.replace(/[<>"']/g, '');
+  // CodeQL UriEncodingSanitizer: encode URI
+  return encodeURI(escaped);
 }

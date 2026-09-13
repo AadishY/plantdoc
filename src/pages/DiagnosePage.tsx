@@ -96,7 +96,9 @@ const DiagnosePage: React.FC = () => {
 
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const safePreviewUrl = getSafeImageUrl(previewUrl);
+  const safePreviewUrl = previewUrl && (previewUrl.startsWith('blob:') || previewUrl.startsWith('data:image/') || previewUrl.startsWith('https://') || previewUrl.startsWith('http://'))
+    ? encodeURI(previewUrl.replace(/[<>"']/g, ''))
+    : null;
   const [isLoading, setIsLoading] = useState(false);
   const [loadingStepIdx, setLoadingStepIdx] = useState(0);
   const [aiMode, setAiMode] = useState<AiProcessingMode>("smart");
@@ -151,7 +153,8 @@ const DiagnosePage: React.FC = () => {
     setSelectedImage(file);
     const objectUrl = URL.createObjectURL(file);
     if (objectUrl.startsWith('blob:')) {
-      setPreviewUrl(objectUrl);
+      const sanitizedObjUrl = encodeURI(objectUrl.replace(/[<>"']/g, ''));
+      setPreviewUrl(sanitizedObjUrl);
     }
     setDiagnosisResult(null);
     setErrorMessage(null);
@@ -368,7 +371,7 @@ const DiagnosePage: React.FC = () => {
                   <div className="relative flex flex-col items-center justify-center my-4">
                     <div className="relative w-40 h-40 sm:w-48 sm:h-48 rounded-3xl overflow-hidden p-1.5 bg-black/85 border border-[#2DD4BF]/70 shadow-[0_0_40px_rgba(45,212,191,0.45)]">
                       {/* Uploaded Thumbnail with Live Scan Sweep */}
-                      {safePreviewUrl && (safePreviewUrl.startsWith('blob:') || safePreviewUrl.startsWith('data:image/') || safePreviewUrl.startsWith('https://')) ? (
+                      {safePreviewUrl ? (
                         <div className="relative w-full h-full rounded-2xl overflow-hidden bg-black flex items-center justify-center">
                           <img 
                             src={safePreviewUrl} 

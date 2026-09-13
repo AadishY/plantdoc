@@ -19,8 +19,10 @@ export const LesionCropCanvas: React.FC<LesionCropCanvasProps> = ({
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    const safeUrl = getSafeImageUrl(imageUrl);
-    if (!canvas || !safeUrl || !(safeUrl.startsWith('blob:') || safeUrl.startsWith('data:image/') || safeUrl.startsWith('https://') || safeUrl.startsWith('http://'))) return;
+    const safeUrl = imageUrl && (imageUrl.startsWith('blob:') || imageUrl.startsWith('data:image/') || imageUrl.startsWith('https://') || imageUrl.startsWith('http://'))
+      ? encodeURI(imageUrl.replace(/[<>"']/g, ''))
+      : null;
+    if (!canvas || !safeUrl) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;

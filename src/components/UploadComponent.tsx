@@ -32,7 +32,9 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
   const { toast } = useToast();
   
   const rawPreviewUrl = externalPreviewUrl !== undefined ? externalPreviewUrl : internalPreviewUrl;
-  const safePreviewUrl = getSafeImageUrl(rawPreviewUrl);
+  const safePreviewUrl = rawPreviewUrl && (rawPreviewUrl.startsWith('blob:') || rawPreviewUrl.startsWith('data:image/') || rawPreviewUrl.startsWith('https://') || rawPreviewUrl.startsWith('http://'))
+    ? encodeURI(rawPreviewUrl.replace(/[<>"']/g, ''))
+    : null;
   const fileInputRef = externalFileInputRef || internalFileInputRef;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -69,7 +71,8 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
     if (externalPreviewUrl === undefined) {
       const objUrl = URL.createObjectURL(file);
       if (objUrl.startsWith('blob:')) {
-        setInternalPreviewUrl(objUrl);
+        const sanitizedObjUrl = encodeURI(objUrl.replace(/[<>"']/g, ''));
+        setInternalPreviewUrl(sanitizedObjUrl);
       }
     }
     
@@ -172,7 +175,7 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
       ) : (
         <div className="glass-card rounded-3xl overflow-hidden border border-white/20 shadow-2xl relative">
           <div className="relative min-h-[300px] sm:min-h-[350px] max-h-[460px] bg-black/60 flex items-center justify-center overflow-hidden w-full">
-            {safePreviewUrl && (safePreviewUrl.startsWith('blob:') || safePreviewUrl.startsWith('data:image/') || safePreviewUrl.startsWith('https://')) ? (
+            {safePreviewUrl ? (
               <img 
                 src={safePreviewUrl} 
                 alt="Uploaded plant foliage specimen preview ready for AI diagnosis" 

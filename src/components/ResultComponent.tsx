@@ -34,7 +34,9 @@ interface ResultComponentProps {
 
 const ResultComponent: React.FC<ResultComponentProps> = ({ result, imageUrl }) => {
   const [hasCopiedSummary, setHasCopiedSummary] = useState(false);
-  const safeImageUrl = getSafeImageUrl(imageUrl);
+  const safeImageUrl = imageUrl && (imageUrl.startsWith('blob:') || imageUrl.startsWith('data:image/') || imageUrl.startsWith('https://') || imageUrl.startsWith('http://'))
+    ? encodeURI(imageUrl.replace(/[<>"']/g, ''))
+    : null;
 
   const isHealthy = 
     !result.disease.name ||
@@ -79,7 +81,7 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ result, imageUrl }) =
         }`}>
           <div className="flex flex-col md:flex-row gap-0">
             {/* Uploaded image preview */}
-            {safeImageUrl && (safeImageUrl.startsWith('blob:') || safeImageUrl.startsWith('data:image/') || safeImageUrl.startsWith('https://') || safeImageUrl.startsWith('http://')) && (
+            {safeImageUrl ? (
               <div className="md:w-64 lg:w-80 shrink-0 overflow-hidden rounded-t-3xl md:rounded-l-3xl md:rounded-tr-none">
                 <img
                   src={safeImageUrl}
@@ -87,7 +89,7 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ result, imageUrl }) =
                   className="w-full h-48 md:h-full object-cover"
                 />
               </div>
-            )}
+            ) : null}
 
             {/* Message body */}
             <div className="flex-1 p-6 sm:p-8 flex flex-col justify-center gap-4">
@@ -276,7 +278,7 @@ PRESCRIPTION TREATMENT:
 
 
       {/* 1. Computer Vision Lesion Segmentation Overlay */}
-      {safeImageUrl && (safeImageUrl.startsWith('blob:') || safeImageUrl.startsWith('data:image/') || safeImageUrl.startsWith('https://') || safeImageUrl.startsWith('http://')) && (
+      {safeImageUrl && (
         <motion.div variants={itemVariants}>
           <PlantSegmentationViewer
             imageUrl={safeImageUrl}

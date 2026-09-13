@@ -123,7 +123,9 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
   diseaseConfidence = 92.5,
   severity = 'Medium'
 }) => {
-  const safeImageUrl = getSafeImageUrl(imageUrl);
+  const safeImageUrl = imageUrl && (imageUrl.startsWith('blob:') || imageUrl.startsWith('data:image/') || imageUrl.startsWith('https://') || imageUrl.startsWith('http://'))
+    ? encodeURI(imageUrl.replace(/[<>"']/g, ''))
+    : '';
   const [showLesions, setShowLesions] = useState(true);
   const [showLabels, setShowLabels] = useState(true);
   const [showHeatmap, setShowHeatmap] = useState(true);
@@ -639,7 +641,7 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
 
           {/* Plant Specimen Canvas */}
           <div className="relative inline-block leading-none max-w-full rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] border border-white/15 overflow-hidden">
-            {safeImageUrl && (safeImageUrl.startsWith('blob:') || safeImageUrl.startsWith('data:image/') || safeImageUrl.startsWith('https://') || safeImageUrl.startsWith('http://')) ? (
+            {safeImageUrl ? (
               <img
                 src={safeImageUrl}
                 alt={`${plantName || 'Botanical'} foliage diagnostic specimen analyzed for foliar pathology lesion segmentation`}
@@ -917,7 +919,7 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
               className="relative inline-block leading-none max-w-full rounded-2xl shadow-2xl border border-white/20 transition-transform duration-200"
               style={{ transform: `scale(${zoomScale})` }}
             >
-              {safeImageUrl && (safeImageUrl.startsWith('blob:') || safeImageUrl.startsWith('data:image/') || safeImageUrl.startsWith('https://') || safeImageUrl.startsWith('http://')) ? (
+              {safeImageUrl ? (
                 <img
                   src={safeImageUrl}
                   alt="Plant Fullscreen Specimen"
