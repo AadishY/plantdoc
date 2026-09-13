@@ -92,29 +92,17 @@
     @apply bg-plantDoc-primary/30 text-foreground;
   }
   
-  /* Ultra-Luxury Obsidian-Emerald Scrollbar */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+  /* Hide native window scrollbars so in-DOM CustomScrollbar renders with 100% custom animated cursor coverage */
+  html, body {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
   }
   
-  ::-webkit-scrollbar-track {
-    background: #070b08;
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    background: rgba(16, 185, 129, 0.35);
-    border-radius: 9999px;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: rgba(52, 211, 153, 0.7);
-    box-shadow: 0 0 10px rgba(52, 211, 153, 0.5);
-  }
-
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(16, 185, 129, 0.35) #070b08;
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
   }
   
   input:-webkit-autofill,
@@ -503,23 +491,6 @@ body {
   touch-action: pan-y;
   
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
-}
-
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.2);
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(76, 175, 80, 0.5);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(76, 175, 80, 0.8);
 }
 
 @media (max-width: 768px) {

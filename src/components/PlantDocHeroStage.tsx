@@ -439,7 +439,7 @@ export const PlantDocHeroStage: React.FC = () => {
   return (
     <section 
       ref={stageRef}
-      className="relative w-full h-[calc(100dvh-4.5rem)] md:h-[calc(100dvh-5rem)] max-h-[calc(100dvh-4.5rem)] md:max-h-[calc(100dvh-5rem)] flex flex-col justify-between overflow-hidden select-none box-border px-4 sm:px-8 pb-3 sm:pb-4 cursor-default transform-gpu touch-pan-y"
+      className="relative w-full h-[calc(100dvh-4.5rem)] md:h-[calc(100dvh-5rem)] max-h-[calc(100dvh-4.5rem)] md:max-h-[calc(100dvh-5rem)] flex flex-col justify-between overflow-hidden select-none box-border px-4 sm:px-8 pb-3 sm:pb-4 transform-gpu touch-pan-y"
     >
       {/* 1. Full-Stage Background Depth Wordmark + Lower Flower Border */}
       <div className="absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none z-10">

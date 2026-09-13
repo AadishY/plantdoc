@@ -9,6 +9,7 @@ import SmoothScroll from '@/components/SmoothScroll';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import ScrollToTop from '@/components/ScrollToTop';
 import PageLoadingFallback from '@/components/PageLoadingFallback';
+import CustomScrollbar from '@/components/CustomScrollbar';
 import { preloadAllRoutes } from '@/utils/routePreloader';
 
 // Lazily load components for better performance
@@ -42,6 +43,9 @@ function App() {
           
           {/* Ultra-fast GPU background */}
           <DynamicBackground />
+          
+          {/* Custom in-DOM obsidian-emerald scrollbar with custom animated cursor */}
+          <CustomScrollbar />
           
           <Routes>
             <Route path="/" element={<Index />} />
