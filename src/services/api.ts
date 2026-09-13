@@ -1686,12 +1686,12 @@ export const getPlantRecommendations = async (
       'smart';
 
     const apiKey = API_CONFIG.getApiKey();
-    const groqKey = API_CONFIG.getGroqApiKey();
+    const openRouterKey = API_CONFIG.getOpenRouterApiKey();
     if (recMode === 'smart' && !apiKey) {
       throw new Error('Missing API key in environment.');
     }
-    if (recMode === 'fast' && !groqKey) {
-      throw new Error('Missing API key in environment.');
+    if (recMode === 'fast' && !openRouterKey) {
+      throw new Error('Fast Mode requires VITE_OPENROUTER_API_KEY in your environment. Please add VITE_OPENROUTER_API_KEY or use Smart Mode.');
     }
 
     // Unrestricted fast execution without artificial waiting limit
@@ -1813,117 +1813,110 @@ Important botanical instructions:
 
     let candidatePlants: any[] = [];
 
-    // FAST MODE (Groq: groq/compound with web search tool)
+    // FAST MODE (OpenRouter Free Models: dots-studio/dots-3-note-preview:free with automatic failover to openrouter/free)
     if (recMode === 'fast') {
-      console.log(`[PlantDoc Groq] Fetching plant recommendations via groq/compound with web search...`);
+      console.log(`[PlantDoc OpenRouter] Fetching plant recommendations via OpenRouter Free models...`);
 
-      // Compact, optimized prompt to maintain high speed and prevent 413 "Request Entity Too Large"
-      const groqPrompt = `Botanical Intelligence Engine:
-Use web search to identify ${plantCount} thrive-tested plant species for ${locationStr || 'this region'}.
+      const openRouterPrompt = `Botanical Intelligence Engine:
+Recommend ${plantCount} thrive-tested plant species for ${locationStr || 'this region'}.
 Category: ${category}
+${season && season !== 'All' ? `Target Growing Season: ${season}` : ''}
 Environmental conditions:
 ${conditionList.join('\n')}
 
-Output ONLY a valid JSON object matching:
-{
-  "plants": [
-    {
-      "id": "plant-1",
-      "name": "Vernacular plant name",
-      "scientificName": "Latin binomial (Genus species)",
-      "family": "Botanical family",
-      "category": "${category}",
-      "description": "Concise agronomic profile detailing why this species thrives in this climate.",
-      "matchScore": 96,
-      "sunlight": "Full Sun",
-      "sunlightType": "Full Sun",
-      "waterNeeds": "Medium",
-      "waterRating": 3,
-      "soilPreference": "Well-draining soil",
-      "soilPhRange": "6.0 - 6.8",
-      "growthRate": "Moderate",
-      "growthTime": "75-80 days",
-      "growthVelocityDays": "75 days",
-      "pestResistance": "High",
-      "hardinessRating": "Hardiness zone rating",
-      "season": "Spring / Summer",
-      "seasonalCalendar": { "spring": true, "summer": true, "autumn": false, "winter": false, "bestMonth": "April" },
-      "companionPlants": ["Companion 1"],
-      "companionAvoid": ["Incompatible 1"],
-      "careInstructions": ["Water regularly", "Provide 6+ hours sunlight"],
-      "compatibilityReason": "Verified for ${locationStr || 'this climate'}."
-    }
-  ]
-}
-Return ONLY valid JSON.`;
+Output ONLY a valid JSON array of exactly ${plantCount} objects strictly matching:
+[
+  {
+    "id": "plant-1",
+    "name": "Vernacular plant name",
+    "scientificName": "Latin binomial (Genus species)",
+    "family": "Botanical family",
+    "category": "${category}",
+    "description": "Concise agronomic profile detailing why this species thrives in this climate and season.",
+    "matchScore": 96,
+    "sunlight": "Full Sun",
+    "sunlightType": "Full Sun",
+    "waterNeeds": "Medium",
+    "waterRating": 3,
+    "soilPreference": "Well-draining soil",
+    "soilPhRange": "6.0 - 6.8",
+    "growthRate": "Moderate",
+    "growthTime": "75-80 days",
+    "growthVelocityDays": "75 days",
+    "pestResistance": "High",
+    "hardinessRating": "Hardy",
+    "season": "${season && season !== 'All' ? season : 'Spring / Summer'}",
+    "seasonalCalendar": { "spring": true, "summer": true, "autumn": false, "winter": false, "bestMonth": "April" },
+    "companionPlants": ["Companion 1"],
+    "companionAvoid": ["Incompatible 1"],
+    "careInstructions": ["Water regularly", "Provide 6+ hours sunlight"],
+    "compatibilityReason": "Verified for ${locationStr || 'this climate'}."
+  }
+]
+Return strictly raw JSON.`;
 
-      const groqKey = API_CONFIG.getGroqApiKey();
-      if (!groqKey) {
-        throw new Error("Missing API key in environment.");
-      }
+      const openRouterModels = [
+        API_CONFIG.OPENROUTER_RECOMMENDATION_MODEL, // "dots-studio/dots-3-note-preview:free"
+        API_CONFIG.OPENROUTER_FALLBACK_MODEL        // "openrouter/free"
+      ];
 
-      // Safe max completion tokens specifically tuned for groq/compound so it does not exceed token or entity limits
-      const compoundMaxTokens = Math.min(1024, Math.max(512, plantCount * 170 + 150));
+      for (const modelName of openRouterModels) {
+        try {
+          console.log(`[PlantDoc OpenRouter] Attempting recommendation formulation via ${modelName}...`);
 
-      const executeCompoundRequest = async (): Promise<Response> => {
-        return fetchWithTimeout(
-          `${API_CONFIG.GROQ_BASE_URL}/chat/completions`,
-          {
+          const controller = new AbortController();
+          // Timeout: 15s for primary preview model to failover swiftly if queued, 35s for router
+          const timeoutMs = modelName.includes('dots') ? 15000 : 35000;
+          const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+          const response = await fetch(`${API_CONFIG.OPENROUTER_BASE_URL}/chat/completions`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${groqKey}`,
-              'Groq-Model-Version': 'latest'
+              'Authorization': `Bearer ${openRouterKey}`,
+              'HTTP-Referer': 'https://plantdoc.pages.dev',
+              'X-Title': 'PlantDoc AI'
             },
             body: JSON.stringify({
-              model: 'groq/compound',
+              model: modelName,
               messages: [
                 {
                   role: 'user',
-                  content: groqPrompt
+                  content: openRouterPrompt
                 }
               ],
-              temperature: 0.7,
-              max_completion_tokens: compoundMaxTokens,
-              top_p: 1,
-              compound_custom: {
-                tools: {
-                  enabled_tools: ['web_search']
-                }
-              }
-            })
-          },
-          60000 // 60s timeout for search-augmented reasoning
-        );
-      };
+              temperature: 0.3,
+              max_tokens: 4000
+            }),
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
 
-      const groqRes = await executeCompoundRequest();
+          if (!response.ok) {
+            console.warn(`[PlantDoc OpenRouter] Model ${modelName} returned HTTP ${response.status}`);
+            continue;
+          }
 
-      // If any error occurs (429 rate limit, 413 entity too large, 500 server error, etc.), fail fast immediately!
-      if (!groqRes.ok) {
-        const status = groqRes.status;
-        let errMsg = `Groq recommendation service error (${status})`;
-        try {
-          const errJson = await groqRes.json();
-          errMsg = errJson.error?.message || errMsg;
-        } catch {}
+          const completionData = await response.json();
+          const content = completionData.choices?.[0]?.message?.content || '';
 
-        throw new Error(errMsg);
-      }
-
-      const completionData = await groqRes.json();
-      const content = completionData.choices?.[0]?.message?.content || '';
-
-      const parsedData = extractJsonFromText(content);
-      if (Array.isArray(parsedData)) {
-        candidatePlants = parsedData;
-      } else if (parsedData && typeof parsedData === 'object') {
-        if (Array.isArray(parsedData.plants)) candidatePlants = parsedData.plants;
-        else if (Array.isArray(parsedData.recommendations)) candidatePlants = parsedData.recommendations;
-        else if (Array.isArray(parsedData.species)) candidatePlants = parsedData.species;
-        else if (Array.isArray(parsedData.results)) candidatePlants = parsedData.results;
-        else if (Array.isArray(parsedData.data)) candidatePlants = parsedData.data;
-        else if (Array.isArray(parsedData.items)) candidatePlants = parsedData.items;
+          const parsedData = extractJsonFromText(content);
+          if (Array.isArray(parsedData) && parsedData.length > 0) {
+            candidatePlants = parsedData;
+            console.log(`[PlantDoc OpenRouter] Successfully formulated ${parsedData.length} recommendations via ${modelName}.`);
+            break;
+          } else if (parsedData && typeof parsedData === 'object') {
+            const arr = parsedData.plants || parsedData.recommendations || parsedData.species || parsedData.results || parsedData.data || parsedData.items;
+            if (Array.isArray(arr) && arr.length > 0) {
+              candidatePlants = arr;
+              console.log(`[PlantDoc OpenRouter] Successfully formulated ${arr.length} recommendations via ${modelName}.`);
+              break;
+            }
+          }
+          console.warn(`[PlantDoc OpenRouter] Model ${modelName} response did not contain expected plant array, checking fallback...`);
+        } catch (modelErr: any) {
+          console.warn(`[PlantDoc OpenRouter] Model ${modelName} issue, shifting to failover model:`, modelErr?.message || modelErr);
+        }
       }
 
       if (!Array.isArray(candidatePlants) || candidatePlants.length === 0) {

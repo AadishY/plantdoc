@@ -9,9 +9,13 @@ export const API_CONFIG = {
   DIAGNOSIS_SECONDARY_MODEL: "gemini-3.8-flash", // 2nd Model Failover (Thinking Enabled)
   DIAGNOSIS_TERTIARY_MODEL: "gemini-3.6-flash", // 3rd Model Failover
 
-  // Groq Fast Mode Models
+  // Groq Fast Mode Models (Vision Diagnosis)
   GROQ_DIAGNOSIS_MODEL: "qwen/qwen3.8-27b", // Groq Fast Vision Model with max reasoning effort
-  GROQ_RECOMMENDATION_MODEL: "groq/compound", // Groq Fast Recommendation Model with compound web_search tool
+
+  // OpenRouter Fast Mode Models (Botanical Recommendation)
+  OPENROUTER_RECOMMENDATION_MODEL: "inclusionai/ling-3.0-flash-sante:free", // Primary OpenRouter Free Model
+  OPENROUTER_FALLBACK_MODEL: "openrouter/free", // Secondary OpenRouter Free Failover
+  OPENROUTER_BASE_URL: "https://openrouter.ai/api/v1",
 
   SEGMENTATION_MODEL: "gemini-robotics-er-2-preview", // PlantDoc Spatial Embodied Reasoning & Lesion Segmentation (Always Google AI)
   RECOMMENDATION_MODEL: "gemma-4-26b-a4b-it", // Primary Gemma 4 Open Model (with gemma-4-31b-it failover)
@@ -45,6 +49,17 @@ export const API_CONFIG = {
       const metaEnv = typeof import.meta !== 'undefined' && import.meta ? (import.meta as any).env : undefined;
       const procEnv = typeof process !== 'undefined' && process ? process.env : undefined;
       const key = (metaEnv?.VITE_GROQ_API_KEY || metaEnv?.GROQ_API_KEY || procEnv?.VITE_GROQ_API_KEY || procEnv?.GROQ_API_KEY || '');
+      return String(key).trim();
+    } catch {
+      return '';
+    }
+  },
+
+  getOpenRouterApiKey: (): string => {
+    try {
+      const metaEnv = typeof import.meta !== 'undefined' && import.meta ? (import.meta as any).env : undefined;
+      const procEnv = typeof process !== 'undefined' && process ? process.env : undefined;
+      const key = (metaEnv?.VITE_OPENROUTER_API_KEY || metaEnv?.OPENROUTER_API_KEY || procEnv?.VITE_OPENROUTER_API_KEY || procEnv?.OPENROUTER_API_KEY || '');
       return String(key).trim();
     } catch {
       return '';

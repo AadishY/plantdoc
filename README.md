@@ -151,8 +151,7 @@ Failovers: 3.7-flash -> 3.6-flash          - Macro disease zones + micro spot gr
                                 │
                                 ▼
               [ Gemma 4 Open Model Family Pipeline ]
-        Primary: gemma-4-26b-a4b-it  |  Failover: gemma-4-31b-it
-          (Fast Mode Optional: groq/compound with Web Search)
+          (Fast Mode Optional: OpenRouter Free Models Cascade)
                                 │
                                 ▼
                 [ Wikimedia REST API Engine ]
@@ -204,8 +203,11 @@ Failovers: 3.7-flash -> 3.6-flash          - Macro disease zones + micro spot gr
    # Required: Google Gemini API Key (Gemini Vision & Gemma models)
    VITE_GEMINI_API_KEY=your_gemini_api_key_here
 
-   # Optional: Groq API Key (for Fast Mode compound search)
+   # Optional: Groq API Key (for Fast Mode vision pathology diagnosis)
    VITE_GROQ_API_KEY=your_groq_api_key_here
+
+   # Optional: OpenRouter API Key (for Fast Mode botanical recommendations)
+   VITE_OPENROUTER_API_KEY=your_openrouter_api_key_here
 
    # Recommended: Custom Wikimedia User-Agent for REST API compliance
    VITE_WIKIMEDIA_USER_AGENT=PlantDoc/1.0 (https://plantdoc.app; contact@plantdoc.app)
