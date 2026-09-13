@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { getSafeImageUrl } from '@/utils/sanitizeUrl';
 
 interface LesionCropCanvasProps {
   imageUrl: string;
@@ -18,14 +19,15 @@ export const LesionCropCanvas: React.FC<LesionCropCanvasProps> = ({
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !imageUrl) return;
+    const safeUrl = getSafeImageUrl(imageUrl);
+    if (!canvas || !safeUrl || !(safeUrl.startsWith('blob:') || safeUrl.startsWith('data:image/') || safeUrl.startsWith('https://') || safeUrl.startsWith('http://'))) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     const img = new Image();
     img.crossOrigin = "anonymous";
-    img.src = imageUrl;
+    img.src = safeUrl;
 
     img.onload = () => {
       const [ymin, xmin, ymax, xmax] = box_2d;

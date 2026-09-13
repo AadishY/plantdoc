@@ -3,6 +3,7 @@ import { Camera, X, Upload, Image as ImageIcon, Loader2, Sparkles, Scan } from '
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
+import { getSafeImageUrl } from '@/utils/sanitizeUrl';
 
 interface UploadComponentProps {
   onImageSelect?: (file: File) => void;
@@ -30,7 +31,8 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
   const internalFileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   
-  const previewUrl = externalPreviewUrl !== undefined ? externalPreviewUrl : internalPreviewUrl;
+  const rawPreviewUrl = externalPreviewUrl !== undefined ? externalPreviewUrl : internalPreviewUrl;
+  const safePreviewUrl = getSafeImageUrl(rawPreviewUrl);
   const fileInputRef = externalFileInputRef || internalFileInputRef;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -65,7 +67,10 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
     }
 
     if (externalPreviewUrl === undefined) {
-      setInternalPreviewUrl(URL.createObjectURL(file));
+      const objUrl = URL.createObjectURL(file);
+      if (objUrl.startsWith('blob:')) {
+        setInternalPreviewUrl(objUrl);
+      }
     }
     
     if (onImageSelect) {
@@ -129,7 +134,7 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
         ref={fileInputRef}
       />
 
-      {!previewUrl ? (
+      {!safePreviewUrl ? (
         <div 
           className={`glass-card transition-all duration-300 border-2 border-dashed rounded-3xl p-10 md:p-14 text-center overflow-hidden cursor-pointer
             ${dragActive ? 'border-[#2DD4BF] bg-[#2DD4BF]/10 scale-[1.01]' : 'hover:border-[#2DD4BF]/60 border-white/20 hover:shadow-[0_0_30px_rgba(45,212,191,0.25)]'}`}
@@ -167,11 +172,13 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
       ) : (
         <div className="glass-card rounded-3xl overflow-hidden border border-white/20 shadow-2xl relative">
           <div className="relative min-h-[300px] sm:min-h-[350px] max-h-[460px] bg-black/60 flex items-center justify-center overflow-hidden w-full">
-            <img 
-              src={previewUrl} 
-              alt="Uploaded plant foliage specimen preview ready for AI diagnosis" 
-              className="w-full h-full object-contain max-h-[460px] transition-all rounded-2xl max-w-full" 
-            />
+            {safePreviewUrl && (safePreviewUrl.startsWith('blob:') || safePreviewUrl.startsWith('data:image/') || safePreviewUrl.startsWith('https://')) ? (
+              <img 
+                src={safePreviewUrl} 
+                alt="Uploaded plant foliage specimen preview ready for AI diagnosis" 
+                className="w-full h-full object-contain max-h-[460px] transition-all rounded-2xl max-w-full" 
+              />
+            ) : null}
 
             {/* High-Tech Holographic Scanning Laser & HUD Matrix Overlay */}
             {isLoading && (

@@ -32,6 +32,7 @@ import { diagnosePlant, formatUserFriendlyError } from "@/services/api";
 import { DiagnosisResult } from "@/types/diagnosis";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { AiModeToggle, AiProcessingMode } from "@/components/AiModeToggle";
+import { getSafeImageUrl } from "@/utils/sanitizeUrl";
 
 interface DiagnosisPhase {
   phase: number;
@@ -95,6 +96,7 @@ const DiagnosePage: React.FC = () => {
 
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const safePreviewUrl = getSafeImageUrl(previewUrl);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingStepIdx, setLoadingStepIdx] = useState(0);
   const [aiMode, setAiMode] = useState<AiProcessingMode>("smart");
@@ -107,16 +109,14 @@ const DiagnosePage: React.FC = () => {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
   useEffect(() => {
-    let timer: any;
+    let interval: NodeJS.Timeout;
     if (isLoading) {
       setElapsedSeconds(0);
-      timer = setInterval(() => {
+      interval = setInterval(() => {
         setElapsedSeconds(prev => prev + 1);
       }, 1000);
-    } else {
-      setElapsedSeconds(0);
     }
-    return () => clearInterval(timer);
+    return () => clearInterval(interval);
   }, [isLoading]);
 
   // Advance sequentially with generous dwell time through phases 1 to 4, staying on Phase 5 until diagnosis arrives
@@ -135,6 +135,7 @@ const DiagnosePage: React.FC = () => {
     }
   }, [isLoading]);
 
+  // Clean up object URLs to prevent memory leaks
   useEffect(() => {
     return () => {
       if (previewUrl) {
@@ -148,7 +149,10 @@ const DiagnosePage: React.FC = () => {
       URL.revokeObjectURL(previewUrl);
     }
     setSelectedImage(file);
-    setPreviewUrl(URL.createObjectURL(file));
+    const objectUrl = URL.createObjectURL(file);
+    if (objectUrl.startsWith('blob:')) {
+      setPreviewUrl(objectUrl);
+    }
     setDiagnosisResult(null);
     setErrorMessage(null);
     setModelShiftNotice(null);
@@ -247,7 +251,7 @@ const DiagnosePage: React.FC = () => {
             <div className="w-full relative animate-fade-in space-y-6">
               
               {/* Educational Best Practices Tips Bar (only when idle) */}
-              {!previewUrl && !isLoading && (
+              {!safePreviewUrl && !isLoading && (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="p-3.5 rounded-2xl bg-black/45 border border-white/10 flex items-center gap-3 backdrop-blur-xl">
                     <div className="p-2 rounded-xl bg-[#2DD4BF]/20 text-[#2DD4BF] border border-[#2DD4BF]/30">
@@ -291,7 +295,7 @@ const DiagnosePage: React.FC = () => {
                       handleImageChange(acceptedFiles[0]);
                     }
                   }}
-                  previewUrl={previewUrl}
+                  previewUrl={safePreviewUrl}
                   isLoading={isLoading}
                   fileInputRef={fileInputRef}
                   className="bg-black/45 backdrop-blur-2xl hover:border-[#2DD4BF]/50 border-white/15 transition-all duration-300 transform-gpu shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.1)]"
@@ -364,10 +368,10 @@ const DiagnosePage: React.FC = () => {
                   <div className="relative flex flex-col items-center justify-center my-4">
                     <div className="relative w-40 h-40 sm:w-48 sm:h-48 rounded-3xl overflow-hidden p-1.5 bg-black/85 border border-[#2DD4BF]/70 shadow-[0_0_40px_rgba(45,212,191,0.45)]">
                       {/* Uploaded Thumbnail with Live Scan Sweep */}
-                      {previewUrl ? (
+                      {safePreviewUrl && (safePreviewUrl.startsWith('blob:') || safePreviewUrl.startsWith('data:image/') || safePreviewUrl.startsWith('https://')) ? (
                         <div className="relative w-full h-full rounded-2xl overflow-hidden bg-black flex items-center justify-center">
                           <img 
-                            src={previewUrl} 
+                            src={safePreviewUrl} 
                             alt="Foliage specimen undergoing active neural scanning and lesion detection" 
                             className="w-full h-full object-cover filter contrast-125 brightness-95 scale-105"
                           />
@@ -514,7 +518,7 @@ const DiagnosePage: React.FC = () => {
                     Diagnose Foliage Photo
                   </Button>
                   
-                  {previewUrl && (
+                  {safePreviewUrl && (
                     <Button 
                       variant="outline" 
                       onClick={handleReset}
@@ -555,7 +559,10 @@ const DiagnosePage: React.FC = () => {
               </div>
 
               {/* Segmented Image Viewer & Full Clinical Protocol */}
-              <ResultComponent result={diagnosisResult} imageUrl={previewUrl} />
+              <ResultComponent 
+                result={diagnosisResult} 
+                imageUrl={safePreviewUrl && (safePreviewUrl.startsWith('blob:') || safePreviewUrl.startsWith('data:image/') || safePreviewUrl.startsWith('https://')) ? safePreviewUrl : null} 
+              />
             </div>
           )}
         </div>

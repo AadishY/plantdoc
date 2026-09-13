@@ -4,6 +4,7 @@ import { PlantSegmentation, DiseaseLesion } from '@/types/diagnosis';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { getSafeImageUrl } from '@/utils/sanitizeUrl';
 import { 
   Scan, 
   Layers, 
@@ -122,6 +123,7 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
   diseaseConfidence = 92.5,
   severity = 'Medium'
 }) => {
+  const safeImageUrl = getSafeImageUrl(imageUrl);
   const [showLesions, setShowLesions] = useState(true);
   const [showLabels, setShowLabels] = useState(true);
   const [showHeatmap, setShowHeatmap] = useState(true);
@@ -637,11 +639,13 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
 
           {/* Plant Specimen Canvas */}
           <div className="relative inline-block leading-none max-w-full rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] border border-white/15 overflow-hidden">
-            <img
-              src={imageUrl}
-              alt={`${plantName || 'Botanical'} foliage diagnostic specimen analyzed for foliar pathology lesion segmentation`}
-              className={`block w-full max-w-full h-auto max-h-[560px] object-contain rounded-2xl select-none pointer-events-none transition-all duration-300 ${getImageFilterClass()}`}
-            />
+            {safeImageUrl && (safeImageUrl.startsWith('blob:') || safeImageUrl.startsWith('data:image/') || safeImageUrl.startsWith('https://') || safeImageUrl.startsWith('http://')) ? (
+              <img
+                src={safeImageUrl}
+                alt={`${plantName || 'Botanical'} foliage diagnostic specimen analyzed for foliar pathology lesion segmentation`}
+                className={`block w-full max-w-full h-auto max-h-[560px] object-contain rounded-2xl select-none pointer-events-none transition-all duration-300 ${getImageFilterClass()}`}
+              />
+            ) : null}
             {renderLesionBoxes()}
 
             {/* Precision Laser Scanner Sweep Effect */}
@@ -913,11 +917,13 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
               className="relative inline-block leading-none max-w-full rounded-2xl shadow-2xl border border-white/20 transition-transform duration-200"
               style={{ transform: `scale(${zoomScale})` }}
             >
-              <img
-                src={imageUrl}
-                alt="Plant Fullscreen Specimen"
-                className={`block max-h-[72vh] w-auto max-w-full object-contain rounded-2xl select-none ${getImageFilterClass()}`}
-              />
+              {safeImageUrl && (safeImageUrl.startsWith('blob:') || safeImageUrl.startsWith('data:image/') || safeImageUrl.startsWith('https://') || safeImageUrl.startsWith('http://')) ? (
+                <img
+                  src={safeImageUrl}
+                  alt="Plant Fullscreen Specimen"
+                  className={`block max-h-[72vh] w-auto max-w-full object-contain rounded-2xl select-none ${getImageFilterClass()}`}
+                />
+              ) : null}
               {renderLesionBoxes(true)}
             </div>
           </div>

@@ -25,6 +25,7 @@ import DiagnosisVisualizations from './DiagnosisVisualizations';
 import ClinicalTreatmentProtocol from './ClinicalTreatmentProtocol';
 import InteractiveRecoveryTimeline from './InteractiveRecoveryTimeline';
 import DifferentialDiagnosisCard from './DifferentialDiagnosisCard';
+import { getSafeImageUrl } from '@/utils/sanitizeUrl';
 
 interface ResultComponentProps {
   result: DiagnosisResult;
@@ -33,6 +34,7 @@ interface ResultComponentProps {
 
 const ResultComponent: React.FC<ResultComponentProps> = ({ result, imageUrl }) => {
   const [hasCopiedSummary, setHasCopiedSummary] = useState(false);
+  const safeImageUrl = getSafeImageUrl(imageUrl);
 
   const isHealthy = 
     !result.disease.name ||
@@ -77,10 +79,10 @@ const ResultComponent: React.FC<ResultComponentProps> = ({ result, imageUrl }) =
         }`}>
           <div className="flex flex-col md:flex-row gap-0">
             {/* Uploaded image preview */}
-            {imageUrl && (
+            {safeImageUrl && (safeImageUrl.startsWith('blob:') || safeImageUrl.startsWith('data:image/') || safeImageUrl.startsWith('https://') || safeImageUrl.startsWith('http://')) && (
               <div className="md:w-64 lg:w-80 shrink-0 overflow-hidden rounded-t-3xl md:rounded-l-3xl md:rounded-tr-none">
                 <img
-                  src={imageUrl}
+                  src={safeImageUrl}
                   alt="Analyzed specimen"
                   className="w-full h-48 md:h-full object-cover"
                 />
@@ -274,10 +276,10 @@ PRESCRIPTION TREATMENT:
 
 
       {/* 1. Computer Vision Lesion Segmentation Overlay */}
-      {imageUrl && (
+      {safeImageUrl && (safeImageUrl.startsWith('blob:') || safeImageUrl.startsWith('data:image/') || safeImageUrl.startsWith('https://') || safeImageUrl.startsWith('http://')) && (
         <motion.div variants={itemVariants}>
           <PlantSegmentationViewer
-            imageUrl={imageUrl}
+            imageUrl={safeImageUrl}
             segmentation={result.segmentation}
             plantName={result.plant}
             scientificName={result.scientific_name}
