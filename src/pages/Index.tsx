@@ -52,9 +52,10 @@ const faqs = [
 
 const Index = () => {
   useDocumentTitle(
-    "PlantDoc AI — Plant Disease Diagnosis & Care",
-    "Instant AI plant disease diagnosis, leaf lesion segmentation, and clinical treatment protocols.",
-    "/"
+    "PlantDoc AI — Instant AI Plant Disease Diagnosis & Precision Foliar Pathology",
+    "Instant AI plant disease diagnosis, sub-pixel leaf lesion segmentation, and clinical botanical treatment matrices. Upload foliage photos for instant pathology analysis.",
+    "/",
+    "plant disease diagnosis, AI plant doctor, plant pathology, leaf lesion segmentation, botanical diagnosis, crop disease identifier, gardening AI, plant care remedies, foliar chlorosis, agricultural computer vision"
   );
 
   return (

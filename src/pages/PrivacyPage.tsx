@@ -24,8 +24,10 @@ import { motion } from "framer-motion";
 
 const PrivacyPage: React.FC = () => {
   useDocumentTitle(
-    "Privacy Policy — PlantDoc AI",
-    "Discover how PlantDoc AI safeguards your privacy with client-side image downsampling, zero data selling, and ephemeral AI telemetry."
+    "Privacy Policy & Client-Side Security — PlantDoc AI",
+    "Discover how PlantDoc AI safeguards user privacy with client-side image downsampling, zero data selling, and ephemeral AI telemetry.",
+    "/privacy",
+    "plantdoc privacy policy, client side privacy, local image processing, botanical data security, zero retention"
   );
 
   const lastUpdated = "September 11, 2026";

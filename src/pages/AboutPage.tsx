@@ -132,7 +132,8 @@ const AboutPage: React.FC = () => {
   useDocumentTitle(
     "Platform Architecture & Agronomy Mission — PlantDoc AI",
     "Learn about PlantDoc AI's multi-stage neural vision architecture, spatial lesion localization, and clinical prescription algorithms.",
-    "/about"
+    "/about",
+    "plantdoc ai architecture, vision ai plant pathology, foliar segmentation ai, agricultural machine learning, plant disease research"
   );
 
   return (

@@ -468,6 +468,7 @@ export const PlantDocHeroStage: React.FC = () => {
             >
               DOC
             </span>
+            <span className="sr-only"> — Instant AI Plant Disease Diagnosis & Precision Foliar Pathology</span>
           </h1>
         </div>
 

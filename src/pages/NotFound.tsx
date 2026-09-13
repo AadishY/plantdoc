@@ -32,7 +32,8 @@ const GOOD_LUCK_BLESSINGS = [
 const NotFound: React.FC = () => {
   useDocumentTitle(
     "404 — Specimen Not Found • PlantDoc AI",
-    "The requested botanical specimen or page could not be located in our nursery database."
+    "The requested botanical specimen or page could not be located in our nursery database.",
+    "/404"
   );
 
   const location = useLocation();

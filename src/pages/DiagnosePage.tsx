@@ -87,9 +87,10 @@ const DIAGNOSIS_PHASES: DiagnosisPhase[] = [
 
 const DiagnosePage: React.FC = () => {
   useDocumentTitle(
-    "Clinical Foliar Diagnosis & Lesion Vision — PlantDoc AI",
-    "Upload a foliage photo for instant AI plant disease detection, sub-pixel lesion segmentation, and clinical treatment matrix.",
-    "/diagnose"
+    "Foliar Pathology Diagnosis & Lesion Vision — PlantDoc AI",
+    "Upload a foliage photo for instant AI plant disease detection, sub-pixel lesion segmentation, and clinical organic and chemical treatment matrices.",
+    "/diagnose",
+    "foliar diagnosis, plant leaf disease scanner, AI crop diagnosis, lesion localization, tomato blight, powdery mildew, fungal spot identifier, organic plant treatments"
   );
 
   const [selectedImage, setSelectedImage] = useState<File | null>(null);

@@ -1,49 +1,84 @@
 import { useEffect } from 'react';
 
 /**
- * Hook to dynamically update document title, canonical link, and OpenGraph / Twitter meta tags
+ * Helper to safely find or create a meta tag in document.head
  */
-export function useDocumentTitle(title: string, description?: string, canonicalPath?: string) {
+function setOrCreateMeta(attrName: 'name' | 'property', attrValue: string, content: string) {
+  let element = document.querySelector(`meta[${attrName}="${attrValue}"]`);
+  if (!element) {
+    element = document.createElement('meta');
+    element.setAttribute(attrName, attrValue);
+    document.head.appendChild(element);
+  }
+  element.setAttribute('content', content);
+}
+
+/**
+ * Helper to safely find or create a link tag in document.head
+ */
+function setOrCreateLink(rel: string, href: string) {
+  let element = document.querySelector(`link[rel="${rel}"]`);
+  if (!element) {
+    element = document.createElement('link');
+    element.setAttribute('rel', rel);
+    document.head.appendChild(element);
+  }
+  element.setAttribute('href', href);
+}
+
+/**
+ * Hook to dynamically update document title, canonical link, OpenGraph, Twitter, and SEO/GEO meta tags
+ */
+export function useDocumentTitle(
+  title: string,
+  description?: string,
+  canonicalPath?: string,
+  keywords?: string,
+  ogImage?: string,
+  ogType: string = 'website'
+) {
   useEffect(() => {
     const previousTitle = document.title;
     document.title = title;
 
     // Update og:title and twitter:title
-    const ogTitle = document.querySelector('meta[property="og:title"]');
-    if (ogTitle) ogTitle.setAttribute('content', title);
-
-    const twitterTitle = document.querySelector('meta[name="twitter:title"]');
-    if (twitterTitle) twitterTitle.setAttribute('content', title);
+    setOrCreateMeta('property', 'og:title', title);
+    setOrCreateMeta('name', 'twitter:title', title);
 
     if (description) {
-      const metaDesc = document.querySelector('meta[name="description"]');
-      if (metaDesc) metaDesc.setAttribute('content', description);
-
-      const ogDesc = document.querySelector('meta[property="og:description"]');
-      if (ogDesc) ogDesc.setAttribute('content', description);
-
-      const twitterDesc = document.querySelector('meta[name="twitter:description"]');
-      if (twitterDesc) twitterDesc.setAttribute('content', description);
+      setOrCreateMeta('name', 'description', description);
+      setOrCreateMeta('property', 'og:description', description);
+      setOrCreateMeta('name', 'twitter:description', description);
     }
 
-    // Update Canonical and OpenGraph URL
+    if (keywords) {
+      setOrCreateMeta('name', 'keywords', keywords);
+    }
+
+    // Set og:type
+    setOrCreateMeta('property', 'og:type', ogType);
+
+    // Resolve absolute image URL for social previews
+    const resolvedImage = ogImage 
+      ? (ogImage.startsWith('http') ? ogImage : `https://plantdoc.ai${ogImage.startsWith('/') ? ogImage : `/${ogImage}`}`)
+      : 'https://plantdoc.ai/bannerr.jpg';
+
+    setOrCreateMeta('property', 'og:image', resolvedImage);
+    setOrCreateMeta('property', 'og:image:secure_url', resolvedImage);
+    setOrCreateMeta('name', 'twitter:image', resolvedImage);
+
+    // Update Canonical and OpenGraph / Twitter URLs
     const currentUrl = canonicalPath 
       ? `https://plantdoc.ai${canonicalPath.startsWith('/') ? canonicalPath : `/${canonicalPath}`}`
       : window.location.href;
 
-    const canonicalLink = document.querySelector('link[rel="canonical"]');
-    if (canonicalLink) {
-      canonicalLink.setAttribute('href', currentUrl);
-    }
-
-    const ogUrl = document.querySelector('meta[property="og:url"]');
-    if (ogUrl) {
-      ogUrl.setAttribute('content', currentUrl);
-    }
+    setOrCreateLink('canonical', currentUrl);
+    setOrCreateMeta('property', 'og:url', currentUrl);
+    setOrCreateMeta('name', 'twitter:url', currentUrl);
 
     return () => {
       document.title = previousTitle;
     };
-  }, [title, description, canonicalPath]);
+  }, [title, description, canonicalPath, keywords, ogImage, ogType]);
 }
 
