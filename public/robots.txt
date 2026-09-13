@@ -56,4 +56,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://plantdoc.ai/sitemap.xml
+Sitemap: https://plantdoc.pages.dev/sitemap.xml

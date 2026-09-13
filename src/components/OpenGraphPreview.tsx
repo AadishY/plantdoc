@@ -25,7 +25,7 @@ export const OpenGraphPreview: React.FC = () => {
   const ogData = {
     title: "PlantDoc AI — Plant Disease Diagnosis & Care",
     description: "Instant AI plant disease diagnosis, leaf lesion segmentation, and clinical treatment protocols.",
-    url: typeof window !== 'undefined' ? window.location.origin : "https://plantdoc.ai",
+    url: typeof window !== 'undefined' ? window.location.origin : "https://plantdoc.pages.dev",
     image: "/bannerr.jpg",
     siteName: "PlantDoc AI",
     twitterHandle: "@PlantDocAI"
@@ -145,12 +145,12 @@ export const OpenGraphPreview: React.FC = () => {
                 className="w-full h-full object-cover object-center"
               />
               <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/80 backdrop-blur-md text-[10px] font-mono text-white/90">
-                plantdoc.ai
+                plantdoc.pages.dev
               </div>
             </div>
             <div className="p-4 space-y-1 bg-[#121614] border-t border-white/10">
               <div className="text-[11px] text-white/50 font-mono flex items-center gap-1">
-                <span>plantdoc.ai</span>
+                <span>plantdoc.pages.dev</span>
                 <span>•</span>
                 <span>By Aadish Kumar Yadav</span>
               </div>
@@ -176,7 +176,7 @@ export const OpenGraphPreview: React.FC = () => {
             </div>
             <div className="p-4 space-y-1 bg-[#151c18] border-t border-white/10">
               <span className="text-[10.5px] uppercase tracking-wider text-emerald-400 font-mono font-bold block">
-                PLANTDOC.AI
+                PLANTDOC.PAGES.DEV
               </span>
               <h4 className="text-base font-bold text-white leading-snug">
                 {ogData.title}
@@ -207,12 +207,12 @@ export const OpenGraphPreview: React.FC = () => {
                   {ogData.description}
                 </p>
                 <span className="text-[10px] text-[#2DD4BF] block font-mono">
-                  https://plantdoc.ai
+                  https://plantdoc.pages.dev
                 </span>
               </div>
             </div>
             <div className="flex items-center justify-between text-[11px] text-[#2DD4BF]/90 font-mono pt-1">
-              <span>https://plantdoc.ai</span>
+              <span>https://plantdoc.pages.dev</span>
               <span className="text-white/40 text-[10px]">10:42 AM ✓✓</span>
             </div>
           </div>
@@ -237,8 +237,8 @@ export const OpenGraphPreview: React.FC = () => {
 <meta property="og:title" content="PlantDoc AI — Plant Disease Diagnosis & Care" />
 <meta property="og:description" content="Instant AI plant disease diagnosis, leaf lesion segmentation, and clinical treatment protocols." />
 <meta property="og:type" content="website" />
-<meta property="og:url" content="https://plantdoc.ai" />
-<meta property="og:image" content="https://plantdoc.ai/bannerr.jpg" />
+<meta property="og:url" content="https://plantdoc.pages.dev" />
+<meta property="og:image" content="https://plantdoc.pages.dev/bannerr.jpg" />
 <meta property="og:image:width" content="1280" />
 <meta property="og:image:height" content="640" />
 
@@ -246,7 +246,7 @@ export const OpenGraphPreview: React.FC = () => {
 <meta name="twitter:site" content="@PlantDocAI" />
 <meta name="twitter:title" content="PlantDoc AI — Plant Disease Diagnosis & Care" />
 <meta name="twitter:description" content="Instant AI plant disease diagnosis, leaf lesion segmentation, and clinical treatment protocols." />
-<meta name="twitter:image" content="https://plantdoc.ai/bannerr.jpg" />`}
+<meta name="twitter:image" content="https://plantdoc.pages.dev/bannerr.jpg" />`}
             </pre>
           </div>
         )}

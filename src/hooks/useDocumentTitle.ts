@@ -60,8 +60,8 @@ export function useDocumentTitle(
 
     // Resolve absolute image URL for social previews
     const resolvedImage = ogImage 
-      ? (ogImage.startsWith('http') ? ogImage : `https://plantdoc.ai${ogImage.startsWith('/') ? ogImage : `/${ogImage}`}`)
-      : 'https://plantdoc.ai/bannerr.jpg';
+      ? (ogImage.startsWith('http') ? ogImage : `https://plantdoc.pages.dev${ogImage.startsWith('/') ? ogImage : `/${ogImage}`}`)
+      : 'https://plantdoc.pages.dev/bannerr.jpg';
 
     setOrCreateMeta('property', 'og:image', resolvedImage);
     setOrCreateMeta('property', 'og:image:secure_url', resolvedImage);
@@ -69,7 +69,7 @@ export function useDocumentTitle(
 
     // Update Canonical and OpenGraph / Twitter URLs
     const currentUrl = canonicalPath 
-      ? `https://plantdoc.ai${canonicalPath.startsWith('/') ? canonicalPath : `/${canonicalPath}`}`
+      ? `https://plantdoc.pages.dev${canonicalPath.startsWith('/') ? canonicalPath : `/${canonicalPath}`}`
       : window.location.href;
 
     setOrCreateLink('canonical', currentUrl);
