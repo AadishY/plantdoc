@@ -644,10 +644,10 @@ PlantCard.displayName = 'PlantCard';
 
 const RecommendPage = () => {
   useDocumentTitle(
-    "Climate Botanical Recommendations & Hardiness — PlantDoc AI",
-    "Discover climate-matched companion crops, trees, flowers, and herbs using verified Wikimedia Foundation botanical profiles and regional weather parameters.",
+    "Plant Recommendations by Climate, Soil & Sunlight | PlantDoc AI",
+    "Find plants suited to your climate, soil, sunlight, and growing season with AI-guided recommendations and verified botanical profiles.",
     "/recommend",
-    "botanical recommendations, climate matched gardening, companion planting, hardiness zone crops, organic gardening, seasonal planting guide, agricultural AI"
+    "plant recommendations, climate matched gardening, companion planting, hardiness zone crops, soil and sunlight plant guide, seasonal planting guide, gardening AI"
   );
 
   const [recommendations, setRecommendations] = useState<PlantRecommendation[]>([]);

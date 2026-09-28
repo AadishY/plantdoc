@@ -28,9 +28,14 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   storageKey = "plantdoc-theme",
   ...props
 }) => {
-  const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
-  );
+  const [theme, setTheme] = useState<Theme>(() => {
+    try {
+      return (localStorage.getItem(storageKey) as Theme) || defaultTheme;
+    } catch {
+      // Storage may be blocked in private browsing or embedded webviews.
+      return defaultTheme;
+    }
+  });
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -41,7 +46,11 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   const value = {
     theme,
     setTheme: (theme: Theme) => {
-      localStorage.setItem(storageKey, theme);
+      try {
+        localStorage.setItem(storageKey, theme);
+      } catch {
+        // The UI is dark-only today; keep the in-memory preference working.
+      }
       setTheme(theme);
     },
   };
