@@ -10,27 +10,27 @@ import SpotlightCard from './SpotlightCard';
 
 const METRICS = [
   {
-    value: '99.4%',
-    label: 'Diagnostic Accuracy',
-    detail: 'Validated against 54,000+ foliar pathology specimens across 38 crop families.',
+    value: '1 photo',
+    label: 'Photo-first diagnosis',
+    detail: 'Start with one clear leaf, stem, or fruit photo—no specialist equipment required.',
     icon: <Award className="h-4 w-4 sm:h-6 sm:w-6 text-[#2DD4BF]" />
   },
   {
-    value: '< 850ms',
-    label: 'Inference Latency',
-    detail: 'Sub-second neural vision spatial segmentation and triage formulation.',
+    value: '2 views',
+    label: 'Disease + lesion view',
+    detail: 'Pair a plain-language disease result with a visual map of areas worth inspecting.',
     icon: <Zap className="h-4 w-4 sm:h-6 sm:w-6 text-[#2DD4BF]" />
   },
   {
-    value: '38+ Species',
-    label: 'Botanical Crops & Flora',
-    detail: 'Full coverage of nightshades, cucurbits, brassicas, ornamentals, and tree fruits.',
+    value: '38+ families',
+    label: 'Crops & ornamentals',
+    detail: 'Built for vegetables, fruit, herbs, flowers, houseplants, and common garden crops.',
     icon: <Layers className="h-4 w-4 sm:h-6 sm:w-6 text-[#2DD4BF]" />
   },
   {
-    value: '100% Real',
-    label: 'Wikimedia Verified Data',
-    detail: 'Authentic Wikipedia botanical articles and zero synthesized placeholders.',
+    value: 'Live source',
+    label: 'Botanical references',
+    detail: 'Recommendation profiles connect to Wikimedia photography and plant reference data.',
     icon: <ShieldCheck className="h-4 w-4 sm:h-6 sm:w-6 text-[#2DD4BF]" />
   }
 ];

@@ -1,0 +1,67 @@
+/* Performance and accessibility guardrails shared by every route. */
+@keyframes site-loader-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes loader-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.animate-site-loader-in {
+  animation: site-loader-in 120ms ease-out both;
+}
+
+.animate-loader-progress {
+  animation: loader-progress 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (pointer: coarse), (max-width: 767px) {
+  /* Android GPUs pay a real cost for large backdrop-filter surfaces. Keep the
+     glass language, but use a smaller blur radius and let the background show. */
+  .backdrop-blur-3xl,
+  .backdrop-blur-2xl,
+  .backdrop-blur-xl {
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+  }
+
+  .ambient-glow {
+    opacity: 0.1 !important;
+    filter: blur(70px) !important;
+  }
+
+  /* Avoid promoting every decorative card to its own compositor layer. */
+  .will-change-transform {
+    will-change: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html,
+  html:not(.is-dragging-scrollbar) {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (max-width: 420px) {
+  /* Prevent long nav labels and cards from forcing horizontal overflow on
+     narrow Android phones. */
+  .container {
+    max-width: 100%;
+  }
+
+  .text-balance {
+    text-wrap: pretty;
+  }
+}

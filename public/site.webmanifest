@@ -1,0 +1,25 @@
+{
+  "name": "PlantDoc AI — Plant Disease Identifier",
+  "short_name": "PlantDoc AI",
+  "description": "Identify plant diseases from a leaf photo and get practical plant care guidance.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#040805",
+  "theme_color": "#06110b",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

@@ -33,6 +33,9 @@ export const PlantDocHeroStage: React.FC = () => {
     const invCtx = invCanvas.getContext('2d');
     if (!ctx) return;
 
+    const isMobileDevice = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768;
+    const useCssReveal = isMobileDevice || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let lastMaskUpload = 0;
     const points: TrailPoint[] = [];
     let headRadius = 0;
     let time = 0;
@@ -48,8 +51,7 @@ export const PlantDocHeroStage: React.FC = () => {
     const updateCanvasSize = () => {
       if (!topLayerRef.current) return;
       const rect = topLayerRef.current.getBoundingClientRect();
-      const isMobile = window.innerWidth < 768;
-      const scaleFactor = isMobile ? 3 : 2;
+      const scaleFactor = isMobileDevice ? 3 : 2;
       const w = Math.max(50, Math.round(rect.width / scaleFactor));
       const h = Math.max(50, Math.round(rect.height / scaleFactor));
       maskCanvas.width = w;
@@ -282,7 +284,6 @@ export const PlantDocHeroStage: React.FC = () => {
       observer.observe(stage);
     }
 
-    const isMobileDevice = typeof window !== 'undefined' && window.innerWidth < 768;
     const scaledHeadR = isMobileDevice ? TRAIL_HEAD_R * 0.55 : TRAIL_HEAD_R * 0.64;
 
     let wasIdle = false;
@@ -310,7 +311,7 @@ export const PlantDocHeroStage: React.FC = () => {
 
         // Add trailing points with fluid spacing
         const dist = Math.hypot(smoothX - lastX, smoothY - lastY);
-        if (dist >= 3.5 && headRadius > 2) {
+        if (!useCssReveal && dist >= 3.5 && headRadius > 2) {
           points.push({
             x: smoothX,
             y: smoothY,
@@ -370,35 +371,52 @@ export const PlantDocHeroStage: React.FC = () => {
             drawMorphBlob(ctx, smoothX, smoothY, headRadius, time, 42, 1.0);
           }
 
-          const dataUrl = maskCanvas.toDataURL();
-
-          // Apply real-time canvas mask to top pathology layer (reveals diseased plant)
-          if (topLayerRef.current) {
-            topLayerRef.current.style.maskImage = `url(${dataUrl})`;
-            topLayerRef.current.style.webkitMaskImage = `url(${dataUrl})`;
-            topLayerRef.current.style.maskSize = '100% 100%';
-            topLayerRef.current.style.webkitMaskSize = '100% 100%';
-            topLayerRef.current.style.maskRepeat = 'no-repeat';
-            topLayerRef.current.style.webkitMaskRepeat = 'no-repeat';
+          // Touch devices use a native CSS radial mask. It produces the same
+          // healthy-to-diseased reveal without serializing a canvas to a new
+          // data URL on every frame (a particularly expensive Android path).
+          if (useCssReveal && topLayerRef.current && smoothX !== -9999) {
+            const layerRect = topLayerRef.current.getBoundingClientRect();
+            const radiusPx = Math.max(28, headRadius * (layerRect.width / maskCanvas.width));
+            const x = `${(smoothX / maskCanvas.width) * 100}%`;
+            const y = `${(smoothY / maskCanvas.height) * 100}%`;
+            const cssMask = `radial-gradient(circle ${radiusPx}px at ${x} ${y}, #fff 0%, #fff 62%, transparent 100%)`;
+            topLayerRef.current.style.maskImage = cssMask;
+            topLayerRef.current.style.webkitMaskImage = cssMask;
             topLayerRef.current.style.opacity = '1';
-          }
+          } else if (!useCssReveal && performance.now() - lastMaskUpload >= 32) {
+            // Desktop keeps the richer organic trail, but uploads the mask at
+            // 30fps instead of paying for two toDataURL calls at 60fps.
+            lastMaskUpload = performance.now();
+            const dataUrl = maskCanvas.toDataURL();
 
-          // Apply inverse mask to base layer (cuts out healthy flower under cursor so necrotic holes show background)
-          if (invCtx && baseLayerRef.current) {
-            invCtx.clearRect(0, 0, invCanvas.width, invCanvas.height);
-            invCtx.fillStyle = '#ffffff';
-            invCtx.fillRect(0, 0, invCanvas.width, invCanvas.height);
-            invCtx.globalCompositeOperation = 'destination-out';
-            invCtx.drawImage(maskCanvas, 0, 0);
-            invCtx.globalCompositeOperation = 'source-over';
+            if (topLayerRef.current) {
+              topLayerRef.current.style.maskImage = `url(${dataUrl})`;
+              topLayerRef.current.style.webkitMaskImage = `url(${dataUrl})`;
+              topLayerRef.current.style.maskSize = '100% 100%';
+              topLayerRef.current.style.webkitMaskSize = '100% 100%';
+              topLayerRef.current.style.maskRepeat = 'no-repeat';
+              topLayerRef.current.style.webkitMaskRepeat = 'no-repeat';
+              topLayerRef.current.style.opacity = '1';
+            }
 
-            const invDataUrl = invCanvas.toDataURL();
-            baseLayerRef.current.style.maskImage = `url(${invDataUrl})`;
-            baseLayerRef.current.style.webkitMaskImage = `url(${invDataUrl})`;
-            baseLayerRef.current.style.maskSize = '100% 100%';
-            baseLayerRef.current.style.webkitMaskSize = '100% 100%';
-            baseLayerRef.current.style.maskRepeat = 'no-repeat';
-            baseLayerRef.current.style.webkitMaskRepeat = 'no-repeat';
+            // The inverse mask keeps the healthy layer from doubling beneath
+            // the pathology layer on fine-pointer desktop displays.
+            if (invCtx && baseLayerRef.current) {
+              invCtx.clearRect(0, 0, invCanvas.width, invCanvas.height);
+              invCtx.fillStyle = '#ffffff';
+              invCtx.fillRect(0, 0, invCanvas.width, invCanvas.height);
+              invCtx.globalCompositeOperation = 'destination-out';
+              invCtx.drawImage(maskCanvas, 0, 0);
+              invCtx.globalCompositeOperation = 'source-over';
+
+              const invDataUrl = invCanvas.toDataURL();
+              baseLayerRef.current.style.maskImage = `url(${invDataUrl})`;
+              baseLayerRef.current.style.webkitMaskImage = `url(${invDataUrl})`;
+              baseLayerRef.current.style.maskSize = '100% 100%';
+              baseLayerRef.current.style.webkitMaskSize = '100% 100%';
+              baseLayerRef.current.style.maskRepeat = 'no-repeat';
+              baseLayerRef.current.style.webkitMaskRepeat = 'no-repeat';
+            }
           }
         }
       }
@@ -491,6 +509,7 @@ export const PlantDocHeroStage: React.FC = () => {
                 alt="Healthy botanical specimen with vibrant green chlorophyll leaf structure"
                 className="w-full h-full object-contain object-top filter drop-shadow-[0_25px_60px_rgba(0,0,0,0.9)] mx-auto block"
                 loading="eager"
+                fetchPriority="high"
                 decoding="async"
               />
             </div>
@@ -505,7 +524,8 @@ export const PlantDocHeroStage: React.FC = () => {
                 src="/main_disease.webp" 
                 alt="Diseased botanical specimen displaying foliar lesions and chlorosis under AI vision inspection"
                 className="w-full h-full object-contain object-top filter brightness-[1.03] contrast-[1.08] saturate-[1.14] drop-shadow-[0_25px_60px_rgba(0,0,0,0.9)] mx-auto block"
-                loading="eager"
+                loading="lazy"
+                fetchPriority="low"
                 decoding="async"
               />
             </div>
@@ -515,6 +535,12 @@ export const PlantDocHeroStage: React.FC = () => {
 
       {/* Spacer to push foreground controls to the bottom */}
       <div className="flex-1" />
+
+      {/* A compact, readable promise for narrow screens where the corner copy is hidden. */}
+      <div className="relative z-30 mx-auto mb-2 flex items-center gap-2 rounded-full border border-white/15 bg-black/50 px-3 py-1.5 text-[10px] font-medium tracking-wide text-white/75 backdrop-blur-md sm:hidden">
+        <span className="h-1.5 w-1.5 rounded-full bg-[#2DD4BF] shadow-[0_0_10px_#2DD4BF]" aria-hidden="true" />
+        AI leaf disease diagnosis · photo-first guidance
+      </div>
 
       {/* Two Elevated Action Buttons (Pushed to left & right with wide central gap) */}
       <div className="relative z-30 flex flex-row items-center justify-between w-full max-w-[320px] sm:max-w-[500px] md:max-w-[560px] mx-auto mb-2 sm:mb-3 pb-0.5 px-1 pointer-events-auto">

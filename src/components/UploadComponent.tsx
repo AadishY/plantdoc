@@ -1,9 +1,8 @@
-import React, { useState, useRef } from 'react';
-import { Camera, X, Upload, Image as ImageIcon, Loader2, Sparkles, Scan } from 'lucide-react';
+import React, { useEffect, useState, useRef } from 'react';
+import { Camera, X, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
-import { getSafeImageUrl } from '@/utils/sanitizeUrl';
 
 interface UploadComponentProps {
   onImageSelect?: (file: File) => void;
@@ -30,6 +29,17 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
   const [dragActive, setDragActive] = useState(false);
   const internalFileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  // Revoke locally-created previews when they are replaced or when the
+  // uploader unmounts. This matters on Android where camera photos can be
+  // large and object URLs otherwise keep the Blob alive.
+  useEffect(() => {
+    return () => {
+      if (internalPreviewUrl?.startsWith('blob:')) {
+        URL.revokeObjectURL(internalPreviewUrl);
+      }
+    };
+  }, [internalPreviewUrl]);
   
   const rawPreviewUrl = externalPreviewUrl !== undefined ? externalPreviewUrl : internalPreviewUrl;
   const safePreviewUrl = rawPreviewUrl && (rawPreviewUrl.startsWith('blob:') || rawPreviewUrl.startsWith('data:image/') || rawPreviewUrl.startsWith('https://') || rawPreviewUrl.startsWith('http://'))
@@ -141,11 +151,20 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
         <div 
           className={`glass-card transition-all duration-300 border-2 border-dashed rounded-3xl p-10 md:p-14 text-center overflow-hidden cursor-pointer
             ${dragActive ? 'border-[#2DD4BF] bg-[#2DD4BF]/10 scale-[1.01]' : 'hover:border-[#2DD4BF]/60 border-white/20 hover:shadow-[0_0_30px_rgba(45,212,191,0.25)]'}`}
+          role="button"
+          tabIndex={0}
+          aria-label="Upload a plant photo for diagnosis"
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
           onDrop={handleDrop}
           onClick={triggerFileInput}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              triggerFileInput();
+            }
+          }}
         >
           <div className="flex flex-col items-center justify-center gap-4 animate-enter">
             <motion.div 
