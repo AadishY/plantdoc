@@ -8,15 +8,15 @@ interface Particle {
   speedY: number;
   opacity: number;
   phase: number;
-  hue: number;
+  hue: 150 | 165;
 }
 
 /**
- * A deliberately small desktop-only ambient layer.
+ * Adaptive ambient canvas.
  *
- * Mobile browsers already spend most of their frame budget on scrolling and
- * compositing translucent panels. Android gets the CSS glow, but not a
- * permanently running canvas or pointer tracking.
+ * The canvas stays enabled on Android and other touch devices. Instead of
+ * removing the effect, it adapts its particle count, backing-store density,
+ * and frame cadence to the device so it does not compete with scrolling.
  */
 const DynamicBackground: React.FC = React.memo(() => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -25,41 +25,46 @@ const DynamicBackground: React.FC = React.memo(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
+    const isMobile = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768;
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const coarsePointer = window.matchMedia('(pointer: coarse)').matches;
     const connection = (navigator as Navigator & {
       connection?: { saveData?: boolean };
     }).connection;
     const saveData = connection?.saveData === true;
     const lowPower = (navigator.hardwareConcurrency || 8) <= 4;
 
-    // The static gradient in the render tree is enough on touch/low-power
-    // devices. This early return removes the RAF loop and all event listeners.
-    if (reduceMotion || coarsePointer || saveData || lowPower) return;
-
     const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) return;
 
     let animationFrameId = 0;
+    let resizeTimer = 0;
+    let scrollTimer = 0;
     let width = 0;
     let height = 0;
     let dpr = 1;
     let lastFrame = 0;
     let isPageVisible = !document.hidden;
+    let isScrolling = false;
     let mouseX = -9999;
     let mouseY = -9999;
 
+    // Fewer particles and a smaller backing store are much cheaper than
+    // removing the visual entirely. Save-Data and low-power devices still get
+    // a living canvas, just at the lowest quality tier.
+    const qualityScale = saveData || lowPower ? 0.62 : 1;
+    const particleCount = isMobile
+      ? Math.max(4, Math.min(8, Math.round((window.innerWidth / 72) * qualityScale)))
+      : Math.min(16, Math.max(8, Math.floor(window.innerWidth / 110)));
+    const frameInterval = isMobile ? 50 : 32; // 20fps mobile, 30fps desktop
     const particles: Particle[] = [];
-    const particleCount = Math.min(Math.max(Math.floor(window.innerWidth / 110), 8), 16);
 
     const resize = () => {
       width = window.innerWidth;
       height = window.innerHeight;
-      // Capping the backing store avoids a large canvas allocation on QHD/4K
-      // screens while keeping the ambient specks crisp enough.
-      dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-      canvas.width = Math.round(width * dpr);
-      canvas.height = Math.round(height * dpr);
+      // Android keeps the animation but avoids a multi-megapixel backing store.
+      dpr = isMobile ? Math.min(window.devicePixelRatio || 1, 1.15) : Math.min(window.devicePixelRatio || 1, 1.5);
+      canvas.width = Math.max(1, Math.round(width * dpr));
+      canvas.height = Math.max(1, Math.round(height * dpr));
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -70,43 +75,56 @@ const DynamicBackground: React.FC = React.memo(() => {
       particles.push({
         x: Math.random() * width,
         y: Math.random() * height,
-        size: Math.random() * 1.25 + 0.65,
-        speedX: (Math.random() - 0.5) * 0.14,
-        speedY: -Math.random() * 0.18 - 0.04,
-        opacity: Math.random() * 0.24 + 0.12,
+        size: isMobile ? Math.random() * 1.15 + 0.55 : Math.random() * 1.25 + 0.65,
+        speedX: (Math.random() - 0.5) * (isMobile ? 0.11 : 0.14),
+        speedY: -Math.random() * (isMobile ? 0.15 : 0.18) - 0.04,
+        opacity: Math.random() * (isMobile ? 0.2 : 0.24) + 0.12,
         phase: Math.random() * Math.PI * 2,
         hue: Math.random() > 0.45 ? 165 : 150,
       });
     }
 
-    const hasHover = window.matchMedia('(hover: hover)').matches;
+    const hasHover = !isMobile && !reduceMotion && window.matchMedia('(hover: hover)').matches;
     const handleMouseMove = (event: MouseEvent) => {
       mouseX = event.clientX;
       mouseY = event.clientY;
     };
     if (hasHover) window.addEventListener('mousemove', handleMouseMove, { passive: true });
 
-    const handleResize = () => resize();
+    const handleResize = () => {
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(resize, 120);
+    };
     window.addEventListener('resize', handleResize, { passive: true });
 
-    const render = (time: number) => {
-      animationFrameId = requestAnimationFrame(render);
-      // 30fps is plenty for ambient motion and cuts background work in half.
-      if (!isPageVisible || time - lastFrame < 32) return;
+    const handleScroll = () => {
+      if (!isMobile) return;
+      isScrolling = true;
+      window.clearTimeout(scrollTimer);
+      scrollTimer = window.setTimeout(() => {
+        isScrolling = false;
+      }, 140);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    const draw = (time: number) => {
+      const elapsed = lastFrame ? Math.min(3, (time - lastFrame) / 16.67) : 1;
       lastFrame = time;
-
       ctx.clearRect(0, 0, width, height);
-      particles.forEach((particle) => {
-        particle.x += particle.speedX;
-        particle.y += particle.speedY;
-        particle.phase += 0.012;
 
-        if (particle.y < -8) {
-          particle.y = height + 8;
-          particle.x = Math.random() * width;
+      particles.forEach((particle) => {
+        if (!reduceMotion) {
+          particle.x += particle.speedX * elapsed;
+          particle.y += particle.speedY * elapsed;
+          particle.phase += 0.012 * elapsed;
+
+          if (particle.y < -8) {
+            particle.y = height + 8;
+            particle.x = Math.random() * width;
+          }
+          if (particle.x < -8) particle.x = width + 8;
+          if (particle.x > width + 8) particle.x = -8;
         }
-        if (particle.x < -8) particle.x = width + 8;
-        if (particle.x > width + 8) particle.x = -8;
 
         if (hasHover && mouseX !== -9999) {
           const dx = mouseX - particle.x;
@@ -122,22 +140,57 @@ const DynamicBackground: React.FC = React.memo(() => {
 
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${particle.hue}, 85%, 65%, ${particle.opacity * (0.7 + Math.sin(particle.phase) * 0.3)})`;
+        ctx.fillStyle = particle.hue === 165 ? '#5EEAD4' : '#34D399';
+        ctx.globalAlpha = particle.opacity * (0.7 + Math.sin(particle.phase) * 0.3);
         ctx.fill();
       });
+      ctx.globalAlpha = 1;
+    };
+
+    const render = (time: number) => {
+      animationFrameId = 0;
+      if (!isPageVisible) return;
+
+      // During an active finger scroll, continue the canvas at a lighter
+      // cadence rather than freezing it or competing with the scroll thread.
+      const interval = isScrolling ? (isMobile ? 110 : 66) : frameInterval;
+      if (time - lastFrame >= interval) draw(time);
+      animationFrameId = window.requestAnimationFrame(render);
+    };
+
+    const startLoop = () => {
+      if (!animationFrameId && isPageVisible) {
+        animationFrameId = window.requestAnimationFrame(render);
+      }
     };
 
     const handleVisibility = () => {
       isPageVisible = !document.hidden;
-      if (!isPageVisible) ctx.clearRect(0, 0, width, height);
+      if (!isPageVisible) {
+        if (animationFrameId) window.cancelAnimationFrame(animationFrameId);
+        animationFrameId = 0;
+        ctx.clearRect(0, 0, width, height);
+      } else {
+        lastFrame = 0;
+        if (reduceMotion) draw(performance.now());
+        else startLoop();
+      }
     };
 
     document.addEventListener('visibilitychange', handleVisibility);
-    animationFrameId = requestAnimationFrame(render);
+    if (reduceMotion) {
+      // Honor the user's preference without creating a permanent RAF loop.
+      draw(performance.now());
+    } else {
+      startLoop();
+    }
 
     return () => {
-      cancelAnimationFrame(animationFrameId);
+      if (animationFrameId) window.cancelAnimationFrame(animationFrameId);
+      window.clearTimeout(resizeTimer);
+      window.clearTimeout(scrollTimer);
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('visibilitychange', handleVisibility);
     };
