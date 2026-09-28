@@ -130,10 +130,10 @@ const PIPELINE_STAGES = [
 
 const AboutPage: React.FC = () => {
   useDocumentTitle(
-    "Platform Architecture & Agronomy Mission — PlantDoc AI",
-    "Learn about PlantDoc AI's multi-stage neural vision architecture, spatial lesion localization, and clinical prescription algorithms.",
+    "About Aadish Kumar Yadav & PlantDoc AI | Plant Disease AI",
+    "Learn how Aadish Kumar Yadav built PlantDoc AI for plant disease identification, leaf lesion analysis, botanical recommendations, and practical crop-care guidance.",
     "/about",
-    "plantdoc ai architecture, vision ai plant pathology, foliar segmentation ai, agricultural machine learning, plant disease research"
+    "Aadish Kumar Yadav, Aadish PlantDoc, PlantDoc AI creator, PlantDoc architecture, plant disease AI, computer vision plant pathology, foliar segmentation, agricultural machine learning"
   );
 
   return (
