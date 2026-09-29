@@ -25,6 +25,7 @@ export const PlantDocHeroStage: React.FC = () => {
   const flowerContainerRef = useRef<HTMLDivElement>(null);
   const maskCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const baseLayerRef = useRef<HTMLDivElement>(null);
+  const cutoutLayerRef = useRef<HTMLDivElement>(null);
   const topLayerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -174,15 +175,23 @@ export const PlantDocHeroStage: React.FC = () => {
       // sampling the source alpha bitmap, including letterboxed side padding.
       const scale = Math.min(imageRect.width / flowerAlphaWidth, imageRect.height / flowerAlphaHeight);
       const drawnWidth = flowerAlphaWidth * scale;
-      const drawnHeight = flowerAlphaHeight * scale;
       const imageX = (imageRect.width - drawnWidth) / 2;
       const imageY = 0;
       const sourceX = Math.floor((boxX - imageX) / scale);
       const sourceY = Math.floor((boxY - imageY) / scale);
       if (sourceX < 0 || sourceY < 0 || sourceX >= flowerAlphaWidth || sourceY >= flowerAlphaHeight) return null;
 
-      const alpha = flowerAlphaData[(sourceY * flowerAlphaWidth + sourceX) * 4 + 3];
-      if (alpha < FLOWER_ALPHA_THRESHOLD) return null;
+      // Sample a tiny neighborhood to keep anti-aliased petal edges from
+      // toggling the reveal on/off and producing a visible shimmer.
+      let maxAlpha = 0;
+      for (let offsetY = -2; offsetY <= 2; offsetY++) {
+        for (let offsetX = -2; offsetX <= 2; offsetX++) {
+          const sampleX = Math.min(flowerAlphaWidth - 1, Math.max(0, sourceX + offsetX));
+          const sampleY = Math.min(flowerAlphaHeight - 1, Math.max(0, sourceY + offsetY));
+          maxAlpha = Math.max(maxAlpha, flowerAlphaData[(sampleY * flowerAlphaWidth + sampleX) * 4 + 3]);
+        }
+      }
+      if (maxAlpha < FLOWER_ALPHA_THRESHOLD) return null;
 
       return {
         x: ((clientX - layerRect.left) / Math.max(1, layerRect.width)) * maskCanvas.width,
@@ -381,15 +390,16 @@ export const PlantDocHeroStage: React.FC = () => {
 
         // Add trailing points with fluid spacing
         const dist = Math.hypot(smoothX - lastX, smoothY - lastY);
-        if (!useCssReveal && dist >= 3.5 && headRadius > 2) {
+        const trailSampleDistance = useCssReveal ? (isMobileDevice ? TRAIL_SAMPLE_DIST * 3 : 6) : 3.5;
+        if (dist >= trailSampleDistance && headRadius > 2) {
           points.push({
             x: smoothX,
             y: smoothY,
-            r: headRadius * 0.90,
-            alpha: 0.96,
+            r: headRadius * (useCssReveal ? 0.78 : 0.90),
+            alpha: useCssReveal ? 0.78 : 0.96,
             seed: Math.random() * 100
           });
-          const maxPoints = isMobileDevice ? 65 : TRAIL_MAX_POINTS;
+          const maxPoints = useCssReveal ? (isMobileDevice ? 7 : 12) : TRAIL_MAX_POINTS;
           if (points.length > maxPoints) {
             points.shift();
           }
@@ -423,6 +433,11 @@ export const PlantDocHeroStage: React.FC = () => {
               topLayerRef.current.style.maskImage = 'none';
               topLayerRef.current.style.webkitMaskImage = 'none';
             }
+            if (cutoutLayerRef.current) {
+              cutoutLayerRef.current.style.opacity = '0';
+              cutoutLayerRef.current.style.maskImage = 'none';
+              cutoutLayerRef.current.style.webkitMaskImage = 'none';
+            }
             if (baseLayerRef.current) {
               baseLayerRef.current.style.maskImage = 'none';
               baseLayerRef.current.style.webkitMaskImage = 'none';
@@ -432,17 +447,22 @@ export const PlantDocHeroStage: React.FC = () => {
           return;
         } else {
           wasIdle = false;
-          ctx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
 
-          // 1. Draw decaying trailing morph blobs with feathered transparency
-          for (let i = 0; i < points.length; i++) {
-            const p = points[i];
-            drawMorphBlob(ctx, p.x, p.y, p.r, time, p.seed, p.alpha);
-          }
+          // Fine pointers use the richer canvas trail. CSS reveal devices skip
+          // this work entirely and build their lightweight gradient trail below.
+          if (!useCssReveal) {
+            ctx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
 
-          // 2. Draw persistent active head morph blob with feathered transparency
-          if (hovering && headRadius > 1 && smoothX !== -9999) {
-            drawMorphBlob(ctx, smoothX, smoothY, headRadius, time, 42, 1.0);
+            // 1. Draw decaying trailing morph blobs with feathered transparency
+            for (let i = 0; i < points.length; i++) {
+              const p = points[i];
+              drawMorphBlob(ctx, p.x, p.y, p.r, time, p.seed, p.alpha);
+            }
+
+            // 2. Draw persistent active head morph blob with feathered transparency
+            if (hovering && headRadius > 1 && smoothX !== -9999) {
+              drawMorphBlob(ctx, smoothX, smoothY, headRadius, time, 42, 1.0);
+            }
           }
 
           // Touch devices use a native CSS radial mask. It produces the same
@@ -451,33 +471,58 @@ export const PlantDocHeroStage: React.FC = () => {
           if (useCssReveal && topLayerRef.current && smoothX !== -9999 && now - lastCssMaskUpdate >= 32) {
             lastCssMaskUpdate = now;
             const radiusPx = Math.max(28, headRadius * (layerWidth / maskCanvas.width));
-            // Keep the Android-friendly CSS path light, but give the reveal a
-            // gentle breathing ellipse so it feels fluid instead of like a
-            // perfectly rigid spotlight. Both layers use the same live shape.
-            const radiusX = radiusPx * (prefersReducedMotion ? 1 : 1 + Math.sin(time * 1.7 + 0.8) * 0.035);
-            const radiusY = radiusPx * (prefersReducedMotion ? 1 : 1 + Math.cos(time * 1.35 - 0.3) * 0.045);
+            // Keep the Android-friendly CSS path light while making the head
+            // and its short trail share one stable, fluid mask.
+            const radiusX = radiusPx * (prefersReducedMotion ? 1 : 1 + Math.sin(time * 1.7 + 0.8) * 0.025);
+            const radiusY = radiusPx * (prefersReducedMotion ? 1 : 1 + Math.cos(time * 1.35 - 0.3) * 0.032);
             const x = `${(smoothX / maskCanvas.width) * 100}%`;
             const y = `${(smoothY / maskCanvas.height) * 100}%`;
-            const cssMask = `radial-gradient(ellipse ${radiusX}px ${radiusY}px at ${x} ${y}, #fff 0%, #fff 62%, transparent 100%)`;
-            const inverseCssMask = `radial-gradient(ellipse ${radiusX}px ${radiusY}px at ${x} ${y}, transparent 0%, transparent 62%, #fff 100%)`;
+            const maskLayers = [
+              `radial-gradient(ellipse ${radiusX}px ${radiusY}px at ${x} ${y}, #fff 0%, #fff 62%, transparent 100%)`
+            ];
+
+            // CSS gradients provide a low-cost mobile trail. It avoids canvas
+            // serialization while still letting the diseased layer follow the
+            // pointer with a soft, organic wake.
+            for (let i = points.length - 1; i >= 0; i--) {
+              const trail = points[i];
+              const trailRadius = Math.max(10, trail.r * (layerWidth / maskCanvas.width) * 0.68);
+              const trailX = `${(trail.x / maskCanvas.width) * 100}%`;
+              const trailY = `${(trail.y / maskCanvas.height) * 100}%`;
+              const trailAlpha = Math.max(0.12, Math.min(0.72, trail.alpha * 0.72));
+              maskLayers.push(
+                `radial-gradient(ellipse ${trailRadius}px ${trailRadius * 0.86}px at ${trailX} ${trailY}, rgba(255,255,255,${trailAlpha}) 0%, rgba(255,255,255,${trailAlpha * 0.68}) 58%, transparent 100%)`
+              );
+            }
+            const cssMask = maskLayers.join(', ');
             topLayerRef.current.style.maskImage = cssMask;
             topLayerRef.current.style.webkitMaskImage = cssMask;
+            topLayerRef.current.style.setProperty('mask-composite', 'add');
+            topLayerRef.current.style.setProperty('-webkit-mask-composite', 'source-over');
             topLayerRef.current.style.maskSize = '100% 100%';
             topLayerRef.current.style.webkitMaskSize = '100% 100%';
             topLayerRef.current.style.maskRepeat = 'no-repeat';
             topLayerRef.current.style.webkitMaskRepeat = 'no-repeat';
             topLayerRef.current.style.opacity = '1';
 
-            // Keep the healthy layer out of the reveal itself. Without this
-            // inverse mask, transparent gaps in the diseased flower show the
-            // healthy image beneath instead of reaching the dark site backdrop.
+            // A dark cutout sits between the healthy and diseased flowers.
+            // It hides the healthy layer under every head/trail lobe, so
+            // transparent disease holes reach the site background instead of
+            // revealing healthy petals underneath.
+            if (cutoutLayerRef.current) {
+              cutoutLayerRef.current.style.maskImage = cssMask;
+              cutoutLayerRef.current.style.webkitMaskImage = cssMask;
+              cutoutLayerRef.current.style.setProperty('mask-composite', 'add');
+              cutoutLayerRef.current.style.setProperty('-webkit-mask-composite', 'source-over');
+              cutoutLayerRef.current.style.maskSize = '100% 100%';
+              cutoutLayerRef.current.style.webkitMaskSize = '100% 100%';
+              cutoutLayerRef.current.style.maskRepeat = 'no-repeat';
+              cutoutLayerRef.current.style.webkitMaskRepeat = 'no-repeat';
+              cutoutLayerRef.current.style.opacity = '1';
+            }
             if (baseLayerRef.current) {
-              baseLayerRef.current.style.maskImage = inverseCssMask;
-              baseLayerRef.current.style.webkitMaskImage = inverseCssMask;
-              baseLayerRef.current.style.maskSize = '100% 100%';
-              baseLayerRef.current.style.webkitMaskSize = '100% 100%';
-              baseLayerRef.current.style.maskRepeat = 'no-repeat';
-              baseLayerRef.current.style.webkitMaskRepeat = 'no-repeat';
+              baseLayerRef.current.style.maskImage = 'none';
+              baseLayerRef.current.style.webkitMaskImage = 'none';
             }
           } else if (!useCssReveal && performance.now() - lastMaskUpload >= 32) {
             // Desktop keeps the richer organic trail, but uploads the mask at
@@ -609,6 +654,15 @@ export const PlantDocHeroStage: React.FC = () => {
                 decoding="async"
               />
             </div>
+
+            {/* Mobile/reduced-motion cutout: masks the healthy flower beneath
+                the complete fluid head and trail without extra canvas uploads. */}
+            <div
+              ref={cutoutLayerRef}
+              aria-hidden="true"
+              className="absolute inset-0 pointer-events-none bg-[#020604]"
+              style={{ opacity: 0 }}
+            />
 
             {/* Reveal Top Layer: Diseased Foliage (main_disease.webp) Morph Masked (100% 1:1 Cursor Centered) */}
             <div 
