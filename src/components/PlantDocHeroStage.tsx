@@ -208,7 +208,12 @@ export const PlantDocHeroStage: React.FC = () => {
       mousePos = { x: -9999, y: -9999 };
       lastX = -9999;
       lastY = -9999;
-      // Do not leave a stale disease mask on screen when the pointer exits.
+      // Hide the disease layer immediately on an invalid/outside pointer. The
+      // healthy layer can still ease back through its inverse mask, but a
+      // stale or not-yet-uploaded mask can never flash the full red flower.
+      if (topLayerRef.current) {
+        topLayerRef.current.style.opacity = '0';
+      }
       startLoop();
     };
 
@@ -608,7 +613,7 @@ export const PlantDocHeroStage: React.FC = () => {
             {/* Reveal Top Layer: Diseased Foliage (main_disease.webp) Morph Masked (100% 1:1 Cursor Centered) */}
             <div 
               ref={topLayerRef}
-              className="absolute inset-0 w-full h-full flex items-start justify-center pointer-events-none transition-opacity duration-150 will-change-[mask-image,opacity]"
+              className="absolute inset-0 w-full h-full flex items-start justify-center pointer-events-none will-change-[mask-image,opacity]"
               style={{ opacity: 0 }}
             >
               <img 
