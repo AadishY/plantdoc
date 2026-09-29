@@ -17,6 +17,10 @@ const TRAIL_NOISE_AMP = 12; // Soft organic ripple
 const TRAIL_BLOB_PTS = 28; // High-precision smooth polygon
 const TRAIL_FADE_SPEED = 0.94; // Gentle trailing decay
 const TRAIL_SAMPLE_DIST = 4;
+const REVEAL_RELEASE_DELAY_MS = 180; // Let the last organic wake linger before it recedes
+const REVEAL_MASK_UPLOAD_INTERVAL_MS = 32; // Keep desktop mask work near 30fps without reducing pointer easing
+const REVEAL_CSS_UPDATE_INTERVAL_MS = 20;
+const FLOWER_ALPHA_THRESHOLD = 18;
 
 export const PlantDocHeroStage: React.FC = () => {
   const stageRef = useRef<HTMLDivElement>(null);
@@ -33,9 +37,17 @@ export const PlantDocHeroStage: React.FC = () => {
     const invCtx = invCanvas.getContext('2d');
     if (!ctx) return;
 
+    const isMobileDevice = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768;
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // Keep touch devices on the capped CSS mask path. It avoids per-frame
+    // canvas serialization on Android while still allowing the final wake to
+    // fade naturally after the pointer leaves the flower.
+    const useCssReveal = isMobileDevice || prefersReducedMotion;
+    let lastMaskUpload = 0;
     const points: TrailPoint[] = [];
     let headRadius = 0;
     let time = 0;
+    let previousFrameTime = performance.now();
     let animFrameId: number;
     let hovering = false;
     let lastX = -9999;
@@ -43,13 +55,23 @@ export const PlantDocHeroStage: React.FC = () => {
     let mousePos = { x: -9999, y: -9999 };
     let smoothX = -9999;
     let smoothY = -9999;
+    let layerWidth = 1;
+    let releaseAt = 0;
+    let releaseScheduled = false;
+    let lastCssMaskUpdate = -Infinity;
+    let flowerAlphaData: Uint8ClampedArray | null = null;
+    let flowerAlphaWidth = 0;
+    let flowerAlphaHeight = 0;
+    let geometryDirty = true;
+    let cachedLayerRect: DOMRect | null = null;
+    let cachedImageRect: DOMRect | null = null;
 
     // Size internal canvas with adaptive downscale (3x on mobile, 2x on desktop) for 900% faster frame serialization
     const updateCanvasSize = () => {
       if (!topLayerRef.current) return;
       const rect = topLayerRef.current.getBoundingClientRect();
-      const isMobile = window.innerWidth < 768;
-      const scaleFactor = isMobile ? 3 : 2;
+      layerWidth = Math.max(1, rect.width);
+      const scaleFactor = isMobileDevice ? 3 : 2;
       const w = Math.max(50, Math.round(rect.width / scaleFactor));
       const h = Math.max(50, Math.round(rect.height / scaleFactor));
       maskCanvas.width = w;
@@ -59,8 +81,35 @@ export const PlantDocHeroStage: React.FC = () => {
     };
 
     updateCanvasSize();
+
+    // Use the healthy flower's alpha channel as a cheap hit test. The image
+    // has transparent padding, so bounding-box checks alone can start a red
+    // reveal while the pointer is over empty space around the flower.
+    const alphaCanvas = document.createElement('canvas');
+    const alphaContext = alphaCanvas.getContext('2d', { willReadFrequently: true });
+    const flowerImage = baseLayerRef.current?.querySelector('img');
+    const refreshFlowerAlpha = () => {
+      if (!alphaContext || !flowerImage?.complete || !flowerImage.naturalWidth || !flowerImage.naturalHeight) return;
+      try {
+        alphaCanvas.width = flowerImage.naturalWidth;
+        alphaCanvas.height = flowerImage.naturalHeight;
+        alphaContext.clearRect(0, 0, alphaCanvas.width, alphaCanvas.height);
+        alphaContext.drawImage(flowerImage, 0, 0, alphaCanvas.width, alphaCanvas.height);
+        flowerAlphaData = alphaContext.getImageData(0, 0, alphaCanvas.width, alphaCanvas.height).data;
+        flowerAlphaWidth = alphaCanvas.width;
+        flowerAlphaHeight = alphaCanvas.height;
+      } catch {
+        // If a browser blocks pixel reads, fail closed rather than revealing
+        // the entire disease layer outside the visible flower.
+        flowerAlphaData = null;
+      }
+    };
+    refreshFlowerAlpha();
+    flowerImage?.addEventListener('load', refreshFlowerAlpha);
+
     let resizeTimer: any;
     const debouncedResize = () => {
+      geometryDirty = true;
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(updateCanvasSize, 100);
     };
@@ -119,115 +168,157 @@ export const PlantDocHeroStage: React.FC = () => {
       }
     };
 
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!topLayerRef.current) return;
-      const rect = topLayerRef.current.getBoundingClientRect();
-      
-      const screenX = e.clientX - rect.left;
-      const screenY = e.clientY - rect.top;
+    const getFlowerPoint = (clientX: number, clientY: number): { x: number; y: number } | null => {
+      const layer = topLayerRef.current;
+      const image = flowerImage;
+      if (!layer || !image || !flowerAlphaData || !flowerAlphaWidth || !flowerAlphaHeight) return null;
 
-      if (screenX >= -20 && screenX <= rect.width + 20 && screenY >= -20 && screenY <= rect.height + 20) {
-        const x = (screenX / rect.width) * maskCanvas.width;
-        const y = (screenY / rect.height) * maskCanvas.height;
-        mousePos = { x, y };
-        hovering = true;
-        startLoop();
-      } else {
-        hovering = false;
+      if (geometryDirty || !cachedLayerRect || !cachedImageRect) {
+        cachedLayerRect = layer.getBoundingClientRect();
+        cachedImageRect = image.getBoundingClientRect();
+        geometryDirty = false;
       }
+      const layerRect = cachedLayerRect;
+      const imageRect = cachedImageRect;
+      const boxX = clientX - imageRect.left;
+      const boxY = clientY - imageRect.top;
+      if (boxX < 0 || boxY < 0 || boxX > imageRect.width || boxY > imageRect.height) return null;
+
+      // The image uses object-contain/object-top. Recreate that mapping before
+      // sampling the source alpha bitmap, including letterboxed side padding.
+      const scale = Math.min(imageRect.width / flowerAlphaWidth, imageRect.height / flowerAlphaHeight);
+      const drawnWidth = flowerAlphaWidth * scale;
+      const imageX = (imageRect.width - drawnWidth) / 2;
+      const imageY = 0;
+      const sourceX = Math.floor((boxX - imageX) / scale);
+      const sourceY = Math.floor((boxY - imageY) / scale);
+      if (sourceX < 0 || sourceY < 0 || sourceX >= flowerAlphaWidth || sourceY >= flowerAlphaHeight) return null;
+
+      // Sample a tiny neighborhood to keep anti-aliased petal edges from
+      // toggling the reveal on/off and producing a visible shimmer.
+      let maxAlpha = 0;
+      for (let offsetY = -2; offsetY <= 2; offsetY++) {
+        for (let offsetX = -2; offsetX <= 2; offsetX++) {
+          const sampleX = Math.min(flowerAlphaWidth - 1, Math.max(0, sourceX + offsetX));
+          const sampleY = Math.min(flowerAlphaHeight - 1, Math.max(0, sourceY + offsetY));
+          maxAlpha = Math.max(maxAlpha, flowerAlphaData[(sampleY * flowerAlphaWidth + sampleX) * 4 + 3]);
+        }
+      }
+      if (maxAlpha < FLOWER_ALPHA_THRESHOLD) return null;
+
+      return {
+        x: ((clientX - layerRect.left) / Math.max(1, layerRect.width)) * maskCanvas.width,
+        y: ((clientY - layerRect.top) / Math.max(1, layerRect.height)) * maskCanvas.height,
+      };
     };
 
-    const handleMouseEnter = (e: MouseEvent) => {
-      if (!topLayerRef.current) return;
-      const rect = topLayerRef.current.getBoundingClientRect();
-      const screenX = e.clientX - rect.left;
-      const screenY = e.clientY - rect.top;
-      mousePos = { 
-        x: (screenX / rect.width) * maskCanvas.width, 
-        y: (screenY / rect.height) * maskCanvas.height 
-      };
+    const beginReveal = (point: { x: number; y: number }) => {
+      mousePos = point;
       hovering = true;
+      releaseScheduled = false;
+      releaseAt = 0;
       startLoop();
     };
 
-    const handleMouseLeave = () => {
+    const beginRelease = () => {
+      const isActive = hovering || headRadius > 0.5 || points.length > 0;
+      if (isActive && !releaseScheduled) {
+        releaseScheduled = true;
+        releaseAt = performance.now() + REVEAL_RELEASE_DELAY_MS;
+      }
       hovering = false;
+      mousePos = { x: -9999, y: -9999 };
       lastX = -9999;
       lastY = -9999;
+      // Do not clear either layer here. The render loop keeps the last mask
+      // alive while the head eases down and the organic wake decays, so an
+      // exit feels like a soft release instead of an instant erase. The final
+      // idle frame clears both masks safely once no reveal pixels remain.
+      startLoop();
     };
+
+    const updateMouseReveal = (clientX: number, clientY: number) => {
+      const point = getFlowerPoint(clientX, clientY);
+      if (point) {
+        beginReveal(point);
+      } else {
+        beginRelease();
+      }
+    };
+
+    const handleMouseMove = (e: MouseEvent) => updateMouseReveal(e.clientX, e.clientY);
+    const handleMouseEnter = (e: MouseEvent) => updateMouseReveal(e.clientX, e.clientY);
+    const handleMouseLeave = () => beginRelease();
 
     let touchStartX = 0;
     let touchStartY = 0;
     let isVerticalSwipe = false;
+    let touchRevealActive = false;
 
     const handleTouchStart = (e: TouchEvent) => {
-      if (!topLayerRef.current || e.touches.length === 0) return;
+      if (e.touches.length === 0) return;
       const touch = e.touches[0];
       touchStartX = touch.clientX;
       touchStartY = touch.clientY;
       isVerticalSwipe = false;
-
-      const rect = topLayerRef.current.getBoundingClientRect();
-      const screenX = touch.clientX - rect.left;
-      const screenY = touch.clientY - rect.top;
-      mousePos = { 
-        x: (screenX / rect.width) * maskCanvas.width, 
-        y: (screenY / rect.height) * maskCanvas.height 
-      };
-      smoothX = mousePos.x;
-      smoothY = mousePos.y;
-      hovering = true;
-      startLoop();
+      const point = getFlowerPoint(touch.clientX, touch.clientY);
+      touchRevealActive = Boolean(point);
+      if (!point) {
+        beginRelease();
+        return; // A touch outside the flower remains a native scroll gesture.
+      }
+      mousePos = point;
+      smoothX = point.x;
+      smoothY = point.y;
+      beginReveal(point);
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (!topLayerRef.current || e.touches.length === 0) return;
+      if (!touchRevealActive || e.touches.length === 0) return;
       const touch = e.touches[0];
 
-      // Yield to native scroll for clear vertical swipes
+      // Yield to native scroll for clear vertical swipes.
       const deltaX = Math.abs(touch.clientX - touchStartX);
       const deltaY = Math.abs(touch.clientY - touchStartY);
       if (deltaY > 22 && deltaY > deltaX * 1.8) {
         isVerticalSwipe = true;
-        hovering = false;
-        return; // Let native scroll handle this
+        touchRevealActive = false;
+        beginRelease();
+        return;
       }
-
       if (isVerticalSwipe) return;
 
-      // Horizontal / reveal drag: prevent page scroll so finger controls the reveal
-      e.preventDefault();
-
-      const rect = topLayerRef.current.getBoundingClientRect();
-      const screenX = touch.clientX - rect.left;
-      const screenY = touch.clientY - rect.top;
-
-      if (screenX >= -40 && screenX <= rect.width + 40 && screenY >= -40 && screenY <= rect.height + 40) {
-        const x = (screenX / rect.width) * maskCanvas.width;
-        const y = (screenY / rect.height) * maskCanvas.height;
-        mousePos = { x, y };
-        // Seed smooth position immediately on first move to eliminate "catch-up" lag
-        if (smoothX === -9999 || smoothY === -9999) {
-          smoothX = x;
-          smoothY = y;
-        }
-        hovering = true;
-        startLoop();
+      const point = getFlowerPoint(touch.clientX, touch.clientY);
+      if (!point) {
+        touchRevealActive = false;
+        beginRelease();
+        return;
       }
+
+      // Horizontal / reveal drag: prevent page scroll only after we know the
+      // gesture started on the flower and is not a vertical page swipe.
+      e.preventDefault();
+      mousePos = point;
+      if (smoothX === -9999 || smoothY === -9999) {
+        smoothX = point.x;
+        smoothY = point.y;
+      }
+      beginReveal(point);
     };
 
     const handleTouchEnd = () => {
+      touchRevealActive = false;
       hovering = false;
       isVerticalSwipe = false;
-      lastX = -9999;
-      lastY = -9999;
+      beginRelease();
     };
 
     const handleWindowScroll = () => {
-      if (window.scrollY > 20 && hovering) {
-        hovering = false;
-        stopLoop();
-      }
+      // Scroll changes the image's viewport rect, so refresh the hit-test
+      // geometry once on the next pointer event instead of reading layout on
+      // every mousemove.
+      geometryDirty = true;
+      if (hovering) beginRelease();
     };
     window.addEventListener('scroll', handleWindowScroll, { passive: true });
 
@@ -282,7 +373,6 @@ export const PlantDocHeroStage: React.FC = () => {
       observer.observe(stage);
     }
 
-    const isMobileDevice = typeof window !== 'undefined' && window.innerWidth < 768;
     const scaledHeadR = isMobileDevice ? TRAIL_HEAD_R * 0.55 : TRAIL_HEAD_R * 0.64;
 
     let wasIdle = false;
@@ -293,9 +383,17 @@ export const PlantDocHeroStage: React.FC = () => {
         return;
       }
 
-      time += 0.016;
-      const targetR = hovering ? scaledHeadR : 0;
-      headRadius += (targetR - headRadius) * (hovering ? 0.32 : 0.12);
+      const now = performance.now();
+      // Normalize animation work to elapsed time so the reveal has the same
+      // feel on 30fps Android, 60fps laptops, and 120fps desktop displays.
+      const elapsedSeconds = Math.min(0.05, Math.max(0, (now - previousFrameTime) / 1000));
+      const frameScale = Math.min(3, Math.max(0.5, elapsedSeconds * 60));
+      time += elapsedSeconds;
+      previousFrameTime = now;
+      const holdingRelease = !hovering && releaseScheduled && now < releaseAt;
+      const targetR = hovering ? scaledHeadR : holdingRelease ? headRadius : 0;
+      const headEase = 1 - Math.pow(hovering ? 0.80 : 0.90, frameScale);
+      headRadius += (targetR - headRadius) * headEase;
 
       // Ultra-smooth spring cursor interpolation
       if (hovering && mousePos.x !== -9999) {
@@ -304,21 +402,23 @@ export const PlantDocHeroStage: React.FC = () => {
           smoothX = mousePos.x;
           smoothY = mousePos.y;
         } else {
-          smoothX += (mousePos.x - smoothX) * 0.36;
-          smoothY += (mousePos.y - smoothY) * 0.36;
+          const pointerEase = 1 - Math.pow(0.64, frameScale);
+          smoothX += (mousePos.x - smoothX) * pointerEase;
+          smoothY += (mousePos.y - smoothY) * pointerEase;
         }
 
         // Add trailing points with fluid spacing
         const dist = Math.hypot(smoothX - lastX, smoothY - lastY);
-        if (dist >= 3.5 && headRadius > 2) {
+        const trailSampleDistance = useCssReveal ? 6 : (isMobileDevice ? TRAIL_SAMPLE_DIST * 2 : 3.5);
+        if (dist >= trailSampleDistance && headRadius > 2) {
           points.push({
             x: smoothX,
             y: smoothY,
-            r: headRadius * 0.90,
-            alpha: 0.96,
+            r: headRadius * (useCssReveal ? 0.78 : 0.90),
+            alpha: useCssReveal ? 0.78 : 0.96,
             seed: Math.random() * 100
           });
-          const maxPoints = isMobileDevice ? 65 : TRAIL_MAX_POINTS;
+          const maxPoints = useCssReveal ? 12 : (isMobileDevice ? 14 : TRAIL_MAX_POINTS);
           if (points.length > maxPoints) {
             points.shift();
           }
@@ -327,26 +427,37 @@ export const PlantDocHeroStage: React.FC = () => {
         }
       }
 
-      // In-place decay: 0 garbage collection allocations per frame!
-      // Slightly extended linger wake on mobile touch for richer visibility; crisp decay on PC
-      const fadeSpeed = isMobileDevice ? 0.962 : TRAIL_FADE_SPEED;
+      // In-place decay: 0 garbage collection allocations per frame. Exponent
+      // scaling keeps the wake duration stable across different refresh rates.
+      const fadeSpeed = isMobileDevice ? 0.972 : TRAIL_FADE_SPEED;
       const radiusDecay = isMobileDevice ? 0.996 : 0.994;
+      const frameFade = Math.pow(fadeSpeed, frameScale);
+      const frameRadiusDecay = Math.pow(radiusDecay, frameScale);
 
       for (let i = points.length - 1; i >= 0; i--) {
         const p = points[i];
-        p.alpha *= fadeSpeed;
-        p.r *= radiusDecay;
+        p.alpha *= frameFade;
+        p.r *= frameRadiusDecay;
         if (p.alpha <= 0.01 || p.r <= 1) {
           points.splice(i, 1);
         }
       }
 
+      // Keep the layer visible for the complete release animation. Opacity is
+      // only cleared by the idle branch below, after both head and trail have
+      // naturally faded away.
+      const hasReveal = hovering || headRadius > 0.5 || points.length > 0;
+
       if (maskCanvas.width > 0 && maskCanvas.height > 0) {
         if (points.length === 0 && !hovering && headRadius < 0.5) {
           if (!wasIdle) {
             wasIdle = true;
+            releaseScheduled = false;
+            releaseAt = 0;
             if (topLayerRef.current) {
               topLayerRef.current.style.opacity = '0';
+              topLayerRef.current.style.maskImage = 'none';
+              topLayerRef.current.style.webkitMaskImage = 'none';
             }
             if (baseLayerRef.current) {
               baseLayerRef.current.style.maskImage = 'none';
@@ -357,48 +468,117 @@ export const PlantDocHeroStage: React.FC = () => {
           return;
         } else {
           wasIdle = false;
-          ctx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
 
-          // 1. Draw decaying trailing morph blobs with feathered transparency
-          for (let i = 0; i < points.length; i++) {
-            const p = points[i];
-            drawMorphBlob(ctx, p.x, p.y, p.r, time, p.seed, p.alpha);
-          }
+          // Touch devices use a native CSS radial mask. It produces the same
+          // healthy-to-diseased reveal without serializing a canvas to a new
+          // data URL on every frame (a particularly expensive Android path).
+          if (useCssReveal && topLayerRef.current && smoothX !== -9999 && now - lastCssMaskUpdate >= REVEAL_CSS_UPDATE_INTERVAL_MS) {
+            lastCssMaskUpdate = now;
+            // Let the reveal grow from the pointer instead of appearing as a
+            // pre-sized circle on the first frame.
+            const radiusPx = Math.max(4, headRadius * (layerWidth / maskCanvas.width));
+            // Keep the Android-friendly CSS path light while making the head
+            // and its short trail share one stable, fluid mask.
+            const radiusX = radiusPx * (prefersReducedMotion ? 1 : 1 + Math.sin(time * 1.7 + 0.8) * 0.025);
+            const radiusY = radiusPx * (prefersReducedMotion ? 1 : 1 + Math.cos(time * 1.35 - 0.3) * 0.032);
+            const x = `${(smoothX / maskCanvas.width) * 100}%`;
+            const y = `${(smoothY / maskCanvas.height) * 100}%`;
+            const screenToCanvas = maskCanvas.width / Math.max(1, layerWidth);
+            const lobeOffsetX = prefersReducedMotion ? 0 : Math.sin(time * 1.25) * radiusPx * 0.08;
+            const lobeOffsetY = prefersReducedMotion ? 0 : Math.cos(time * 1.05) * radiusPx * 0.06;
+            const lobeX = `${((smoothX + lobeOffsetX * screenToCanvas) / maskCanvas.width) * 100}%`;
+            const lobeY = `${((smoothY + lobeOffsetY * screenToCanvas) / maskCanvas.height) * 100}%`;
+            const maskLayers = [
+              `radial-gradient(ellipse ${radiusX}px ${radiusY}px at ${x} ${y}, #fff 0%, #fff 62%, transparent 100%)`,
+              `radial-gradient(ellipse ${radiusX * 0.46}px ${radiusY * 0.58}px at ${lobeX} ${lobeY}, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0.42) 55%, transparent 100%)`
+            ];
 
-          // 2. Draw persistent active head morph blob with feathered transparency
-          if (hovering && headRadius > 1 && smoothX !== -9999) {
-            drawMorphBlob(ctx, smoothX, smoothY, headRadius, time, 42, 1.0);
-          }
-
-          const dataUrl = maskCanvas.toDataURL();
-
-          // Apply real-time canvas mask to top pathology layer (reveals diseased plant)
-          if (topLayerRef.current) {
-            topLayerRef.current.style.maskImage = `url(${dataUrl})`;
-            topLayerRef.current.style.webkitMaskImage = `url(${dataUrl})`;
+            // CSS gradients provide a low-cost mobile trail. It avoids canvas
+            // serialization while still letting the diseased layer follow the
+            // pointer with a soft, organic wake.
+            for (let i = points.length - 1; i >= 0; i--) {
+              const trail = points[i];
+              const trailRadius = Math.max(10, trail.r * (layerWidth / maskCanvas.width) * 0.68);
+              const trailX = `${(trail.x / maskCanvas.width) * 100}%`;
+              const trailY = `${(trail.y / maskCanvas.height) * 100}%`;
+              const trailAlpha = Math.max(0.12, Math.min(0.72, trail.alpha * 0.72));
+              maskLayers.push(
+                `radial-gradient(ellipse ${trailRadius}px ${trailRadius * 0.86}px at ${trailX} ${trailY}, rgba(255,255,255,${trailAlpha}) 0%, rgba(255,255,255,${trailAlpha * 0.68}) 58%, transparent 100%)`
+              );
+            }
+            const cssMask = maskLayers.join(', ');
+            topLayerRef.current.style.maskImage = cssMask;
+            topLayerRef.current.style.webkitMaskImage = cssMask;
+            topLayerRef.current.style.setProperty('mask-composite', 'add');
+            topLayerRef.current.style.setProperty('-webkit-mask-composite', 'source-over');
             topLayerRef.current.style.maskSize = '100% 100%';
             topLayerRef.current.style.webkitMaskSize = '100% 100%';
             topLayerRef.current.style.maskRepeat = 'no-repeat';
             topLayerRef.current.style.webkitMaskRepeat = 'no-repeat';
-            topLayerRef.current.style.opacity = '1';
-          }
+            topLayerRef.current.style.opacity = hasReveal ? '1' : '0';
 
-          // Apply inverse mask to base layer (cuts out healthy flower under cursor so necrotic holes show background)
-          if (invCtx && baseLayerRef.current) {
-            invCtx.clearRect(0, 0, invCanvas.width, invCanvas.height);
-            invCtx.fillStyle = '#ffffff';
-            invCtx.fillRect(0, 0, invCanvas.width, invCanvas.height);
-            invCtx.globalCompositeOperation = 'destination-out';
-            invCtx.drawImage(maskCanvas, 0, 0);
-            invCtx.globalCompositeOperation = 'source-over';
+            // The healthy layer uses the inverse of the primary head mask.
+            // This keeps the transparent center of the main reveal clean while
+            // the extra gradient lobes create a lightweight morph trail.
+            const inverseCssMask = `radial-gradient(ellipse ${radiusX}px ${radiusY}px at ${x} ${y}, transparent 0%, transparent 62%, #fff 100%)`;
+            if (baseLayerRef.current && hasReveal) {
+              baseLayerRef.current.style.maskImage = inverseCssMask;
+              baseLayerRef.current.style.webkitMaskImage = inverseCssMask;
+              baseLayerRef.current.style.maskSize = '100% 100%';
+              baseLayerRef.current.style.webkitMaskSize = '100% 100%';
+              baseLayerRef.current.style.maskRepeat = 'no-repeat';
+              baseLayerRef.current.style.webkitMaskRepeat = 'no-repeat';
+            }
+          } else if (!useCssReveal && now - lastMaskUpload >= REVEAL_MASK_UPLOAD_INTERVAL_MS) {
+            // Desktop keeps the richer organic trail, but redraws and uploads
+            // the mask at 30fps instead of doing the expensive work every RAF.
+            lastMaskUpload = now;
+            ctx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
 
-            const invDataUrl = invCanvas.toDataURL();
-            baseLayerRef.current.style.maskImage = `url(${invDataUrl})`;
-            baseLayerRef.current.style.webkitMaskImage = `url(${invDataUrl})`;
-            baseLayerRef.current.style.maskSize = '100% 100%';
-            baseLayerRef.current.style.webkitMaskSize = '100% 100%';
-            baseLayerRef.current.style.maskRepeat = 'no-repeat';
-            baseLayerRef.current.style.webkitMaskRepeat = 'no-repeat';
+            // 1. Draw decaying trailing morph blobs with feathered transparency.
+            for (let i = 0; i < points.length; i++) {
+              const p = points[i];
+              drawMorphBlob(ctx, p.x, p.y, p.r, time, p.seed, p.alpha);
+            }
+
+            // 2. Keep drawing the head while it releases so a pointer exit
+            // eases down from the last shape instead of dropping a frame.
+            if (headRadius > 1 && smoothX !== -9999) {
+              drawMorphBlob(ctx, smoothX, smoothY, headRadius, time, 42, 1.0);
+            }
+
+            const dataUrl = maskCanvas.toDataURL();
+
+            if (topLayerRef.current) {
+              topLayerRef.current.style.maskImage = `url(${dataUrl})`;
+              topLayerRef.current.style.webkitMaskImage = `url(${dataUrl})`;
+              topLayerRef.current.style.maskSize = '100% 100%';
+              topLayerRef.current.style.webkitMaskSize = '100% 100%';
+              topLayerRef.current.style.maskRepeat = 'no-repeat';
+              topLayerRef.current.style.webkitMaskRepeat = 'no-repeat';
+              topLayerRef.current.style.opacity = hasReveal ? '1' : '0';
+            }
+
+            // The inverse mask keeps the healthy layer from doubling beneath
+            // the pathology layer on fine-pointer desktop displays.
+            if (invCtx && baseLayerRef.current) {
+              invCtx.clearRect(0, 0, invCanvas.width, invCanvas.height);
+              invCtx.fillStyle = '#ffffff';
+              invCtx.fillRect(0, 0, invCanvas.width, invCanvas.height);
+              invCtx.globalCompositeOperation = 'destination-out';
+              invCtx.drawImage(maskCanvas, 0, 0);
+              invCtx.globalCompositeOperation = 'source-over';
+
+              if (hasReveal) {
+                const invDataUrl = invCanvas.toDataURL();
+                baseLayerRef.current.style.maskImage = `url(${invDataUrl})`;
+                baseLayerRef.current.style.webkitMaskImage = `url(${invDataUrl})`;
+                baseLayerRef.current.style.maskSize = '100% 100%';
+                baseLayerRef.current.style.webkitMaskSize = '100% 100%';
+                baseLayerRef.current.style.maskRepeat = 'no-repeat';
+                baseLayerRef.current.style.webkitMaskRepeat = 'no-repeat';
+              }
+            }
           }
         }
       }
@@ -413,6 +593,7 @@ export const PlantDocHeroStage: React.FC = () => {
       window.removeEventListener('scroll', handleWindowScroll);
       clearTimeout(resizeTimer);
       window.removeEventListener('resize', debouncedResize);
+      flowerImage?.removeEventListener('load', refreshFlowerAlpha);
       document.removeEventListener('visibilitychange', handleVisibility);
       if (observer && stage) {
         observer.unobserve(stage);
@@ -480,7 +661,6 @@ export const PlantDocHeroStage: React.FC = () => {
         >
           {/* Synchronized Transformed Image Layer Wrapper */}
           <div className="relative w-full h-full flex items-start justify-center pointer-events-none transform scale-[1.18] translate-y-[22%] sm:scale-[1.08] sm:translate-y-[15%]">
-            
             {/* Base Layer: Front Healthy Foliage (main.webp) with dynamic inverse mask */}
             <div 
               ref={baseLayerRef}
@@ -491,6 +671,7 @@ export const PlantDocHeroStage: React.FC = () => {
                 alt="Healthy botanical specimen with vibrant green chlorophyll leaf structure"
                 className="w-full h-full object-contain object-top filter drop-shadow-[0_25px_60px_rgba(0,0,0,0.9)] mx-auto block"
                 loading="eager"
+                fetchPriority="high"
                 decoding="async"
               />
             </div>
@@ -498,14 +679,15 @@ export const PlantDocHeroStage: React.FC = () => {
             {/* Reveal Top Layer: Diseased Foliage (main_disease.webp) Morph Masked (100% 1:1 Cursor Centered) */}
             <div 
               ref={topLayerRef}
-              className="absolute inset-0 w-full h-full flex items-start justify-center pointer-events-none transition-opacity duration-150 will-change-[mask-image,opacity]"
+              className="absolute inset-0 w-full h-full flex items-start justify-center pointer-events-none will-change-[mask-image,opacity]"
               style={{ opacity: 0 }}
             >
               <img 
                 src="/main_disease.webp" 
                 alt="Diseased botanical specimen displaying foliar lesions and chlorosis under AI vision inspection"
                 className="w-full h-full object-contain object-top filter brightness-[1.03] contrast-[1.08] saturate-[1.14] drop-shadow-[0_25px_60px_rgba(0,0,0,0.9)] mx-auto block"
-                loading="eager"
+                loading="lazy"
+                fetchPriority="low"
                 decoding="async"
               />
             </div>
@@ -515,6 +697,12 @@ export const PlantDocHeroStage: React.FC = () => {
 
       {/* Spacer to push foreground controls to the bottom */}
       <div className="flex-1" />
+
+      {/* A compact, readable promise for narrow screens where the corner copy is hidden. */}
+      <div className="relative z-30 mx-auto mb-2 flex items-center gap-2 rounded-full border border-white/15 bg-black/50 px-3 py-1.5 text-[10px] font-medium tracking-wide text-white/75 backdrop-blur-md sm:hidden">
+        <span className="h-1.5 w-1.5 rounded-full bg-[#2DD4BF] shadow-[0_0_10px_#2DD4BF]" aria-hidden="true" />
+        AI leaf disease diagnosis · photo-first guidance
+      </div>
 
       {/* Two Elevated Action Buttons (Pushed to left & right with wide central gap) */}
       <div className="relative z-30 flex flex-row items-center justify-between w-full max-w-[320px] sm:max-w-[500px] md:max-w-[560px] mx-auto mb-2 sm:mb-3 pb-0.5 px-1 pointer-events-auto">

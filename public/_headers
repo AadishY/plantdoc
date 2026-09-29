@@ -1,25 +1,43 @@
-# Cloudflare Pages Dynamic and Static Caching Configuration
+# Cloudflare Pages caching and security headers
 
-# Static Fingerprinted Assets (1 year immutable cache)
+# Fingerprinted Vite assets can be cached indefinitely.
 /assets/*
-  Cache-Control: public, max-age=31536000, immutable
+  Cache-Control: public, max-age=31536000, immutable, stale-if-error=86400
   X-Content-Type-Options: nosniff
 
-# Botanical Specimen Images & Media (7 days cache with stale-while-revalidate)
+# Root media and icons are not fingerprinted; refresh them periodically.
 /*.webp
-  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400, stale-if-error=604800
   Access-Control-Allow-Origin: *
 
 /*.png
-  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400, stale-if-error=604800
+  Access-Control-Allow-Origin: *
 
 /*.jpg
-  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400, stale-if-error=604800
+  Access-Control-Allow-Origin: *
+
+/*.jpeg
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400, stale-if-error=604800
+  Access-Control-Allow-Origin: *
 
 /*.svg
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400, stale-if-error=604800
+  X-Content-Type-Options: nosniff
+
+/favicon.ico
   Cache-Control: public, max-age=604800, stale-while-revalidate=86400
 
-# SEO Sitemaps and Robots
+# Machine-readable metadata should update without requiring a hard refresh.
+/site.webmanifest
+  Cache-Control: public, max-age=86400, stale-while-revalidate=43200
+  Content-Type: application/manifest+json
+
+/llms.txt
+  Cache-Control: public, max-age=86400, stale-while-revalidate=43200
+  Content-Type: text/plain; charset=utf-8
+
 /sitemap.xml
   Cache-Control: public, max-age=86400, stale-while-revalidate=43200
   Content-Type: application/xml; charset=utf-8
@@ -28,9 +46,10 @@
   Cache-Control: public, max-age=86400, stale-while-revalidate=43200
   Content-Type: text/plain; charset=utf-8
 
-# Dynamic SPA HTML Shell (always validate freshness, but allow fast 304s)
+# SPA HTML is always revalidated so titles, structured data, and new chunks are fresh.
 /*
-  Cache-Control: public, max-age=0, must-revalidate
+  Cache-Control: public, max-age=0, must-revalidate, stale-if-error=86400
+  CDN-Cache-Control: public, max-age=0, must-revalidate
   X-Content-Type-Options: nosniff
   X-Frame-Options: SAMEORIGIN
   Referrer-Policy: strict-origin-when-cross-origin

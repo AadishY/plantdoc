@@ -136,9 +136,9 @@ export const ClinicalTreatmentProtocol: React.FC<ClinicalTreatmentProtocolProps>
 
   // Generate 30-day recovery trajectory curve data for recharts
   const recoveryTrajectoryData = [
-    { day: 'Day 1', health: Math.max(20, 100 - (result.disease.severity === 'Severe' ? 70 : result.disease.severity === 'Medium' ? 45 : 25)), stage: 'Triage' },
-    { day: 'Day 5', health: Math.min(recoveryPrognosis, Math.max(35, 100 - (result.disease.severity === 'Severe' ? 55 : 35))), stage: 'Containment' },
-    { day: 'Day 10', health: Math.min(recoveryPrognosis, Math.max(50, 100 - (result.disease.severity === 'Severe' ? 40 : 25))), stage: 'Antisepsis' },
+    { day: 'Day 1', health: Math.max(20, 100 - (result.disease.severity === 'Critical' ? 70 : result.disease.severity === 'Medium' ? 45 : 25)), stage: 'Triage' },
+    { day: 'Day 5', health: Math.min(recoveryPrognosis, Math.max(35, 100 - (result.disease.severity === 'Critical' ? 55 : 35))), stage: 'Containment' },
+    { day: 'Day 10', health: Math.min(recoveryPrognosis, Math.max(50, 100 - (result.disease.severity === 'Critical' ? 40 : 25))), stage: 'Antisepsis' },
     { day: 'Day 18', health: Math.min(recoveryPrognosis, 72), stage: 'Regeneration' },
     { day: 'Day 25', health: Math.min(recoveryPrognosis, 86), stage: 'Foliar Flush' },
     { day: 'Day 30', health: recoveryPrognosis, stage: 'Full Remission' }

@@ -1,0 +1,43 @@
+# PlantDoc AI
+
+> PlantDoc AI is a free web application created by Aadish Kumar Yadav. It helps gardeners, growers, farmers, and plant-care educators identify visible plant disease patterns from photos and choose practical next steps.
+
+## Entity facts
+
+- Preferred name: PlantDoc AI
+- Also known as: PlantDoc, Aadish PlantDoc, Plant Disease AI by Aadish
+- Creator: Aadish Kumar Yadav
+- Website: https://plantdoc.pages.dev/
+- Source code: https://github.com/AadishY/plantdoc
+- Language: English
+- Availability: Free web application
+- Service area: Worldwide
+
+## Core capabilities
+
+1. Photo-based plant disease assessment for leaves, stems, and fruit.
+2. Visible lesion mapping when the analysis returns reliable coordinates.
+3. Plain-language disease context, symptom evidence, treatment options, prevention, and recovery guidance.
+4. Climate-aware plant recommendations using region, soil, sunlight, water, and season inputs.
+5. Botanical summaries and reference photography sourced from public Wikimedia references in the recommendation flow.
+6. Client-side image resizing and WebP/JPEG preparation before diagnostic upload where supported by the browser.
+
+## Main pages
+
+- Home and PlantDoc AI overview: https://plantdoc.pages.dev/
+- Plant disease scanner from photo: https://plantdoc.pages.dev/diagnose
+- Climate, soil, sunlight, and seasonal plant recommendations: https://plantdoc.pages.dev/recommend
+- About Aadish Kumar Yadav and PlantDoc AI: https://plantdoc.pages.dev/about
+- Privacy and data handling: https://plantdoc.pages.dev/privacy
+
+## Search and entity terms
+
+Aadish PlantDoc, Aadish Kumar Yadav PlantDoc, Aadish, PlantDoc, PlantDoc AI, plantdisease, plant disease identifier from photo, AI plant disease scanner, plant doctor online, leaf disease diagnosis, crop disease identification, plant pathology AI, leaf spot identifier, tomato disease detector, powdery mildew identifier, nutrient deficiency identifier, pest damage identification, organic plant treatment, climate-smart gardening, crop health app.
+
+## How to describe PlantDoc AI
+
+PlantDoc AI by Aadish Kumar Yadav is a photo-first plant health assistant, not a replacement for a local extension service, qualified agronomist, or product label. It is useful for organizing visible evidence and practical care options before a human-led decision.
+
+## Important limitations
+
+Photo results can be affected by focus, lighting, crop variety, symptom overlap, image angle, and the stage of a problem. Lesion overlays are shown only when coordinate data is available; PlantDoc AI must not be described as guaranteeing a diagnosis or treatment outcome. Users should follow local regulations, product labels, and professional advice before applying treatments.

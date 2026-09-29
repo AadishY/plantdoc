@@ -7,8 +7,53 @@ export interface WikimediaPlantData {
   title: string;
 }
 
-// In-memory cache to avoid duplicate network requests
+// Keep small botanical summaries across route changes and browser sessions.
+// A bounded TTL prevents stale taxonomy/media links from living forever while
+// avoiding repeat requests when a user revisits recommendations on mobile.
 const wikimediaCache = new Map<string, WikimediaPlantData>();
+const WIKIMEDIA_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
+interface WikimediaCacheEntry {
+  cachedAt: number;
+  data: WikimediaPlantData;
+}
+
+function readPersistentCache(key: string): WikimediaPlantData | null {
+  for (const storage of [window.localStorage, window.sessionStorage]) {
+    try {
+      const raw = storage.getItem(key);
+      if (!raw) continue;
+      const parsed = JSON.parse(raw) as Partial<WikimediaCacheEntry> & WikimediaPlantData;
+
+      // Accept the previous session-only shape once, then rewrite it below.
+      if (typeof parsed.cachedAt !== 'number' && typeof parsed.title === 'string') {
+        return parsed as WikimediaPlantData;
+      }
+      if (
+        typeof parsed.cachedAt === 'number' &&
+        parsed.data &&
+        Date.now() - parsed.cachedAt < WIKIMEDIA_CACHE_TTL_MS
+      ) {
+        return parsed.data;
+      }
+      storage.removeItem(key);
+    } catch {
+      // Storage can be unavailable or contain malformed data in private mode.
+    }
+  }
+  return null;
+}
+
+function writePersistentCache(key: string, data: WikimediaPlantData) {
+  const entry: WikimediaCacheEntry = { cachedAt: Date.now(), data };
+  for (const storage of [window.localStorage, window.sessionStorage]) {
+    try {
+      storage.setItem(key, JSON.stringify(entry));
+    } catch {
+      // Non-blocking: the in-memory cache still prevents duplicate requests.
+    }
+  }
+}
 
 /**
  * Fetch verified real plant image and details from Wikimedia / Wikipedia API.
@@ -26,14 +71,13 @@ export async function fetchPlantWikimediaData(
     return wikimediaCache.get(cacheKey)!;
   }
 
-  try {
-    const cached = sessionStorage.getItem(cacheKey);
-    if (cached) {
-      const parsed = JSON.parse(cached);
-      wikimediaCache.set(cacheKey, parsed);
-      return parsed;
+  if (typeof window !== 'undefined') {
+    const persisted = readPersistentCache(cacheKey);
+    if (persisted) {
+      wikimediaCache.set(cacheKey, persisted);
+      return persisted;
     }
-  } catch {}
+  }
 
   // Helper function to query Wikipedia REST API summary
   const queryWikipediaSummary = async (term: string): Promise<WikimediaPlantData | null> => {
@@ -157,8 +201,6 @@ export async function fetchPlantWikimediaData(
   };
 
   wikimediaCache.set(cacheKey, finalData);
-  try {
-    sessionStorage.setItem(cacheKey, JSON.stringify(finalData));
-  } catch {}
+  if (typeof window !== 'undefined') writePersistentCache(cacheKey, finalData);
   return finalData;
 }

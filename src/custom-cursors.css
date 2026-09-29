@@ -52,15 +52,21 @@
 
 @media (pointer: fine) {
   /* 🚀 1. Normal Default Cursor: Among Us Walking Crewmates (32px Animated) */
-  *,
-  *::before,
-  *::after,
+  /*
+   * Keep one animation timeline for the normal cursor. Applying this animation
+   * to every descendant made it restart whenever the pointer crossed a child
+   * node, which looked like a speed-up on dense pages. Normal descendants
+   * inherit the already-running root cursor; only intentional cursor states
+   * below replace it.
+   */
   html,
-  body,
-  .cursor-default,
-  .cursor-default * {
+  body {
     cursor: url("data:image/webp;base64,UklGRtAEAABXRUJQVlA4TMQEAAAvH8AHEBVJ0f9/nZTfusvI39bdd8fWfbftQ/RkjagXIDuNA1iyE7i7u2UOwEPy/3eEG/yW9EfzVNw5gn7bStuI9s24w+AudSoNGg/ncHdJTtsGUZIk09Zc2zb36Nr3vrN7nu33q+8HbNu2bcG5be2Y84xt2/aUQWlUY1uxbdu2Udr5WWkzbGvbltHPr0QP6pG95qSWfCaceXsCWJShl4IEIAkAAyksqfhlIEAAggBcroDjblBz00rBbloZN42IDcBHADY9s/7+/fjxAyIAA3KBShntz3S1h+Ck2mMasg7RkCJJopQAVOcdRBiuBgs/Kiyp9kgRrOZXJFTmcf4qSq3GebOeIkmilFK0l9Eo2R6hmRE6YUORCq9Iqj+XXH9u165da5IbLuT3/YrnFyBCRZJEKUUbEZKHvZwy6BZdmBJbmqXGq6wJlTkyq4OXxQKUWezc9Ep6iiSJimzEWAzKC0wOSqrZpSZrEvglGrJhCxp4XiRJEgVsxBiKUIRfrJ0Wr1HjNckNl9zsDo5SsjZrdJ0XaTos0XxtP8s04h1lqqRoiqTo9bK6IoAEYKcgAagJQF9eLtIJ2+JKk+Ir87wVfIqXP/2mmUaPs4yYYLk5eIhtxi3W7F8w+wc8nf0NWv0iBQNwBkgC0AEEYEREPP7SktZ0h/VXwEo3WA2PiHrOMA2YYuk/xfThQ79Jpn4TTIWFXQa4pl0QzAaQKypC0XmXP2TKbE7eZrNj9lIiGxHKS0ta0y3OXwkLbnHqHRMB4p6jHBN3yKbf4qT9IADoadDIaHuU0ngtt/uLh1EHX1rSmx8o3GWw8gVK432yUWNME0bZxo+ywGMnWCYNcs3sR0q+x4DcdQrJDeeiChNCs+OcNUL40pJUeygs1cof+YQDl+YZrck2WastqpZbFHDrDYpGh0R1zgiYb4TzgIdOIaPlXki6jyyUZK/kwJcWDV6hrdmT2fGK6PiwxgVerXOCmud48P2gDzQC4AoFnNRCQakhAl3AM20cVFz40qIl64rUZF1ktldoLIf5xWC+ikDmC2wVvpDcfhHMBCAgRyUXRzVjoikC1wFSVS3S1ezT4HVERkIAgQDSyZMn9yPieQqjo4pHYNuxKOMeVFSk4pfElWeI4yqzYktTeCrP210F0TRFarxKvKFI4DrJvA2MUwTD/OMdUmr2aPCaBH5ZEazCKxKqFglsG5mnjnHKcJTANgvLDIopTtHgVfOFiSYwKMvT6xGa7pdad0SNV6iqlojOaYUNWrLGFEwkjqVy/viwTU7HlmeoySrR45D0AAvPtpJ56hniqOLz4TpxKOeBg4oHf/5iqSwmkuQdCIkuTtAK66xWq/WhD9NMHgjjmRaG/LcFRK62k1GtthGh2IjRfv6SJAalCWwLX66ND9emrKzsEk834agCg+gjREQbMYaIQ1mKYIDC7wYqAj6KoB/PNDNIDN1zVHKgXo7KkXsamGg5tM1Fp8XRjeSeekYd59k2AteFjaaIKKXn8YlvchjPtDpmzHkbQKSrXs/DVuKQiAA0lCIe273bKErRXk7jlxh21DcxxEklgAQgRAqfi0+8z71FRhGAQgAOu39kOqr4HJRc2w5ZF1BKAFqzg5Ri+fID5lIjKK1AxAoKIiJSMQ==") 0 0, default;
     animation: cursor-among-normal 6500ms step-end infinite;
+  }
+
+  .cursor-default {
+    cursor: inherit;
   }
 
   /* 👆 2. Clickable / Interactive Cursor: TCW Glowing Pointer (32px Animated) */
