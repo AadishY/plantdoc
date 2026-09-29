@@ -26,6 +26,14 @@ export const CustomScrollbar: React.FC = () => {
   const dragStartPointerOffsetYRef = useRef(0);
   const thumbHeightRef = useRef(48);
   const rafIdRef = useRef<number | null>(null);
+  const activeDragCleanupRef = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    return () => {
+      activeDragCleanupRef.current?.();
+      activeDragCleanupRef.current = null;
+    };
+  }, []);
 
   // Keep thumbHeightRef in sync with state
   useEffect(() => {
@@ -154,11 +162,27 @@ export const CustomScrollbar: React.FC = () => {
 
   // Initiate dragging
   const startDragging = useCallback((clientY: number, grabOffset: number) => {
+    if (isDraggingRef.current) return;
+
     isDraggingRef.current = true;
     setIsDragging(true);
     dragStartPointerOffsetYRef.current = grabOffset;
 
     document.documentElement.classList.add('is-dragging-scrollbar');
+
+    const finishDragging = () => {
+      if (!isDraggingRef.current) return;
+      isDraggingRef.current = false;
+      setIsDragging(false);
+      document.documentElement.classList.remove('is-dragging-scrollbar');
+
+      window.removeEventListener('mousemove', onMouseMove, { capture: true });
+      window.removeEventListener('mouseup', onMouseUp, { capture: true });
+      window.removeEventListener('blur', finishDragging);
+      document.removeEventListener('visibilitychange', finishDragging);
+      document.removeEventListener('contextmenu', finishDragging, true);
+      activeDragCleanupRef.current = null;
+    };
 
     const onMouseMove = (moveEvent: MouseEvent) => {
       if (!isDraggingRef.current) return;
@@ -166,21 +190,23 @@ export const CustomScrollbar: React.FC = () => {
       handleDragMove(moveEvent.clientY);
     };
 
-    const onMouseUp = () => {
-      isDraggingRef.current = false;
-      setIsDragging(false);
-      document.documentElement.classList.remove('is-dragging-scrollbar');
+    const onMouseUp = () => finishDragging();
 
-      window.removeEventListener('mousemove', onMouseMove, { capture: true });
-      window.removeEventListener('mouseup', onMouseUp, { capture: true });
-    };
-
+    // Blur, tab suspension, and context-menu transitions can skip mouseup.
+    // Always release the global lock through one shared cleanup path.
     window.addEventListener('mousemove', onMouseMove, { capture: true, passive: false });
     window.addEventListener('mouseup', onMouseUp, { capture: true });
+    window.addEventListener('blur', finishDragging);
+    document.addEventListener('visibilitychange', finishDragging);
+    document.addEventListener('contextmenu', finishDragging, true);
+    activeDragCleanupRef.current = finishDragging;
   }, [handleDragMove]);
 
   // Handle thumb mousedown
   const handleThumbMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Never let a secondary click enter drag mode. A right-click can otherwise
+    // leave the global dragging class active after the context menu closes.
+    if (e.button !== 0) return;
     e.preventDefault();
     e.stopPropagation();
 
@@ -192,6 +218,9 @@ export const CustomScrollbar: React.FC = () => {
 
   // Handle track mousedown: jump to click position and seamlessly continue dragging
   const handleTrackMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Track jumps are left-button only; right-click must never lock scrolling.
+    if (e.button !== 0) return;
+
     // If clicked directly on the thumb, thumb handler manages it
     if (e.target === thumbRef.current || thumbRef.current?.contains(e.target as Node)) {
       return;

@@ -17,6 +17,8 @@ const TRAIL_NOISE_AMP = 12; // Soft organic ripple
 const TRAIL_BLOB_PTS = 28; // High-precision smooth polygon
 const TRAIL_FADE_SPEED = 0.94; // Gentle trailing decay
 const TRAIL_SAMPLE_DIST = 4;
+const REVEAL_RELEASE_DELAY_MS = 110;
+const FLOWER_ALPHA_THRESHOLD = 18;
 
 export const PlantDocHeroStage: React.FC = () => {
   const stageRef = useRef<HTMLDivElement>(null);
@@ -47,6 +49,12 @@ export const PlantDocHeroStage: React.FC = () => {
     let smoothX = -9999;
     let smoothY = -9999;
     let layerWidth = 1;
+    let releaseAt = 0;
+    let releaseScheduled = false;
+    let lastCssMaskUpdate = -Infinity;
+    let flowerAlphaData: Uint8ClampedArray | null = null;
+    let flowerAlphaWidth = 0;
+    let flowerAlphaHeight = 0;
 
     // Size internal canvas with adaptive downscale (3x on mobile, 2x on desktop) for 900% faster frame serialization
     const updateCanvasSize = () => {
@@ -63,6 +71,32 @@ export const PlantDocHeroStage: React.FC = () => {
     };
 
     updateCanvasSize();
+
+    // Use the healthy flower's alpha channel as a cheap hit test. The image
+    // has transparent padding, so bounding-box checks alone can start a red
+    // reveal while the pointer is over empty space around the flower.
+    const alphaCanvas = document.createElement('canvas');
+    const alphaContext = alphaCanvas.getContext('2d', { willReadFrequently: true });
+    const flowerImage = baseLayerRef.current?.querySelector('img');
+    const refreshFlowerAlpha = () => {
+      if (!alphaContext || !flowerImage?.complete || !flowerImage.naturalWidth || !flowerImage.naturalHeight) return;
+      try {
+        alphaCanvas.width = flowerImage.naturalWidth;
+        alphaCanvas.height = flowerImage.naturalHeight;
+        alphaContext.clearRect(0, 0, alphaCanvas.width, alphaCanvas.height);
+        alphaContext.drawImage(flowerImage, 0, 0, alphaCanvas.width, alphaCanvas.height);
+        flowerAlphaData = alphaContext.getImageData(0, 0, alphaCanvas.width, alphaCanvas.height).data;
+        flowerAlphaWidth = alphaCanvas.width;
+        flowerAlphaHeight = alphaCanvas.height;
+      } catch {
+        // If a browser blocks pixel reads, fail closed rather than revealing
+        // the entire disease layer outside the visible flower.
+        flowerAlphaData = null;
+      }
+    };
+    refreshFlowerAlpha();
+    flowerImage?.addEventListener('load', refreshFlowerAlpha);
+
     let resizeTimer: any;
     const debouncedResize = () => {
       clearTimeout(resizeTimer);
@@ -123,115 +157,137 @@ export const PlantDocHeroStage: React.FC = () => {
       }
     };
 
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!topLayerRef.current) return;
-      const rect = topLayerRef.current.getBoundingClientRect();
-      
-      const screenX = e.clientX - rect.left;
-      const screenY = e.clientY - rect.top;
+    const getFlowerPoint = (clientX: number, clientY: number): { x: number; y: number } | null => {
+      const layer = topLayerRef.current;
+      const image = flowerImage;
+      if (!layer || !image || !flowerAlphaData || !flowerAlphaWidth || !flowerAlphaHeight) return null;
 
-      if (screenX >= -20 && screenX <= rect.width + 20 && screenY >= -20 && screenY <= rect.height + 20) {
-        const x = (screenX / rect.width) * maskCanvas.width;
-        const y = (screenY / rect.height) * maskCanvas.height;
-        mousePos = { x, y };
-        hovering = true;
-        startLoop();
-      } else {
-        hovering = false;
-      }
+      const layerRect = layer.getBoundingClientRect();
+      const imageRect = image.getBoundingClientRect();
+      const boxX = clientX - imageRect.left;
+      const boxY = clientY - imageRect.top;
+      if (boxX < 0 || boxY < 0 || boxX > imageRect.width || boxY > imageRect.height) return null;
+
+      // The image uses object-contain/object-top. Recreate that mapping before
+      // sampling the source alpha bitmap, including letterboxed side padding.
+      const scale = Math.min(imageRect.width / flowerAlphaWidth, imageRect.height / flowerAlphaHeight);
+      const drawnWidth = flowerAlphaWidth * scale;
+      const drawnHeight = flowerAlphaHeight * scale;
+      const imageX = (imageRect.width - drawnWidth) / 2;
+      const imageY = 0;
+      const sourceX = Math.floor((boxX - imageX) / scale);
+      const sourceY = Math.floor((boxY - imageY) / scale);
+      if (sourceX < 0 || sourceY < 0 || sourceX >= flowerAlphaWidth || sourceY >= flowerAlphaHeight) return null;
+
+      const alpha = flowerAlphaData[(sourceY * flowerAlphaWidth + sourceX) * 4 + 3];
+      if (alpha < FLOWER_ALPHA_THRESHOLD) return null;
+
+      return {
+        x: ((clientX - layerRect.left) / Math.max(1, layerRect.width)) * maskCanvas.width,
+        y: ((clientY - layerRect.top) / Math.max(1, layerRect.height)) * maskCanvas.height,
+      };
     };
 
-    const handleMouseEnter = (e: MouseEvent) => {
-      if (!topLayerRef.current) return;
-      const rect = topLayerRef.current.getBoundingClientRect();
-      const screenX = e.clientX - rect.left;
-      const screenY = e.clientY - rect.top;
-      mousePos = { 
-        x: (screenX / rect.width) * maskCanvas.width, 
-        y: (screenY / rect.height) * maskCanvas.height 
-      };
+    const beginReveal = (point: { x: number; y: number }) => {
+      mousePos = point;
       hovering = true;
+      releaseScheduled = false;
+      releaseAt = 0;
       startLoop();
     };
 
-    const handleMouseLeave = () => {
+    const beginRelease = () => {
+      const isActive = hovering || headRadius > 0.5 || points.length > 0;
+      if (isActive && !releaseScheduled) {
+        releaseScheduled = true;
+        releaseAt = performance.now() + REVEAL_RELEASE_DELAY_MS;
+      }
       hovering = false;
+      mousePos = { x: -9999, y: -9999 };
       lastX = -9999;
       lastY = -9999;
+      // Do not leave a stale disease mask on screen when the pointer exits.
+      startLoop();
     };
+
+    const updateMouseReveal = (clientX: number, clientY: number) => {
+      const point = getFlowerPoint(clientX, clientY);
+      if (point) {
+        beginReveal(point);
+      } else {
+        beginRelease();
+      }
+    };
+
+    const handleMouseMove = (e: MouseEvent) => updateMouseReveal(e.clientX, e.clientY);
+    const handleMouseEnter = (e: MouseEvent) => updateMouseReveal(e.clientX, e.clientY);
+    const handleMouseLeave = () => beginRelease();
 
     let touchStartX = 0;
     let touchStartY = 0;
     let isVerticalSwipe = false;
+    let touchRevealActive = false;
 
     const handleTouchStart = (e: TouchEvent) => {
-      if (!topLayerRef.current || e.touches.length === 0) return;
+      if (e.touches.length === 0) return;
       const touch = e.touches[0];
       touchStartX = touch.clientX;
       touchStartY = touch.clientY;
       isVerticalSwipe = false;
-
-      const rect = topLayerRef.current.getBoundingClientRect();
-      const screenX = touch.clientX - rect.left;
-      const screenY = touch.clientY - rect.top;
-      mousePos = { 
-        x: (screenX / rect.width) * maskCanvas.width, 
-        y: (screenY / rect.height) * maskCanvas.height 
-      };
-      smoothX = mousePos.x;
-      smoothY = mousePos.y;
-      hovering = true;
-      startLoop();
+      const point = getFlowerPoint(touch.clientX, touch.clientY);
+      touchRevealActive = Boolean(point);
+      if (!point) {
+        beginRelease();
+        return; // A touch outside the flower remains a native scroll gesture.
+      }
+      mousePos = point;
+      smoothX = point.x;
+      smoothY = point.y;
+      beginReveal(point);
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (!topLayerRef.current || e.touches.length === 0) return;
+      if (!touchRevealActive || e.touches.length === 0) return;
       const touch = e.touches[0];
 
-      // Yield to native scroll for clear vertical swipes
+      // Yield to native scroll for clear vertical swipes.
       const deltaX = Math.abs(touch.clientX - touchStartX);
       const deltaY = Math.abs(touch.clientY - touchStartY);
       if (deltaY > 22 && deltaY > deltaX * 1.8) {
         isVerticalSwipe = true;
-        hovering = false;
-        return; // Let native scroll handle this
+        touchRevealActive = false;
+        beginRelease();
+        return;
       }
-
       if (isVerticalSwipe) return;
 
-      // Horizontal / reveal drag: prevent page scroll so finger controls the reveal
-      e.preventDefault();
-
-      const rect = topLayerRef.current.getBoundingClientRect();
-      const screenX = touch.clientX - rect.left;
-      const screenY = touch.clientY - rect.top;
-
-      if (screenX >= -40 && screenX <= rect.width + 40 && screenY >= -40 && screenY <= rect.height + 40) {
-        const x = (screenX / rect.width) * maskCanvas.width;
-        const y = (screenY / rect.height) * maskCanvas.height;
-        mousePos = { x, y };
-        // Seed smooth position immediately on first move to eliminate "catch-up" lag
-        if (smoothX === -9999 || smoothY === -9999) {
-          smoothX = x;
-          smoothY = y;
-        }
-        hovering = true;
-        startLoop();
+      const point = getFlowerPoint(touch.clientX, touch.clientY);
+      if (!point) {
+        touchRevealActive = false;
+        beginRelease();
+        return;
       }
+
+      // Horizontal / reveal drag: prevent page scroll only after we know the
+      // gesture started on the flower and is not a vertical page swipe.
+      e.preventDefault();
+      mousePos = point;
+      if (smoothX === -9999 || smoothY === -9999) {
+        smoothX = point.x;
+        smoothY = point.y;
+      }
+      beginReveal(point);
     };
 
     const handleTouchEnd = () => {
+      touchRevealActive = false;
       hovering = false;
       isVerticalSwipe = false;
-      lastX = -9999;
-      lastY = -9999;
+      beginRelease();
     };
 
     const handleWindowScroll = () => {
-      if (window.scrollY > 20 && hovering) {
-        hovering = false;
-        stopLoop();
-      }
+      if (hovering) beginRelease();
     };
     window.addEventListener('scroll', handleWindowScroll, { passive: true });
 
@@ -297,7 +353,9 @@ export const PlantDocHeroStage: React.FC = () => {
       }
 
       time += 0.016;
-      const targetR = hovering ? scaledHeadR : 0;
+      const now = performance.now();
+      const holdingRelease = !hovering && releaseScheduled && now < releaseAt;
+      const targetR = hovering ? scaledHeadR : holdingRelease ? headRadius : 0;
       headRadius += (targetR - headRadius) * (hovering ? 0.32 : 0.12);
 
       // Ultra-smooth spring cursor interpolation
@@ -348,6 +406,8 @@ export const PlantDocHeroStage: React.FC = () => {
         if (points.length === 0 && !hovering && headRadius < 0.5) {
           if (!wasIdle) {
             wasIdle = true;
+            releaseScheduled = false;
+            releaseAt = 0;
             if (topLayerRef.current) {
               topLayerRef.current.style.opacity = '0';
               topLayerRef.current.style.maskImage = 'none';
@@ -378,7 +438,8 @@ export const PlantDocHeroStage: React.FC = () => {
           // Touch devices use a native CSS radial mask. It produces the same
           // healthy-to-diseased reveal without serializing a canvas to a new
           // data URL on every frame (a particularly expensive Android path).
-          if (useCssReveal && topLayerRef.current && smoothX !== -9999) {
+          if (useCssReveal && topLayerRef.current && smoothX !== -9999 && now - lastCssMaskUpdate >= 32) {
+            lastCssMaskUpdate = now;
             const radiusPx = Math.max(28, headRadius * (layerWidth / maskCanvas.width));
             // Keep the Android-friendly CSS path light, but give the reveal a
             // gentle breathing ellipse so it feels fluid instead of like a
@@ -456,6 +517,7 @@ export const PlantDocHeroStage: React.FC = () => {
       window.removeEventListener('scroll', handleWindowScroll);
       clearTimeout(resizeTimer);
       window.removeEventListener('resize', debouncedResize);
+      flowerImage?.removeEventListener('load', refreshFlowerAlpha);
       document.removeEventListener('visibilitychange', handleVisibility);
       if (observer && stage) {
         observer.unobserve(stage);
