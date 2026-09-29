@@ -27,7 +27,7 @@ const PrivacyPage: React.FC = () => {
     "Privacy Policy & Client-Side Security — PlantDoc AI",
     "Discover how PlantDoc AI safeguards user privacy with client-side image downsampling, zero data selling, and ephemeral AI telemetry.",
     "/privacy",
-    "plantdoc privacy policy, client side privacy, local image processing, botanical data security, zero retention"
+    "Aadish PlantDoc privacy policy, PlantDoc AI data handling, client side privacy, local image processing, botanical data security, image retention, plant disease app privacy"
   );
 
   const lastUpdated = "September 11, 2026";

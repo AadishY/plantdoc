@@ -1,9 +1,8 @@
-import React, { useState, useRef } from 'react';
-import { Camera, X, Upload, Image as ImageIcon, Loader2, Sparkles, Scan } from 'lucide-react';
+import React, { useEffect, useState, useRef } from 'react';
+import { Camera, X, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
-import { getSafeImageUrl } from '@/utils/sanitizeUrl';
 
 interface UploadComponentProps {
   onImageSelect?: (file: File) => void;
@@ -30,6 +29,17 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
   const [dragActive, setDragActive] = useState(false);
   const internalFileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  // Revoke locally-created previews when they are replaced or when the
+  // uploader unmounts. This matters on Android where camera photos can be
+  // large and object URLs otherwise keep the Blob alive.
+  useEffect(() => {
+    return () => {
+      if (internalPreviewUrl?.startsWith('blob:')) {
+        URL.revokeObjectURL(internalPreviewUrl);
+      }
+    };
+  }, [internalPreviewUrl]);
   
   const rawPreviewUrl = externalPreviewUrl !== undefined ? externalPreviewUrl : internalPreviewUrl;
   const safePreviewUrl = rawPreviewUrl && (rawPreviewUrl.startsWith('blob:') || rawPreviewUrl.startsWith('data:image/') || rawPreviewUrl.startsWith('https://') || rawPreviewUrl.startsWith('http://'))
@@ -141,11 +151,20 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
         <div 
           className={`glass-card transition-all duration-300 border-2 border-dashed rounded-3xl p-10 md:p-14 text-center overflow-hidden cursor-pointer
             ${dragActive ? 'border-[#2DD4BF] bg-[#2DD4BF]/10 scale-[1.01]' : 'hover:border-[#2DD4BF]/60 border-white/20 hover:shadow-[0_0_30px_rgba(45,212,191,0.25)]'}`}
+          role="button"
+          tabIndex={0}
+          aria-label="Upload a plant photo for diagnosis"
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
           onDrop={handleDrop}
           onClick={triggerFileInput}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              triggerFileInput();
+            }
+          }}
         >
           <div className="flex flex-col items-center justify-center gap-4 animate-enter">
             <motion.div 
@@ -196,30 +215,13 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
                 />
 
                 {/* 2. Primary High-Intensity Emerald Laser Beam (Sweeping vertically across container) */}
-                <motion.div 
-                  className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#2DD4BF] to-transparent shadow-[0_0_25px_#2DD4BF,0_0_12px_#5EEAD4] z-20"
-                  animate={{ top: ['0%', '100%', '0%'] }}
-                  transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
-                />
+                <div className="absolute left-0 right-0 z-20 h-1 animate-diagnostic-scan bg-gradient-to-r from-transparent via-[#2DD4BF] to-transparent shadow-[0_0_25px_#2DD4BF,0_0_12px_#5EEAD4]" />
 
                 {/* 3. Secondary Trailing Cyan Laser Glow */}
-                <motion.div 
-                  className="absolute left-0 right-0 h-12 bg-gradient-to-b from-[#2DD4BF]/25 via-[#2DD4BF]/8 to-transparent blur-md z-10"
-                  animate={{ top: ['-2%', '96%', '-2%'] }}
-                  transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
-                />
+                <div className="absolute left-0 right-0 z-10 h-12 animate-diagnostic-scan-glow bg-gradient-to-b from-[#2DD4BF]/25 via-[#2DD4BF]/8 to-transparent blur-md" />
 
                 {/* 4. Dynamic Scanning Lesion Reticle simulation box 1 */}
-                <motion.div 
-                  className="absolute w-28 h-24 border border-dashed border-[#5EEAD4] rounded-xl bg-[#2DD4BF]/15 shadow-[0_0_25px_rgba(45,212,191,0.5)] flex flex-col items-center justify-between p-1.5 z-15"
-                  animate={{ 
-                    scale: [0.95, 1.05, 0.95],
-                    opacity: [0.6, 1, 0.6],
-                    x: ['-25px', '35px', '-25px'],
-                    y: ['-35px', '25px', '-35px']
-                  }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                >
+                <div className="absolute z-15 flex h-24 w-28 animate-diagnostic-reticle flex-col items-center justify-between rounded-xl border border-dashed border-[#5EEAD4] bg-[#2DD4BF]/15 p-1.5 shadow-[0_0_25px_rgba(45,212,191,0.5)]">
                   <div className="w-full flex items-center justify-between text-[8px] font-mono text-[#5EEAD4]">
                     <span>LOC: 2D_GRID</span>
                     <span>98.4%</span>
@@ -228,7 +230,7 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
                   <span className="text-[9px] font-mono text-[#5EEAD4] font-bold bg-black/85 px-2 py-0.5 rounded border border-[#2DD4BF]/50">
                     FOLIAR_DIAGNOSTICS
                   </span>
-                </motion.div>
+                  </div>
 
                 {/* 5. Precision HUD Corner Brackets */}
                 <div className="absolute top-4 left-4 w-7 h-7 border-t-2 border-l-2 border-[#2DD4BF] shadow-[0_0_12px_#2DD4BF]" />

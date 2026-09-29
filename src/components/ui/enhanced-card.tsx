@@ -98,7 +98,7 @@ const EnhancedCard = forwardRef<HTMLDivElement, EnhancedCardProps>(({
             {...props}
           >
             {/* Static glow overlay - only on desktop */}
-            {shouldUseEffects && hoverEffect === "glow" && (
+            {shouldUseEffects && String(hoverEffect) === "glow" && (
               <div 
                 className="absolute inset-0 opacity-0 pointer-events-none bg-gradient-to-tr from-plantDoc-primary/10 to-transparent rounded-xl transition-opacity duration-300 hover:opacity-100"
                 style={{

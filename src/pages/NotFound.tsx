@@ -1,236 +1,147 @@
-import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import React from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { 
-  Home, 
-  Scan, 
-  Sparkles, 
-  Compass, 
-  ArrowRight, 
-  Heart, 
-  Droplet, 
-  Leaf, 
-  ShieldCheck, 
-  Layers, 
-  Smile,
-  Flower2
+import {
+  ArrowLeft,
+  ArrowRight,
+  Compass,
+  Home,
+  Leaf,
+  Scan,
+  SearchX,
 } from "lucide-react";
 import { DoodleLostPlant } from "@/components/ui/BotanicalDoodles";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { motion, AnimatePresence } from "framer-motion";
 
-const GOOD_LUCK_BLESSINGS = [
-  "May your leaves stay lush, your roots run deep, and your soil remain fertile! 🌱",
-  "Good luck on your botanical journey! Remember, even the tallest redwood began as a tiny seed.",
-  "May your sunlight be golden, your water balanced, and pests never find your garden! 🌿",
-  "Sending you green thumb blessings and abundant harvest energy! ✨",
-  "May your photosynthesis be vibrant and every bloom bring joy to your day! 🌸"
-];
+const RECOVERY_LINKS = [
+  {
+    to: "/diagnose",
+    title: "Diagnose a plant",
+    description: "Upload a leaf photo and start a guided assessment.",
+    icon: Scan,
+  },
+  {
+    to: "/recommend",
+    title: "Find plant ideas",
+    description: "Explore climate-aware recommendations for your space.",
+    icon: Leaf,
+  },
+  {
+    to: "/about",
+    title: "Learn about PlantDoc",
+    description: "See how the product turns plant evidence into guidance.",
+    icon: Compass,
+  },
+] as const;
 
 const NotFound: React.FC = () => {
   useDocumentTitle(
-    "404 — Specimen Not Found • PlantDoc AI",
-    "The requested botanical specimen or page could not be located in our nursery database.",
+    "404 — Page Not Found | PlantDoc AI",
+    "The PlantDoc AI page you requested could not be found. Return home or start a plant diagnosis.",
     "/404"
   );
 
   const location = useLocation();
-  const [blessingIdx, setBlessingIdx] = useState(0);
-  const [waterCount, setWaterCount] = useState(0);
-  const [isBlooming, setIsBlooming] = useState(false);
-
-  useEffect(() => {
-    // Pick a random blessing on load
-    setBlessingIdx(Math.floor(Math.random() * GOOD_LUCK_BLESSINGS.length));
-  }, []);
-
-  const handleWaterSprout = () => {
-    const next = waterCount + 1;
-    setWaterCount(next);
-    if (next >= 3) {
-      setIsBlooming(true);
-    }
-  };
-
-  const handleNextBlessing = () => {
-    setBlessingIdx((prev) => (prev + 1) % GOOD_LUCK_BLESSINGS.length);
-  };
+  const navigate = useNavigate();
+  const canGoBack = typeof window !== "undefined" && window.history.length > 1;
 
   return (
-    <div className="flex flex-col min-h-screen relative overflow-x-hidden selection:bg-[#2DD4BF]/30 selection:text-white bg-[#060a08] touch-pan-y">
+    <div className="relative flex min-h-screen flex-col overflow-x-hidden bg-[#060a08] text-white selection:bg-[#2DD4BF]/30 selection:text-white">
       <Header />
 
-      <main className="flex-1 container mx-auto px-4 py-8 sm:py-16 relative z-10 flex flex-col items-center justify-center">
-        {/* Background Ambient Glows */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#2DD4BF]/15 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute bottom-10 right-10 w-80 h-80 bg-[#10B981]/15 rounded-full blur-[100px] pointer-events-none" />
-
-        <div className="w-full max-w-3xl mx-auto text-center space-y-8">
-          
-          {/* Top Status & 404 Route Pill */}
-          <motion.div 
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-black/60 border border-[#2DD4BF]/40 text-[#5EEAD4] text-xs font-mono backdrop-blur-xl shadow-[0_0_20px_rgba(45,212,191,0.2)]"
-          >
-            <Compass className="h-3.5 w-3.5 text-[#2DD4BF] animate-spin" style={{ animationDuration: '10s' }} />
-            <span>404: Uncharted Coordinates Trail</span>
-            <span className="text-white/40">|</span>
-            <code className="text-white/80 bg-white/10 px-2 py-0.5 rounded text-[11px] truncate max-w-[180px] sm:max-w-xs">
-              {location.pathname}
-            </code>
-          </motion.div>
-
-          {/* Central Whimsical Hand-Drawn Doodle Showcase */}
-          <div className="relative flex flex-col items-center justify-center my-2">
-            <div className="relative">
-              {/* Hand-Drawn Lost Plant Doodle */}
-              <DoodleLostPlant className="w-48 h-48 sm:w-60 sm:h-60 mx-auto filter drop-shadow-[0_0_35px_rgba(45,212,191,0.4)]" />
-
-              {/* Interactive Blooming Crown Effect when watered */}
-              <AnimatePresence>
-                {isBlooming && (
-                  <motion.div 
-                    initial={{ scale: 0, opacity: 0, y: 10 }}
-                    animate={{ scale: 1.1, opacity: 1, y: 0 }}
-                    exit={{ scale: 0, opacity: 0 }}
-                    className="absolute -top-4 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs font-bold shadow-[0_0_25px_rgba(244,63,94,0.6)] flex items-center gap-1.5 border border-white/30"
-                  >
-                    <Flower2 className="h-3.5 w-3.5 animate-bounce" />
-                    <span>Nourished & Blooming! 🌸</span>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+      <main className="relative z-10 flex flex-1 items-center justify-center px-4 py-12 sm:py-16">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-[radial-gradient(circle_at_50%_10%,rgba(45,212,191,0.14),transparent_64%)]" />
+        <div className="relative w-full max-w-4xl">
+          <div className="mx-auto max-w-2xl text-center">
+            <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-[#2DD4BF]/35 bg-black/55 px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#5EEAD4] shadow-[0_0_24px_rgba(45,212,191,0.12)] sm:text-xs">
+              <SearchX className="h-3.5 w-3.5" aria-hidden="true" />
+              Page not found
             </div>
 
-            {/* Interactive "Water the Lost Sprout" Mini-delight */}
-            <div className="mt-2 flex items-center gap-2">
-              <button
-                onClick={handleWaterSprout}
-                className="group inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 hover:bg-[#2DD4BF]/20 border border-white/15 hover:border-[#2DD4BF]/50 text-xs font-medium text-white/90 hover:text-[#5EEAD4] transition-all duration-300 backdrop-blur-xl active:scale-95"
-                title="Click to water this lost sprout"
-              >
-                <Droplet className="h-3.5 w-3.5 text-[#2DD4BF] group-hover:animate-bounce" />
-                <span>
-                  {waterCount === 0 ? "Give water to the sprout" : `Watered ${waterCount}x ${isBlooming ? "✨ (Full Bloom!)" : ""}`}
-                </span>
-              </button>
+            <div className="mx-auto mb-5 flex w-fit items-center gap-4 rounded-[2rem] border border-white/10 bg-black/35 px-5 py-4 shadow-[0_20px_60px_rgba(0,0,0,0.35)] sm:gap-6 sm:px-8 sm:py-5">
+              <DoodleLostPlant className="h-28 w-28 sm:h-36 sm:w-36" />
+              <div className="text-left">
+                <div className="font-mono text-5xl font-black tracking-tight text-[#5EEAD4] sm:text-7xl">
+                  404
+                </div>
+                <div className="mt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white/45 sm:text-xs">
+                  Unmapped route
+                </div>
+              </div>
             </div>
-          </div>
 
-          {/* Heading and Narrative */}
-          <div className="space-y-3 max-w-xl mx-auto">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight text-white">
-              Lost in the Foliage?
+            <h1 className="text-3xl font-black tracking-tight text-white sm:text-5xl">
+              This path grew somewhere else.
             </h1>
-            <p className="text-sm sm:text-base text-foreground/80 leading-relaxed">
-              This botanical path seems to have wandered into uncharted soil. But don't worry—no gardener is truly lost when there are seeds to sow!
+            <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-foreground/75 sm:text-base">
+              We couldn&apos;t find the page you requested. The rest of PlantDoc is ready—choose a safe starting point below or return to the home screen.
             </p>
+
+            <div className="mx-auto mt-5 max-w-md rounded-xl border border-white/10 bg-black/35 px-3 py-2 text-left font-mono text-[10px] text-white/45 sm:text-xs">
+              <span className="mr-2 text-[#5EEAD4]">ROUTE</span>
+              <span className="break-all text-white/75">{location.pathname}{location.search}</span>
+            </div>
+
+            <div className="mt-7 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
+              <Button
+                asChild
+                className="h-11 rounded-2xl bg-gradient-to-r from-[#2DD4BF] via-[#10B981] to-[#059669] px-6 font-extrabold text-black shadow-[0_0_28px_rgba(45,212,191,0.35)] transition-transform hover:scale-[1.02]"
+              >
+                <Link to="/">
+                  <Home className="mr-2 h-4 w-4" aria-hidden="true" />
+                  Go to PlantDoc home
+                  <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+                </Link>
+              </Button>
+              {canGoBack && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => navigate(-1)}
+                  className="h-11 rounded-2xl border-white/20 bg-white/5 px-6 text-white hover:border-[#2DD4BF]/50 hover:bg-white/10 hover:text-[#5EEAD4]"
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
+                  Go back
+                </Button>
+              )}
+            </div>
           </div>
 
-          {/* ✨ Good Luck & Botanical Blessing Card */}
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.15 }}
-            className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-[#2DD4BF]/15 via-black/60 to-[#10B981]/15 border border-[#2DD4BF]/40 backdrop-blur-2xl max-w-lg mx-auto shadow-[0_0_35px_rgba(45,212,191,0.2)] text-left relative overflow-hidden"
-          >
-            <div className="flex items-start gap-3.5">
-              <div className="p-2.5 rounded-2xl bg-[#2DD4BF]/20 border border-[#2DD4BF]/40 text-[#5EEAD4] shrink-0 mt-0.5">
-                <Sparkles className="h-5 w-5 animate-pulse" />
+          <section className="mt-12 border-t border-white/10 pt-8" aria-labelledby="recovery-heading">
+            <div className="mb-4 flex items-end justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#5EEAD4]">Recovery paths</p>
+                <h2 id="recovery-heading" className="mt-1 text-lg font-bold text-white sm:text-xl">
+                  Keep caring for your plants
+                </h2>
               </div>
-              <div className="space-y-1 flex-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-mono font-bold text-[#5EEAD4] uppercase tracking-wider">
-                    Good Luck Blessing
-                  </span>
-                  <button 
-                    onClick={handleNextBlessing}
-                    className="text-[10px] font-mono text-white/60 hover:text-[#5EEAD4] underline cursor-pointer"
+              <span className="hidden font-mono text-[10px] text-white/35 sm:block">PLANTDOC / READY</span>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-3">
+              {RECOVERY_LINKS.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    className="group rounded-2xl border border-white/10 bg-black/35 p-4 transition-colors hover:border-[#2DD4BF]/45 hover:bg-[#2DD4BF]/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5EEAD4]"
                   >
-                    Next blessing &rarr;
-                  </button>
-                </div>
-                <p className="text-xs sm:text-sm text-white/90 font-medium leading-relaxed italic">
-                  "{GOOD_LUCK_BLESSINGS[blessingIdx]}"
-                </p>
-              </div>
+                    <div className="mb-4 flex items-center justify-between">
+                      <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#2DD4BF]/25 bg-[#2DD4BF]/10 text-[#5EEAD4]">
+                        <Icon className="h-4 w-4" aria-hidden="true" />
+                      </span>
+                      <ArrowRight className="h-4 w-4 text-white/25 transition-transform group-hover:translate-x-1 group-hover:text-[#5EEAD4]" aria-hidden="true" />
+                    </div>
+                    <h3 className="text-sm font-bold text-white group-hover:text-[#5EEAD4]">{item.title}</h3>
+                    <p className="mt-1.5 text-xs leading-relaxed text-white/55">{item.description}</p>
+                  </Link>
+                );
+              })}
             </div>
-          </motion.div>
-
-          {/* Primary Action Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-            <Button
-              asChild
-              className="w-full sm:w-auto bg-gradient-to-r from-[#2DD4BF] via-[#10B981] to-[#059669] hover:from-[#5EEAD4] hover:via-[#34D399] hover:to-[#10B981] text-black font-extrabold px-8 py-6 text-sm sm:text-base rounded-full shadow-[0_0_30px_rgba(45,212,191,0.5)] transition-all hover:scale-105"
-            >
-              <Link to="/">
-                <Home className="h-4 w-4 mr-2" />
-                Return to Sanctuary (Home)
-              </Link>
-            </Button>
-
-            <Button
-              asChild
-              variant="outline"
-              className="w-full sm:w-auto bg-black/50 hover:bg-black/80 text-white font-semibold border-white/20 hover:border-[#2DD4BF]/60 hover:text-[#5EEAD4] py-6 text-sm sm:text-base rounded-full hover:scale-105 backdrop-blur-xl shadow-lg"
-            >
-              <Link to="/diagnose">
-                <Scan className="h-4 w-4 mr-2" />
-                Diagnose Foliage
-              </Link>
-            </Button>
-          </div>
-
-          {/* Quick Shortcut Navigation Grid */}
-          <div className="pt-6 border-t border-white/10 max-w-2xl mx-auto">
-            <h3 className="text-xs font-mono uppercase tracking-widest text-white/60 mb-4">
-              Explore Verified Sections
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
-              <Link 
-                to="/diagnose" 
-                className="p-4 rounded-2xl bg-black/40 hover:bg-white/[0.08] border border-white/10 hover:border-[#2DD4BF]/40 transition-all group backdrop-blur-xl"
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <Scan className="h-4 w-4 text-[#2DD4BF] group-hover:scale-110 transition-transform" />
-                  <span className="text-xs font-bold text-white group-hover:text-[#5EEAD4]">Disease Vision</span>
-                </div>
-                <p className="text-[11px] text-white/60 leading-normal">
-                  Upload leaf photo for 2D lesion boxes & chemical Rx.
-                </p>
-              </Link>
-
-              <Link 
-                to="/recommend" 
-                className="p-4 rounded-2xl bg-black/40 hover:bg-white/[0.08] border border-white/10 hover:border-[#2DD4BF]/40 transition-all group backdrop-blur-xl"
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <Leaf className="h-4 w-4 text-emerald-400 group-hover:scale-110 transition-transform" />
-                  <span className="text-xs font-bold text-white group-hover:text-[#5EEAD4]">Flora Match</span>
-                </div>
-                <p className="text-[11px] text-white/60 leading-normal">
-                  Climate-adaptive species from Wikimedia REST API.
-                </p>
-              </Link>
-
-              <Link 
-                to="/about" 
-                className="p-4 rounded-2xl bg-black/40 hover:bg-white/[0.08] border border-white/10 hover:border-[#2DD4BF]/40 transition-all group backdrop-blur-xl"
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <Layers className="h-4 w-4 text-teal-300 group-hover:scale-110 transition-transform" />
-                  <span className="text-xs font-bold text-white group-hover:text-[#5EEAD4]">Architecture</span>
-                </div>
-                <p className="text-[11px] text-white/60 leading-normal">
-                  Neural vision pipelines & creator agronomy mission.
-                </p>
-              </Link>
-            </div>
-          </div>
-
+          </section>
         </div>
       </main>
 
