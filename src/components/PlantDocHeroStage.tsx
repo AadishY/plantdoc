@@ -17,7 +17,7 @@ const TRAIL_NOISE_AMP = 12; // Soft organic ripple
 const TRAIL_BLOB_PTS = 28; // High-precision smooth polygon
 const TRAIL_FADE_SPEED = 0.94; // Gentle trailing decay
 const TRAIL_SAMPLE_DIST = 4;
-const REVEAL_RELEASE_DELAY_MS = 110;
+const REVEAL_RELEASE_DELAY_MS = 180; // Let the last organic wake linger before it recedes
 const FLOWER_ALPHA_THRESHOLD = 18;
 
 export const PlantDocHeroStage: React.FC = () => {
@@ -37,9 +37,10 @@ export const PlantDocHeroStage: React.FC = () => {
 
     const isMobileDevice = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768;
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    // Prefer the same low-resolution canvas morph on touch devices so the
-    // head and trail share one mask. Reduced-motion remains CSS-only and static.
-    const useCssReveal = prefersReducedMotion;
+    // Keep touch devices on the capped CSS mask path. It avoids per-frame
+    // canvas serialization on Android while still allowing the final wake to
+    // fade naturally after the pointer leaves the flower.
+    const useCssReveal = isMobileDevice || prefersReducedMotion;
     let lastMaskUpload = 0;
     const points: TrailPoint[] = [];
     let headRadius = 0;
@@ -218,18 +219,10 @@ export const PlantDocHeroStage: React.FC = () => {
       mousePos = { x: -9999, y: -9999 };
       lastX = -9999;
       lastY = -9999;
-      // Hide the disease layer immediately on an invalid/outside pointer. The
-      // healthy layer can still ease back through its inverse mask, but a
-      // stale or not-yet-uploaded mask can never flash the full red flower.
-      if (topLayerRef.current) {
-        topLayerRef.current.style.opacity = '0';
-      }
-      // Never leave the healthy layer clipped after the diseased layer is
-      // hidden. That stale inverse mask is what creates a black circle on exit.
-      if (baseLayerRef.current) {
-        baseLayerRef.current.style.maskImage = 'none';
-        baseLayerRef.current.style.webkitMaskImage = 'none';
-      }
+      // Do not clear either layer here. The render loop keeps the last mask
+      // alive while the head eases down and the organic wake decays, so an
+      // exit feels like a soft release instead of an instant erase. The final
+      // idle frame clears both masks safely once no reveal pixels remain.
       startLoop();
     };
 
@@ -429,6 +422,11 @@ export const PlantDocHeroStage: React.FC = () => {
         }
       }
 
+      // Keep the layer visible for the complete release animation. Opacity is
+      // only cleared by the idle branch below, after both head and trail have
+      // naturally faded away.
+      const hasReveal = hovering || headRadius > 0.5 || points.length > 0;
+
       if (maskCanvas.width > 0 && maskCanvas.height > 0) {
         if (points.length === 0 && !hovering && headRadius < 0.5) {
           if (!wasIdle) {
@@ -461,8 +459,9 @@ export const PlantDocHeroStage: React.FC = () => {
               drawMorphBlob(ctx, p.x, p.y, p.r, time, p.seed, p.alpha);
             }
 
-            // 2. Draw persistent active head morph blob with feathered transparency
-            if (hovering && headRadius > 1 && smoothX !== -9999) {
+            // 2. Keep drawing the head while it releases so a pointer exit
+            // eases down from the last shape instead of dropping a frame.
+            if (headRadius > 1 && smoothX !== -9999) {
               drawMorphBlob(ctx, smoothX, smoothY, headRadius, time, 42, 1.0);
             }
           }
@@ -513,24 +512,19 @@ export const PlantDocHeroStage: React.FC = () => {
             topLayerRef.current.style.webkitMaskSize = '100% 100%';
             topLayerRef.current.style.maskRepeat = 'no-repeat';
             topLayerRef.current.style.webkitMaskRepeat = 'no-repeat';
-            topLayerRef.current.style.opacity = hovering && headRadius > 1 ? '1' : '0';
+            topLayerRef.current.style.opacity = hasReveal ? '1' : '0';
 
             // The healthy layer uses the inverse of the primary head mask.
             // This keeps the transparent center of the main reveal clean while
             // the extra gradient lobes create a lightweight morph trail.
             const inverseCssMask = `radial-gradient(ellipse ${radiusX}px ${radiusY}px at ${x} ${y}, transparent 0%, transparent 62%, #fff 100%)`;
-            if (baseLayerRef.current) {
-              if (hovering) {
-                baseLayerRef.current.style.maskImage = inverseCssMask;
-                baseLayerRef.current.style.webkitMaskImage = inverseCssMask;
-                baseLayerRef.current.style.maskSize = '100% 100%';
-                baseLayerRef.current.style.webkitMaskSize = '100% 100%';
-                baseLayerRef.current.style.maskRepeat = 'no-repeat';
-                baseLayerRef.current.style.webkitMaskRepeat = 'no-repeat';
-              } else {
-                baseLayerRef.current.style.maskImage = 'none';
-                baseLayerRef.current.style.webkitMaskImage = 'none';
-              }
+            if (baseLayerRef.current && hasReveal) {
+              baseLayerRef.current.style.maskImage = inverseCssMask;
+              baseLayerRef.current.style.webkitMaskImage = inverseCssMask;
+              baseLayerRef.current.style.maskSize = '100% 100%';
+              baseLayerRef.current.style.webkitMaskSize = '100% 100%';
+              baseLayerRef.current.style.maskRepeat = 'no-repeat';
+              baseLayerRef.current.style.webkitMaskRepeat = 'no-repeat';
             }
           } else if (!useCssReveal && performance.now() - lastMaskUpload >= (isMobileDevice ? 28 : 32)) {
             // Desktop keeps the richer organic trail, but uploads the mask at
@@ -545,7 +539,7 @@ export const PlantDocHeroStage: React.FC = () => {
               topLayerRef.current.style.webkitMaskSize = '100% 100%';
               topLayerRef.current.style.maskRepeat = 'no-repeat';
               topLayerRef.current.style.webkitMaskRepeat = 'no-repeat';
-              topLayerRef.current.style.opacity = hovering && headRadius > 1 ? '1' : '0';
+              topLayerRef.current.style.opacity = hasReveal ? '1' : '0';
             }
 
             // The inverse mask keeps the healthy layer from doubling beneath
@@ -558,7 +552,7 @@ export const PlantDocHeroStage: React.FC = () => {
               invCtx.drawImage(maskCanvas, 0, 0);
               invCtx.globalCompositeOperation = 'source-over';
 
-              if (hovering) {
+              if (hasReveal) {
                 const invDataUrl = invCanvas.toDataURL();
                 baseLayerRef.current.style.maskImage = `url(${invDataUrl})`;
                 baseLayerRef.current.style.webkitMaskImage = `url(${invDataUrl})`;
@@ -566,9 +560,6 @@ export const PlantDocHeroStage: React.FC = () => {
                 baseLayerRef.current.style.webkitMaskSize = '100% 100%';
                 baseLayerRef.current.style.maskRepeat = 'no-repeat';
                 baseLayerRef.current.style.webkitMaskRepeat = 'no-repeat';
-              } else {
-                baseLayerRef.current.style.maskImage = 'none';
-                baseLayerRef.current.style.webkitMaskImage = 'none';
               }
             }
           }
