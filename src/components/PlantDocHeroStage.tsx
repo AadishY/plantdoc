@@ -477,8 +477,14 @@ export const PlantDocHeroStage: React.FC = () => {
             const radiusY = radiusPx * (prefersReducedMotion ? 1 : 1 + Math.cos(time * 1.35 - 0.3) * 0.032);
             const x = `${(smoothX / maskCanvas.width) * 100}%`;
             const y = `${(smoothY / maskCanvas.height) * 100}%`;
+            const screenToCanvas = maskCanvas.width / Math.max(1, layerWidth);
+            const lobeOffsetX = prefersReducedMotion ? 0 : Math.sin(time * 1.25) * radiusPx * 0.08;
+            const lobeOffsetY = prefersReducedMotion ? 0 : Math.cos(time * 1.05) * radiusPx * 0.06;
+            const lobeX = `${((smoothX + lobeOffsetX * screenToCanvas) / maskCanvas.width) * 100}%`;
+            const lobeY = `${((smoothY + lobeOffsetY * screenToCanvas) / maskCanvas.height) * 100}%`;
             const maskLayers = [
-              `radial-gradient(ellipse ${radiusX}px ${radiusY}px at ${x} ${y}, #fff 0%, #fff 62%, transparent 100%)`
+              `radial-gradient(ellipse ${radiusX}px ${radiusY}px at ${x} ${y}, #fff 0%, #fff 62%, transparent 100%)`,
+              `radial-gradient(ellipse ${radiusX * 0.46}px ${radiusY * 0.58}px at ${lobeX} ${lobeY}, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0.42) 55%, transparent 100%)`
             ];
 
             // CSS gradients provide a low-cost mobile trail. It avoids canvas
@@ -503,7 +509,7 @@ export const PlantDocHeroStage: React.FC = () => {
             topLayerRef.current.style.webkitMaskSize = '100% 100%';
             topLayerRef.current.style.maskRepeat = 'no-repeat';
             topLayerRef.current.style.webkitMaskRepeat = 'no-repeat';
-            topLayerRef.current.style.opacity = '1';
+            topLayerRef.current.style.opacity = hovering ? '1' : '0';
 
             // A dark cutout sits between the healthy and diseased flowers.
             // It hides the healthy layer under every head/trail lobe, so
@@ -537,7 +543,7 @@ export const PlantDocHeroStage: React.FC = () => {
               topLayerRef.current.style.webkitMaskSize = '100% 100%';
               topLayerRef.current.style.maskRepeat = 'no-repeat';
               topLayerRef.current.style.webkitMaskRepeat = 'no-repeat';
-              topLayerRef.current.style.opacity = '1';
+              topLayerRef.current.style.opacity = hovering ? '1' : '0';
             }
 
             // The inverse mask keeps the healthy layer from doubling beneath
