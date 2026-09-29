@@ -51,42 +51,38 @@ const itemVariants = {
   }
 };
 
-const AI_MODELS = [
+const INTELLIGENCE_CAPABILITIES = [
   {
-    name: "Gemini 3.8 Flash",
-    role: "Clinical Pathology & Prescription Matrix",
-    tag: "Primary Pathologist",
-    budget: "Thinking (Budget: 1024)",
-    description: "Analyzes foliar pathology signatures, computes differential diagnoses, identifies etiology, and formulates 5-tier remediation protocols with commercial retail brand chemicals.",
+    name: "Clinical pathology reasoning",
+    role: "Disease assessment & care planning",
+    tag: "Pathology layer",
+    budget: "Evidence synthesis",
+    description: "Reviews visible symptoms, compares likely causes, and organizes practical next steps into a clear assessment.",
     icon: Microscope,
-    color: "from-[#2DD4BF] to-[#10B981]"
   },
   {
-    name: "Gemini Robotics ER-2 Preview",
-    role: "Spatial Embodied Lesion Grounding",
-    tag: "Spatial Vision",
-    budget: "Embodied Reasoning",
-    description: "Calculates normalized sub-pixel 2D bounding boxes [ymin, xmin, ymax, xmax] tightly localizing necrotic spots, chlorotic halos, and insect feeding perforations.",
+    name: "Spatial lesion mapping",
+    role: "Visual evidence & area inspection",
+    tag: "Vision layer",
+    budget: "Coordinate grounding",
+    description: "Highlights lesion regions and symptom markers so growers can inspect the same evidence behind a photo-based assessment.",
     icon: Focus,
-    color: "from-blue-400 to-indigo-500"
   },
   {
-    name: "Gemini 3.5 Flash Lite",
-    role: "Fast Regional Climate Intelligence",
-    tag: "Climate Engine",
-    budget: "Low-Latency Reasoning",
-    description: "Extracts geographic macro-climate zones, temperature envelopes, precipitation ranges, and soil chemistry profiles from regional queries.",
+    name: "Climate intelligence",
+    role: "Regional growing conditions",
+    tag: "Climate layer",
+    budget: "Low-latency matching",
+    description: "Interprets region, temperature, rainfall, soil, sunlight, and season inputs for more useful planting recommendations.",
     icon: Zap,
-    color: "from-amber-400 to-orange-500"
   },
   {
-    name: "Gemma 4 Open Family",
-    role: "Agronomic Botanical Matchmaker",
-    tag: "Gemma 4 Architecture",
-    budget: "Thinking (includeThoughts: true)",
-    description: "Matches environmental climate parameters against optimal botanical candidates with genuine scientific Latin binomials and USDA hardiness compatibility.",
+    name: "Botanical matching",
+    role: "Plant selection & care fit",
+    tag: "Agronomy layer",
+    budget: "Compatibility ranking",
+    description: "Ranks plant candidates against the conditions you provide and surfaces clear care details for the next growing decision.",
     icon: Leaf,
-    color: "from-emerald-400 to-teal-600"
   }
 ];
 
@@ -100,9 +96,9 @@ const PIPELINE_STAGES = [
   },
   {
     step: "02",
-    title: "Parallel Dual-Model Execution",
-    subtitle: "Synchronous Pathological & Spatial Inference",
-    description: "Simultaneously dispatches the specimen to Gemini 3.8 Flash for etiology and Gemini Robotics ER-2 for spatial coordinates, cutting total diagnostic latency in half.",
+    title: "Parallel Evidence Processing",
+    subtitle: "Pathology & spatial analysis",
+    description: "Processes the specimen through complementary pathology and spatial-analysis steps so the written assessment and lesion view stay connected.",
     icon: Layers
   },
   {
@@ -130,10 +126,10 @@ const PIPELINE_STAGES = [
 
 const AboutPage: React.FC = () => {
   useDocumentTitle(
-    "Platform Architecture & Agronomy Mission — PlantDoc AI",
-    "Learn about PlantDoc AI's multi-stage neural vision architecture, spatial lesion localization, and clinical prescription algorithms.",
+    "About Aadish Kumar Yadav & PlantDoc AI | Plant Disease AI",
+    "Learn how Aadish Kumar Yadav built PlantDoc AI for plant disease identification, leaf lesion analysis, botanical recommendations, and practical crop-care guidance.",
     "/about",
-    "plantdoc ai architecture, vision ai plant pathology, foliar segmentation ai, agricultural machine learning, plant disease research"
+    "Aadish Kumar Yadav, Aadish PlantDoc, PlantDoc AI creator, PlantDoc architecture, plant disease AI, computer vision plant pathology, foliar segmentation, agricultural machine learning"
   );
 
   return (
@@ -160,14 +156,14 @@ const AboutPage: React.FC = () => {
             </h1>
 
             <p className="text-foreground/80 text-sm sm:text-base leading-relaxed">
-              PlantDoc AI combines multi-model computer vision, sub-pixel spatial lesion grounding, and real-time botanical encyclopedic databases to provide instant, clinical-grade foliar pathology care to farmers and gardeners worldwide.
+              PlantDoc AI combines multimodal computer vision, spatial lesion grounding, and real-time botanical reference data to provide clear foliar health guidance for farmers and gardeners worldwide.
             </p>
 
             {/* Quick Stat Badges */}
             <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
               <span className="px-3 py-1 rounded-xl bg-black/50 border border-white/10 text-xs font-mono text-white/90 flex items-center gap-1.5">
                 <Activity className="h-3.5 w-3.5 text-[#2DD4BF]" />
-                Parallel Dual-Model Inference
+                Parallel Evidence Analysis
               </span>
               <span className="px-3 py-1 rounded-xl bg-black/50 border border-white/10 text-xs font-mono text-white/90 flex items-center gap-1.5">
                 <Scan className="h-3.5 w-3.5 text-blue-400" />
@@ -335,19 +331,19 @@ const AboutPage: React.FC = () => {
             </div>
           </div>
 
-          {/* AI Model Architecture Grid */}
+          {/* Intelligence Capability Grid */}
           <div className="space-y-6">
             <div className="text-center max-w-2xl mx-auto">
               <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">
-                Specialized AI Model Architecture
+                Specialized Intelligence Architecture
               </h2>
               <p className="text-xs sm:text-sm text-foreground/75">
-                Every task is handled by a tailored neural engine without synthetic fallbacks
+                Focused capabilities work together to turn plant evidence into useful, transparent guidance
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {AI_MODELS.map((model, idx) => {
+              {INTELLIGENCE_CAPABILITIES.map((model, idx) => {
                 const IconComp = model.icon;
                 return (
                   <motion.div
@@ -383,7 +379,7 @@ const AboutPage: React.FC = () => {
                     </div>
 
                     <div className="pt-3 border-t border-white/10 flex items-center justify-between text-[11px] font-mono text-foreground/60">
-                      <span>Reasoning Mode:</span>
+                      <span>Processing focus:</span>
                       <span className="text-white/90">{model.budget}</span>
                     </div>
                   </motion.div>
@@ -434,16 +430,16 @@ const AboutPage: React.FC = () => {
           {/* Technology Badges Matrix */}
           <div className="p-6 rounded-2xl bg-black/40 border border-white/10 backdrop-blur-xl flex flex-wrap items-center justify-center gap-2.5">
             {[
-              "React 18 & TypeScript",
-              "Gemini 3.7 Flash",
-              "Gemini Robotics ER-2",
-              "Gemma 4 31B IT",
-              "Wikimedia REST APIs",
-              "Tailwind CSS v3",
-              "Lenis Kinetic Scroll",
-              "GSAP ScrollTrigger",
-              "Framer Motion",
-              "Vite SWC"
+              "React & TypeScript",
+              "Multimodal image analysis",
+              "Spatial evidence mapping",
+              "Climate-aware recommendations",
+              "Botanical reference data",
+              "Tailwind CSS",
+              "Adaptive canvas rendering",
+              "Accessible recovery states",
+              "Motion-aware interfaces",
+              "Fast Vite delivery"
             ].map((tech) => (
               <Badge 
                 key={tech} 

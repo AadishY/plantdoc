@@ -1,1 +1,1 @@
-{"name":"plantdoc","description":"Instant AI plant disease diagnosis, leaf lesion segmentation, and clinical treatment protocols.","requestFramePermissions":["camera"],"majorCapabilities":["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]}
+{"name":"plantdoc","description":"PlantDoc AI by Aadish Kumar Yadav for AI plant disease diagnosis, leaf lesion analysis, and practical plant-care guidance.","requestFramePermissions":["camera"],"majorCapabilities":["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]}

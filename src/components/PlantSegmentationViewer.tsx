@@ -5,11 +5,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { getSafeImageUrl } from '@/utils/sanitizeUrl';
-import { 
-  Scan, 
-  Layers, 
-  Eye, 
-  AlertTriangle, 
+import {
+  Scan,
+  Layers,
+  Eye,
+  AlertTriangle,
   ShieldCheck,
   Maximize2,
   Minimize2,
@@ -48,68 +48,68 @@ interface PlantSegmentationViewerProps {
 }
 
 const CV_TYPE_CONFIG: Record<string, { border: string; bg: string; text: string; label: string; icon: any }> = {
-  necrotic_spot: { 
-    border: '#EF4444', 
-    bg: 'rgba(239, 68, 68, 0.28)', 
-    text: '#F87171', 
-    label: 'Necrotic Tissue', 
-    icon: Flame 
+  necrotic_spot: {
+    border: '#EF4444',
+    bg: 'rgba(239, 68, 68, 0.28)',
+    text: '#F87171',
+    label: 'Necrotic Tissue',
+    icon: Flame
   },
-  chlorotic_halo: { 
-    border: '#F59E0B', 
-    bg: 'rgba(245, 158, 11, 0.28)', 
-    text: '#FBBF24', 
-    label: 'Chlorotic Halo', 
-    icon: AlertCircle 
+  chlorotic_halo: {
+    border: '#F59E0B',
+    bg: 'rgba(245, 158, 11, 0.28)',
+    text: '#FBBF24',
+    label: 'Chlorotic Halo',
+    icon: AlertCircle
   },
-  spore_pustule: { 
-    border: '#A855F7', 
-    bg: 'rgba(168, 85, 247, 0.28)', 
-    text: '#C084FC', 
-    label: 'Fungal Spore / Rust', 
-    icon: Droplets 
+  spore_pustule: {
+    border: '#A855F7',
+    bg: 'rgba(168, 85, 247, 0.28)',
+    text: '#C084FC',
+    label: 'Fungal Spore / Rust',
+    icon: Droplets
   },
-  feeding_perforation: { 
-    border: '#06B6D4', 
-    bg: 'rgba(6, 182, 212, 0.28)', 
-    text: '#22D3EE', 
-    label: 'Pest Feeding Hole', 
-    icon: Bug 
+  feeding_perforation: {
+    border: '#06B6D4',
+    bg: 'rgba(6, 182, 212, 0.28)',
+    text: '#22D3EE',
+    label: 'Pest Feeding Hole',
+    icon: Bug
   },
-  blight_scorch: { 
-    border: '#F97316', 
-    bg: 'rgba(249, 115, 22, 0.28)', 
-    text: '#FB923C', 
-    label: 'Blight Scorch Margin', 
-    icon: Flame 
+  blight_scorch: {
+    border: '#F97316',
+    bg: 'rgba(249, 115, 22, 0.28)',
+    text: '#FB923C',
+    label: 'Blight Scorch Margin',
+    icon: Flame
   },
-  water_soaked: { 
-    border: '#3B82F6', 
-    bg: 'rgba(59, 130, 246, 0.28)', 
-    text: '#60A5FA', 
-    label: 'Bacterial Water-Soaked', 
-    icon: Droplets 
+  water_soaked: {
+    border: '#3B82F6',
+    bg: 'rgba(59, 130, 246, 0.28)',
+    text: '#60A5FA',
+    label: 'Bacterial Water-Soaked',
+    icon: Droplets
   },
-  vein_discoloration: { 
-    border: '#84CC16', 
-    bg: 'rgba(132, 204, 22, 0.28)', 
-    text: '#A3E635', 
-    label: 'Nutrient Chlorosis', 
-    icon: Activity 
+  vein_discoloration: {
+    border: '#84CC16',
+    bg: 'rgba(132, 204, 22, 0.28)',
+    text: '#A3E635',
+    label: 'Nutrient Chlorosis',
+    icon: Activity
   },
-  mildew_mycelium: { 
-    border: '#EC4899', 
-    bg: 'rgba(236, 72, 153, 0.28)', 
-    text: '#F472B6', 
-    label: 'Powdery Mycelium', 
-    icon: Sparkles 
+  mildew_mycelium: {
+    border: '#EC4899',
+    bg: 'rgba(236, 72, 153, 0.28)',
+    text: '#F472B6',
+    label: 'Powdery Mycelium',
+    icon: Sparkles
   },
-  default: { 
-    border: '#2DD4BF', 
-    bg: 'rgba(45, 212, 191, 0.28)', 
-    text: '#5EEAD4', 
-    label: 'Active Pathogen Lesion', 
-    icon: AlertTriangle 
+  default: {
+    border: '#2DD4BF',
+    bg: 'rgba(45, 212, 191, 0.28)',
+    text: '#5EEAD4',
+    label: 'Active Pathogen Lesion',
+    icon: AlertTriangle
   }
 };
 
@@ -129,7 +129,7 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
   const [showLesions, setShowLesions] = useState(true);
   const [showLabels, setShowLabels] = useState(true);
   const [showHeatmap, setShowHeatmap] = useState(true);
-  const [spectralNdviMode, setSpectralNdviMode] = useState(false);
+  const [visualStressTint, setVisualStressTint] = useState(false);
   const [contourEdgeMode, setContourEdgeMode] = useState(false);
   const [selectedLesionIndex, setSelectedLesionIndex] = useState<number | null>(null);
   const [activeFilterType, setActiveFilterType] = useState<string>('all');
@@ -137,8 +137,12 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
   const [zoomScale, setZoomScale] = useState(1);
   const [scannerActive, setScannerActive] = useState(false);
 
+  // Keep keyboard listeners scoped to an active inspection so idle result pages
+  // do not retain a global interaction handler.
+  const hasActiveInspection = isFullscreen || selectedLesionIndex !== null;
+
   // Check if specimen is healthy / disease-free
-  const isHealthy = 
+  const isHealthy =
     !diseaseName ||
     diseaseName.toLowerCase().includes('healthy') ||
     diseaseName.toLowerCase().includes('no disease') ||
@@ -147,9 +151,9 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
     severity.toLowerCase() === 'none';
 
   // Check if plant name is unidentified
-  const isUnidentifiedPlant = 
-    !plantName || 
-    plantName.toLowerCase().includes('cannot identify') || 
+  const isUnidentifiedPlant =
+    !plantName ||
+    plantName.toLowerCase().includes('cannot identify') ||
     plantName.toLowerCase().includes('cant identify') ||
     plantName.toLowerCase().includes('unknown') ||
     plantName.toLowerCase().includes('unidentified');
@@ -170,12 +174,15 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
   const selectedLesion = selectedLesionIndex !== null ? allLesions[selectedLesionIndex] : null;
 
   // Calculate total damaged area percentage
-  const totalDamagePct = useMemo(() => {
+  const damageEstimate = useMemo(() => {
     if (typeof segmentation?.total_foliar_damage_pct === 'number') {
-      return segmentation.total_foliar_damage_pct;
+      return Math.max(0, Math.min(100, segmentation.total_foliar_damage_pct));
     }
-    if (isHealthy || allLesions.length === 0) return 0;
-    return Math.min(65, Math.round(allLesions.reduce((acc, l) => acc + (l.affected_area_pct || 3.5), 0) * 10) / 10);
+    const measuredAreas = allLesions
+      .map((lesion) => lesion.affected_area_pct)
+      .filter((area): area is number => typeof area === 'number' && Number.isFinite(area));
+    if (isHealthy || measuredAreas.length === 0) return null;
+    return Math.max(0, Math.min(100, measuredAreas.reduce((sum, area) => sum + area, 0)));
   }, [segmentation?.total_foliar_damage_pct, isHealthy, allLesions]);
 
   // Group lesions by type
@@ -191,7 +198,7 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
   const normalizeBox = useCallback((box?: [number, number, number, number]) => {
     if (!box || box.length !== 4) return null;
     const [ymin, xmin, ymax, xmax] = box;
-    
+
     const actualYmin = Math.min(ymin, ymax);
     const actualYmax = Math.max(ymin, ymax);
     const actualXmin = Math.min(xmin, xmax);
@@ -199,7 +206,7 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
 
     const maxVal = Math.max(actualYmax, actualXmax);
     const scale = maxVal > 100 ? 1000 : maxVal > 1 ? 100 : 1;
-    
+
     const top = Math.max(0, Math.min(100, (actualYmin / scale) * 100));
     const left = Math.max(0, Math.min(100, (actualXmin / scale) * 100));
     const rawHeight = ((actualYmax - actualYmin) / scale) * 100;
@@ -249,9 +256,10 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
         }
       }
     };
+    if (!hasActiveInspection) return;
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isFullscreen, selectedLesionIndex, allLesions.length]);
+  }, [hasActiveInspection, isFullscreen, selectedLesionIndex, allLesions.length]);
 
   // Copy clinical lesion coordinates & telemetry to clipboard
   const handleCopyTelemetry = () => {
@@ -264,18 +272,18 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
       scientific_name: scientificName || null,
       pathology: diseaseName,
       severity,
-      total_foliar_damage_pct: totalDamagePct,
+      total_foliar_damage_pct: damageEstimate,
       detected_lesion_count: allLesions.length,
       coordinate_system: "Normalized 2D Sub-Pixel Matrix [ymin, xmin, ymax, xmax]",
       lesions: allLesions.map((l, i) => ({
         id: i + 1,
         label: l.label,
-        type: l.lesion_type || 'necrotic_spot',
+        type: l.lesion_type || 'general_defect',
         box_2d: l.box_2d,
-        confidence: l.confidence || diseaseConfidence,
+        confidence: typeof l.confidence === 'number' ? l.confidence : null,
         severity: l.severity || severity,
-        affected_area_pct: l.affected_area_pct,
-        clinical_action: l.recommended_action
+        affected_area_pct: typeof l.affected_area_pct === 'number' ? l.affected_area_pct : null,
+        clinical_action: l.recommended_action || null
       }))
     };
     navigator.clipboard.writeText(JSON.stringify(telemetry, null, 2));
@@ -324,15 +332,11 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
       }
 
       const style = getTypeStyle(lesion);
-      const norm = normalizeBox(lesion.box_2d) || {
-        top: `${20 + index * 12}%`,
-        left: `${20 + index * 12}%`,
-        width: '25%',
-        height: '25%',
-        centerTop: `${32 + index * 12}%`,
-        centerLeft: `${32 + index * 12}%`
-      };
-      
+      // Render only coordinates returned by the analysis. A decorative fallback
+      // box would make an uncertain result look more precise than it is.
+      const norm = normalizeBox(lesion.box_2d);
+      if (!norm) return null;
+
       const isSelected = selectedLesionIndex === index;
       const isNearTop = parseFloat(norm.top) < 7;
 
@@ -344,8 +348,8 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
             setSelectedLesionIndex(isSelected ? null : index);
           }}
           className={`absolute cursor-pointer transition-all duration-200 ${
-            isSelected 
-              ? 'z-40 ring-2 ring-white shadow-[0_0_24px_rgba(255,255,255,0.85)] scale-[1.02]' 
+            isSelected
+              ? 'z-40 ring-2 ring-white shadow-[0_0_24px_rgba(255,255,255,0.85)] scale-[1.02]'
               : 'z-20 hover:z-30 hover:scale-[1.01]'
           }`}
           style={{
@@ -366,7 +370,7 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
 
           {/* Selected Pulse Wave Animation */}
           {isSelected && (
-            <div 
+            <div
               className="absolute -inset-2 rounded-xl border-2 animate-ping pointer-events-none opacity-75"
               style={{ borderColor: style.border }}
             />
@@ -374,7 +378,7 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
 
           {/* Compact High-Tech HUD Label */}
           {showLabels && (
-            <div 
+            <div
               className={`absolute whitespace-nowrap select-none font-mono flex items-center gap-1.5 ${
                 isNearTop ? 'top-0 left-0 rounded-b-md' : 'bottom-full left-[-1px] rounded-t-md'
               }`}
@@ -405,8 +409,8 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
 
   // Dynamic Image Filter Class String with refined CSS blending
   const getImageFilterClass = () => {
-    if (spectralNdviMode) {
-      return 'hue-rotate-[85deg] contrast-[1.45] saturate-[2.2] brightness-105';
+    if (visualStressTint) {
+      return 'hue-rotate-[25deg] contrast-[1.25] saturate-[1.5] brightness-105';
     }
     if (contourEdgeMode) {
       return 'contrast-[2.4] brightness-95 saturate-[0.3] invert-[0.05]';
@@ -418,7 +422,7 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
     <>
       {/* Main Container */}
       <div className="relative rounded-3xl overflow-hidden glass-card-intense border border-white/20 shadow-2xl backdrop-blur-2xl transition-all duration-300 bg-black/55">
-        
+
         {/* 1. Header Toolbar */}
         <div className="p-3.5 sm:p-5 bg-black/75 border-b border-white/10 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -456,8 +460,8 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
                 variant={showLesions ? "default" : "outline"}
                 onClick={() => setShowLesions(!showLesions)}
                 className={`text-xs h-8 px-2.5 rounded-xl transition-all ${
-                  showLesions 
-                    ? 'bg-[#2DD4BF] text-black font-extrabold shadow-[0_0_15px_rgba(45,212,191,0.4)]' 
+                  showLesions
+                    ? 'bg-[#2DD4BF] text-black font-extrabold shadow-[0_0_15px_rgba(45,212,191,0.4)]'
                     : 'border-white/20 text-white hover:bg-white/10'
                 }`}
               >
@@ -471,8 +475,8 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
                 variant={showHeatmap ? "default" : "outline"}
                 onClick={() => setShowHeatmap(!showHeatmap)}
                 className={`text-xs h-8 px-2.5 rounded-xl transition-all ${
-                  showHeatmap 
-                    ? 'bg-amber-500 hover:bg-amber-600 text-black font-extrabold shadow-[0_0_15px_rgba(245,158,11,0.4)]' 
+                  showHeatmap
+                    ? 'bg-amber-500 hover:bg-amber-600 text-black font-extrabold shadow-[0_0_15px_rgba(245,158,11,0.4)]'
                     : 'border-white/20 text-white hover:bg-white/10'
                 }`}
                 title="Toggle thermal lesion intensity heatmap"
@@ -481,25 +485,25 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
                 Heatmap
               </Button>
 
-              {/* Spectral NDVI Foliar Stress Mode */}
+              {/* Image Stress Tint */}
               <Button
                 size="sm"
-                variant={spectralNdviMode ? "default" : "outline"}
+                variant={visualStressTint ? "default" : "outline"}
                 onClick={() => {
-                  setSpectralNdviMode(!spectralNdviMode);
-                  if (!spectralNdviMode) {
+                  setVisualStressTint(!visualStressTint);
+                  if (!visualStressTint) {
                     setContourEdgeMode(false);
                   }
                 }}
                 className={`text-xs h-8 px-2.5 rounded-xl transition-all ${
-                  spectralNdviMode 
-                    ? 'bg-purple-600 text-white font-extrabold shadow-[0_0_15px_rgba(168,85,247,0.5)]' 
+                  visualStressTint
+                    ? 'bg-purple-600 text-white font-extrabold shadow-[0_0_15px_rgba(168,85,247,0.5)]'
                     : 'border-white/20 text-white hover:bg-white/10'
                 }`}
-                title="Spectral NDVI foliar chlorophyll stress analysis"
+                title="Apply a visual stress tint to make contrast easier to inspect; this is not a spectral measurement"
               >
                 <Radiation className="h-3.5 w-3.5 mr-1" />
-                Spectral NDVI
+                Stress Tint
               </Button>
 
               {/* Contour Edge Isolation Mode */}
@@ -509,12 +513,12 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
                 onClick={() => {
                   setContourEdgeMode(!contourEdgeMode);
                   if (!contourEdgeMode) {
-                    setSpectralNdviMode(false);
+                    setVisualStressTint(false);
                   }
                 }}
                 className={`text-xs h-8 px-2.5 rounded-xl transition-all ${
-                  contourEdgeMode 
-                    ? 'bg-cyan-500 text-black font-extrabold shadow-[0_0_15px_rgba(6,182,212,0.4)]' 
+                  contourEdgeMode
+                    ? 'bg-cyan-500 text-black font-extrabold shadow-[0_0_15px_rgba(6,182,212,0.4)]'
                     : 'border-white/20 text-white hover:bg-white/10'
                 }`}
                 title="High-contrast foliar lesion margin and contour isolation"
@@ -529,8 +533,8 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
                 variant={scannerActive ? "default" : "outline"}
                 onClick={() => setScannerActive(!scannerActive)}
                 className={`text-xs h-8 px-2.5 rounded-xl transition-all ${
-                  scannerActive 
-                    ? 'bg-[#2DD4BF] text-black font-extrabold shadow-[0_0_15px_rgba(45,212,191,0.5)]' 
+                  scannerActive
+                    ? 'bg-[#2DD4BF] text-black font-extrabold shadow-[0_0_15px_rgba(45,212,191,0.5)]'
                     : 'border-white/20 text-white hover:bg-white/10'
                 }`}
                 title="Toggle animated precision LiDAR/foliar laser scanner sweep"
@@ -573,16 +577,16 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
               <div className="flex items-center gap-1.5 text-white/80 font-mono text-[11px]">
                 <Activity className="h-3.5 w-3.5 text-red-400" />
                 <span>FOLIAR DAMAGE:</span>
-                <span className="font-bold text-white text-xs">{totalDamagePct}% of leaf area</span>
+                <span className="font-bold text-white text-xs">{damageEstimate === null ? 'Not quantified' : `${damageEstimate}% of leaf area`}</span>
               </div>
               <div className="w-24 sm:w-32 bg-white/10 rounded-full h-2 overflow-hidden border border-white/15">
-                <div 
+                <div
                   className={`h-full rounded-full transition-all duration-500 ${
-                    totalDamagePct > 30 
-                      ? 'bg-gradient-to-r from-amber-500 to-red-500' 
+                    (damageEstimate ?? 0) > 30
+                      ? 'bg-gradient-to-r from-amber-500 to-red-500'
                       : 'bg-gradient-to-r from-[#2DD4BF] to-amber-500'
                   }`}
-                  style={{ width: `${Math.min(100, Math.max(5, totalDamagePct))}%` }}
+                  style={{ width: damageEstimate === null ? '0%' : `${Math.min(100, Math.max(0, damageEstimate))}%` }}
                 />
               </div>
             </div>
@@ -592,8 +596,8 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
               <button
                 onClick={() => setActiveFilterType('all')}
                 className={`px-2.5 py-1 rounded-full text-[10px] font-mono transition-all flex items-center gap-1 ${
-                  activeFilterType === 'all' 
-                    ? 'bg-[#2DD4BF] text-black font-extrabold' 
+                  activeFilterType === 'all'
+                    ? 'bg-[#2DD4BF] text-black font-extrabold'
                     : 'bg-white/5 hover:bg-white/10 text-white/80 border border-white/10'
                 }`}
               >
@@ -610,8 +614,8 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
                     key={typeKey}
                     onClick={() => setActiveFilterType(isCurrent ? 'all' : typeKey)}
                     className={`px-2.5 py-1 rounded-full text-[10px] font-mono transition-all flex items-center gap-1 whitespace-nowrap ${
-                      isCurrent 
-                        ? 'text-black font-extrabold shadow-md' 
+                      isCurrent
+                        ? 'text-black font-extrabold shadow-md'
                         : 'bg-white/5 hover:bg-white/10 text-white/80 border border-white/10'
                     }`}
                     style={isCurrent ? { backgroundColor: conf.border } : {}}
@@ -626,12 +630,12 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
         )}
 
         {/* 3. Main Computer Vision Canvas */}
-        <div 
+        <div
           onClick={() => setSelectedLesionIndex(null)}
           className="relative w-full bg-[#040705] p-2 sm:p-6 flex items-center justify-center overflow-hidden min-h-[280px] sm:min-h-[420px] cursor-crosshair select-none"
         >
           {/* Precision Grid Matrix Overlay in Background */}
-          <div 
+          <div
             className="absolute inset-0 opacity-15 pointer-events-none"
             style={{
               backgroundImage: 'radial-gradient(rgba(45, 212, 191, 0.4) 1px, transparent 1px)',
@@ -670,7 +674,7 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
                 const norm = normalizeBox(selectedLesion.box_2d);
                 if (!norm) return null;
                 return (
-                  <div 
+                  <div
                     className="absolute pointer-events-none z-30 transition-all duration-300"
                     style={{
                       top: norm.top,
@@ -709,12 +713,12 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
           </div>
 
           {/* Active Mode Visual Indicator Pill */}
-          {(spectralNdviMode || contourEdgeMode) && (
+          {(visualStressTint || contourEdgeMode) && (
             <div className="absolute top-4 right-4 pointer-events-none z-30">
               <div className="px-3 py-1 rounded-full bg-black/85 border border-[#2DD4BF]/50 text-xs font-mono text-[#5EEAD4] backdrop-blur-md flex items-center gap-1.5 shadow-lg">
                 <Sparkles className="h-3.5 w-3.5 text-[#2DD4BF]" />
                 <span>
-                  {spectralNdviMode && "Active View: Spectral NDVI Chlorophyll Stress"}
+                  {visualStressTint && "Active View: Visual Stress Tint"}
                   {contourEdgeMode && "Active View: Lesion Margin & Contour Tracing"}
                 </span>
               </div>
@@ -745,7 +749,7 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
         {/* 5. Rich Selected Lesion Pathology & Action Drawer */}
         <AnimatePresence>
           {selectedLesion && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
@@ -753,11 +757,11 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
             >
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
-                  <div 
+                  <div
                     className="p-2 rounded-xl border"
-                    style={{ 
+                    style={{
                       backgroundColor: getTypeStyle(selectedLesion).bg,
-                      borderColor: getTypeStyle(selectedLesion).border 
+                      borderColor: getTypeStyle(selectedLesion).border
                     }}
                   >
                     <Target className="h-4 w-4 text-white" />
@@ -765,12 +769,12 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
                   <div>
                     <div className="flex items-center gap-2">
                       <h4 className="font-bold text-sm text-white">{selectedLesion.label}</h4>
-                      <Badge 
+                      <Badge
                         className="text-[10px] px-2 py-0.5 font-bold uppercase rounded-full"
-                        style={{ 
+                        style={{
                           backgroundColor: getTypeStyle(selectedLesion).bg,
                           color: getTypeStyle(selectedLesion).text,
-                          borderColor: getTypeStyle(selectedLesion).border 
+                          borderColor: getTypeStyle(selectedLesion).border
                         }}
                       >
                         {getTypeStyle(selectedLesion).label}
@@ -788,7 +792,7 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
                       SPOT {(selectedLesionIndex ?? 0) + 1} OF {allLesions.length}
                     </span>
                     <span className="font-mono font-extrabold text-amber-400 text-xs">
-                      {selectedLesion.severity || severity} • {selectedLesion.affected_area_pct || 4.2}%
+                      {selectedLesion.severity || severity} • {typeof selectedLesion.affected_area_pct === 'number' ? `${selectedLesion.affected_area_pct}%` : 'Area not quantified'}
                     </span>
                   </div>
 
@@ -915,7 +919,7 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
 
           {/* Central Fullscreen Inspection Canvas */}
           <div className="flex-1 flex items-center justify-center p-4 overflow-auto">
-            <div 
+            <div
               className="relative inline-block leading-none max-w-full rounded-2xl shadow-2xl border border-white/20 transition-transform duration-200"
               style={{ transform: `scale(${zoomScale})` }}
             >
@@ -940,14 +944,14 @@ export const PlantSegmentationViewer: React.FC<PlantSegmentationViewerProps> = (
               <strong className="text-amber-400 font-mono">{severity}</strong>
               <span className="text-white/40">|</span>
               <span className="text-white/70 font-mono">DAMAGE_PCT:</span>
-              <strong className="text-red-400 font-mono">{totalDamagePct}%</strong>
+              <strong className="text-red-400 font-mono">{damageEstimate === null ? 'Not quantified' : `${damageEstimate}%`}</strong>
             </div>
 
             {selectedLesion && (
               <div className="flex items-center gap-2 bg-[#2DD4BF]/10 px-3.5 py-1.5 rounded-full border border-[#2DD4BF]/40">
                 <span className="text-[#5EEAD4] font-bold">{selectedLesion.label}:</span>
                 <span className="text-white/90">{selectedLesion.description}</span>
-                <span className="font-mono text-[#5EEAD4] font-bold">({(selectedLesion.confidence || diseaseConfidence).toFixed(1)}%)</span>
+                <span className="font-mono text-[#5EEAD4] font-bold">({(typeof selectedLesion.confidence === 'number' ? selectedLesion.confidence : diseaseConfidence).toFixed(1)}%)</span>
               </div>
             )}
           </div>

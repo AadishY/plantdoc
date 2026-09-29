@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect, useCallback, memo } from 'react';
-import { motion } from 'framer-motion';
 import { useDeviceOptimizer } from '@/hooks/use-mobile';
 
 const TextHighlighter: React.FC = memo(() => {
@@ -51,15 +50,12 @@ const TextHighlighter: React.FC = memo(() => {
   if (!isVisible) return null;
   
   return (
-    <motion.div
+    <div
+      aria-hidden="true"
       className="pointer-events-none fixed inset-0 z-30 mix-blend-soft-light opacity-60"
-      style={{ 
-        background: `radial-gradient(500px circle at ${position.x}px ${position.y}px, rgba(76, 175, 80, 0.12), transparent 40%)` 
+      style={{
+        background: `radial-gradient(500px circle at ${position.x}px ${position.y}px, rgba(76, 175, 80, 0.12), transparent 40%)`,
       }}
-      animate={{
-        background: `radial-gradient(500px circle at ${position.x}px ${position.y}px, rgba(76, 175, 80, 0.12), transparent 40%)`
-      }}
-      transition={{ type: "tween", ease: "easeOut", duration: 0.15 }}
     />
   );
 });
