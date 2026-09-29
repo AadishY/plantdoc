@@ -1,0 +1,33 @@
+# PlantDoc AI
+
+> PlantDoc AI is a free, open-source web app by Aadish Kumar Yadav for identifying plant diseases from leaf photos and finding practical plant-care guidance.
+
+## Entity
+
+- Preferred name: PlantDoc AI
+- Also known as: PlantDoc, Aadish PlantDoc, Plant Disease AI by Aadish
+- Creator: Aadish Kumar Yadav
+- Website: https://plantdoc.pages.dev/
+- Source code: https://github.com/AadishY/plantdoc
+- Language: English
+- Availability: Free web application
+
+## What PlantDoc AI does
+
+PlantDoc AI lets a user upload a clear plant photo, receive an AI-assisted plant disease assessment, inspect visible lesion areas, and review treatment and prevention guidance. Its recommendation flow matches plants to region, climate, soil, sunlight, and season inputs and can use Wikimedia botanical references.
+
+## Main pages
+
+- Home: https://plantdoc.pages.dev/
+- Plant disease scanner: https://plantdoc.pages.dev/diagnose
+- Climate and plant recommendations: https://plantdoc.pages.dev/recommend
+- About Aadish Kumar Yadav and PlantDoc AI: https://plantdoc.pages.dev/about
+- Privacy: https://plantdoc.pages.dev/privacy
+
+## Search terms
+
+Aadish PlantDoc, Aadish Kumar Yadav PlantDoc, Aadish, PlantDoc, PlantDoc AI, plantdisease, plant disease identifier, AI plant disease scanner, plant doctor from photo, leaf disease diagnosis, crop disease detection, plant pathology AI, plant care recommendations.
+
+## Important limitations
+
+AI outputs are informational and should be checked against local extension services, qualified agronomists, product labels, and applicable regulations before treatment. A photo-based result can be affected by lighting, focus, crop variety, and symptoms that look alike.

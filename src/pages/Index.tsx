@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -12,12 +12,7 @@ import {
   Scan, 
   Wand2, 
   ArrowRight, 
-  HelpCircle, 
-  CheckCircle2, 
-  ShieldCheck, 
-  Layers, 
-  Zap, 
-  Activity 
+  HelpCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -52,10 +47,10 @@ const faqs = [
 
 const Index = () => {
   useDocumentTitle(
-    "PlantDoc AI — Instant AI Plant Disease Diagnosis & Precision Foliar Pathology",
-    "Instant AI plant disease diagnosis, sub-pixel leaf lesion segmentation, and clinical botanical treatment matrices. Upload foliage photos for instant pathology analysis.",
+    "PlantDoc AI by Aadish | AI Plant Disease Identifier",
+    "PlantDoc AI by Aadish Kumar Yadav identifies plant diseases from leaf photos with fast AI analysis, lesion mapping, practical treatment guidance, and climate-smart recommendations.",
     "/",
-    "plant disease diagnosis, AI plant doctor, plant pathology, leaf lesion segmentation, botanical diagnosis, crop disease identifier, gardening AI, plant care remedies, foliar chlorosis, agricultural computer vision"
+    "Aadish PlantDoc, Aadish Kumar Yadav PlantDoc, Aadish, PlantDoc, PlantDoc AI, plantdisease, plant disease identifier, AI plant disease scanner, plant doctor from photo, leaf disease diagnosis, crop disease detection, plant pathology AI, leaf spot identifier, tomato disease detector, powdery mildew identifier, organic plant treatment, plant care recommendations"
   );
 
   return (

@@ -71,6 +71,8 @@ const TestimonialsSection: React.FC = () => {
                     src={testimonial.avatar} 
                     alt={testimonial.name}
                     className="w-12 h-12 rounded-full object-cover border-2 border-plantDoc-primary/20" 
+                    loading="lazy"
+                    decoding="async"
                   />
                 </div>
                 <div>

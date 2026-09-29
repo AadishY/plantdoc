@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect } from 'react';
+import { Suspense, lazy } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { Toaster as RadixToaster } from '@/components/ui/toaster';
@@ -10,10 +10,10 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import ScrollToTop from '@/components/ScrollToTop';
 import PageLoadingFallback from '@/components/PageLoadingFallback';
 import CustomScrollbar from '@/components/CustomScrollbar';
-import { preloadAllRoutes } from '@/utils/routePreloader';
-
 // Lazily load components for better performance
 const TextHighlighter = lazy(() => import('@/components/TextHighlighter'));
+const canUseDesktopEffects = typeof window !== 'undefined'
+  && window.matchMedia('(pointer: fine)').matches;
 
 // Preload critical landing page
 import Index from '@/pages/Index';
@@ -26,11 +26,6 @@ const PrivacyPage = lazy(() => import('@/pages/PrivacyPage'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 
 function App() {
-  // Silently warm and cache route chunks during browser idle time for 0ms transitions
-  useEffect(() => {
-    preloadAllRoutes();
-  }, []);
-
   return (
     <ThemeProvider defaultTheme="dark" storageKey="plantdoc-theme">
       <ErrorBoundary>
@@ -77,9 +72,11 @@ function App() {
           </Routes>
 
           {/* Global Highlights & Toast */}
-          <Suspense fallback={null}>
-            <TextHighlighter />
-          </Suspense>
+          {canUseDesktopEffects && (
+            <Suspense fallback={null}>
+              <TextHighlighter />
+            </Suspense>
+          )}
           <RadixToaster />
           <SonnerToaster />
         </SmoothScroll>
