@@ -3,10 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
-    <title>PlantDoc AI — Instant AI Plant Disease Diagnosis & Precision Foliar Pathology</title>
-    <meta name="description" content="Instant AI plant disease diagnosis, sub-pixel leaf lesion segmentation, and clinical botanical treatment matrices. Upload foliage photos for instant pathology analysis." />
-    <meta name="keywords" content="plant disease diagnosis, AI plant doctor, plant pathology, leaf lesion segmentation, botanical diagnosis, crop disease identifier, gardening AI, plant care remedies, foliar chlorosis, agricultural computer vision, companion planting, USDA hardiness" />
+    <title>PlantDoc AI by Aadish | AI Plant Disease Identifier</title>
+    <meta name="description" content="PlantDoc AI by Aadish Kumar Yadav identifies plant diseases from leaf photos with fast AI analysis, lesion mapping, practical treatment guidance, and climate-smart recommendations." />
+    <meta name="keywords" content="Aadish PlantDoc, Aadish Kumar Yadav PlantDoc, Aadish, PlantDoc, PlantDoc AI, plantdisease, plant disease identifier, AI plant disease scanner, plant doctor from photo, leaf disease diagnosis, crop disease detection, plant pathology AI, leaf spot identifier, tomato disease detector, powdery mildew identifier, organic plant treatment, plant care recommendations, crop health app" />
     <meta name="author" content="Aadish Kumar Yadav" />
+    <meta name="creator" content="Aadish Kumar Yadav" />
     <meta name="publisher" content="PlantDoc AI" />
     <meta name="copyright" content="PlantDoc AI" />
     <link rel="canonical" href="https://plantdoc.pages.dev/" />
@@ -14,8 +15,8 @@
 
     <!-- Open Graph / Facebook -->
     <meta property="og:site_name" content="PlantDoc AI" />
-    <meta property="og:title" content="PlantDoc AI — Instant AI Plant Disease Diagnosis & Precision Foliar Pathology" />
-    <meta property="og:description" content="Instant AI plant disease diagnosis, sub-pixel leaf lesion segmentation, and clinical botanical treatment matrices. Upload foliage photos for instant pathology analysis." />
+    <meta property="og:title" content="PlantDoc AI by Aadish | AI Plant Disease Identifier" />
+    <meta property="og:description" content="PlantDoc AI by Aadish Kumar Yadav identifies plant diseases from leaf photos with fast AI analysis, lesion mapping, practical treatment guidance, and climate-smart recommendations." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://plantdoc.pages.dev/" />
     <meta property="og:locale" content="en_US" />
@@ -30,22 +31,20 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@PlantDocAI" />
     <meta name="twitter:creator" content="@PlantDocAI" />
-    <meta name="twitter:title" content="PlantDoc AI — Instant AI Plant Disease Diagnosis & Precision Foliar Pathology" />
-    <meta name="twitter:description" content="Instant AI plant disease diagnosis, sub-pixel leaf lesion segmentation, and clinical botanical treatment matrices. Upload foliage photos for instant pathology analysis." />
+    <meta name="twitter:title" content="PlantDoc AI by Aadish | AI Plant Disease Identifier" />
+    <meta name="twitter:description" content="PlantDoc AI by Aadish Kumar Yadav identifies plant diseases from leaf photos with fast AI analysis, lesion mapping, practical treatment guidance, and climate-smart recommendations." />
     <meta name="twitter:image" content="https://plantdoc.pages.dev/bannerr.jpg" />
     <meta name="twitter:image:alt" content="PlantDoc AI - Foliar Pathology and Botanical Diagnostics Preview Banner" />
 
-    <!-- GEO & Global Distribution Metadata (Generative Engine Optimization & Regional) -->
-    <meta name="geo.region" content="US" />
-    <meta name="geo.placename" content="Global" />
+    <!-- Discoverability metadata: clear entity, audience, language, and topic signals -->
+    <meta name="language" content="en" />
+    <meta http-equiv="content-language" content="en" />
     <meta name="coverage" content="Worldwide" />
     <meta name="distribution" content="Global" />
     <meta name="rating" content="General" />
-    <meta name="target" content="all" />
-    <meta name="audience" content="Farmers, Agronomists, Home Gardeners, Plant Care Enthusiasts" />
-    <meta name="classification" content="Botanical Agriculture Artificial Intelligence" />
-    <meta name="subject" content="Plant Pathology, Foliar Lesion Diagnosis, Agronomic Care" />
-    <meta name="revisit-after" content="7 days" />
+    <meta name="audience" content="Home gardeners, growers, farmers, agronomists, and plant-care educators" />
+    <meta name="classification" content="Plant disease identification, crop health, botanical recommendations, and plant care" />
+    <meta name="subject" content="AI plant disease diagnosis from photos and practical foliar treatment guidance" />
 
     <!-- Favicon & Touch Icons -->
     <link rel="icon" href="/favicon.ico" type="image/x-icon" />
@@ -54,12 +53,13 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     
     <!-- Hero Image Preloads for Instant Visual Paint -->
-    <link rel="preload" as="image" href="/main.webp" type="image/webp" />
-    <link rel="preload" as="image" href="/main_disease.webp" type="image/webp" />
+    <link rel="preload" as="image" href="/main.webp" type="image/webp" fetchpriority="high" />
 
     <!-- DNS Prefetch & High-Speed API Warmup -->
     <link rel="preconnect" href="https://generativelanguage.googleapis.com" crossorigin />
     <link rel="dns-prefetch" href="https://generativelanguage.googleapis.com" />
+    <link rel="preconnect" href="https://openrouter.ai" crossorigin />
+    <link rel="dns-prefetch" href="https://openrouter.ai" />
     <link rel="preconnect" href="https://upload.wikimedia.org" crossorigin />
     <link rel="dns-prefetch" href="https://upload.wikimedia.org" />
     <link rel="preconnect" href="https://en.wikipedia.org" crossorigin />
@@ -67,7 +67,10 @@
 
     <!-- Additional Meta Tags & Mobile Browser Chrome -->
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-    <meta name="theme-color" content="#040805" />
+    <meta name="theme-color" content="#06110b" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <link rel="manifest" href="/site.webmanifest" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -84,12 +87,15 @@
           "@type": "WebApplication",
           "@id": "https://plantdoc.pages.dev/#webapp",
           "name": "PlantDoc AI",
-          "alternateName": ["PlantDoc", "PlantDoc Vision AI"],
+          "alternateName": ["PlantDoc", "PlantDoc Vision AI", "Aadish PlantDoc", "Plant Disease AI by Aadish"],
           "url": "https://plantdoc.pages.dev/",
-          "description": "Real-time AI botanical pathology diagnosis platform providing instant plant disease identification, sub-pixel foliar lesion segmentation, and clinical treatment matrices.",
-          "applicationCategory": "BotanicalApplication, HealthApplication",
-          "applicationSubCategory": "Agronomy & Foliar Pathology",
-          "operatingSystem": "All modern browsers (Web, iOS, Android, macOS, Windows)",
+          "description": "PlantDoc AI by Aadish Kumar Yadav identifies common plant diseases from leaf photos, highlights visible lesion areas, and provides practical treatment guidance and climate-smart plant recommendations.",
+          "applicationCategory": "LifestyleApplication",
+          "applicationSubCategory": "Plant Care and Agriculture",
+          "inLanguage": "en",
+          "isAccessibleForFree": true,
+          "keywords": "Aadish PlantDoc, Aadish Kumar Yadav PlantDoc, Aadish, PlantDoc, PlantDoc AI, plantdisease, plant disease identifier, plant doctor from photo, leaf disease diagnosis, crop health, plant care",
+          "operatingSystem": "Web browser on Android, iOS, Windows, macOS, and Linux",
           "browserRequirements": "Requires HTML5 Canvas and JavaScript support",
           "offers": {
             "@type": "Offer",
@@ -123,6 +129,15 @@
           }
         },
         {
+          "@type": "WebSite",
+          "@id": "https://plantdoc.pages.dev/#website",
+          "url": "https://plantdoc.pages.dev/",
+          "name": "PlantDoc AI",
+          "description": "PlantDoc AI by Aadish Kumar Yadav provides AI plant disease identification, leaf analysis, and plant care guidance.",
+          "inLanguage": "en",
+          "publisher": { "@id": "https://plantdoc.pages.dev/#organization" }
+        },
+        {
           "@type": "Organization",
           "@id": "https://plantdoc.pages.dev/#organization",
           "name": "PlantDoc AI",
@@ -135,6 +150,37 @@
           },
           "sameAs": [
             "https://github.com/AadishY/plantdoc"
+          ],
+          "founder": { "@id": "https://plantdoc.pages.dev/#aadish-kumar-yadav" }
+        },
+        {
+          "@type": "Person",
+          "@id": "https://plantdoc.pages.dev/#aadish-kumar-yadav",
+          "name": "Aadish Kumar Yadav",
+          "jobTitle": "Creator and AI Engineer",
+          "url": "https://github.com/AadishY",
+          "sameAs": [
+            "https://github.com/AadishY",
+            "https://instagram.com/yo.akatsuki"
+          ],
+          "knowsAbout": [
+            "PlantDoc AI",
+            "plant disease identification",
+            "computer vision",
+            "plant pathology",
+            "agronomic software"
+          ]
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://plantdoc.pages.dev/#breadcrumbs",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "PlantDoc AI",
+              "item": "https://plantdoc.pages.dev/"
+            }
           ]
         },
         {
@@ -143,42 +189,42 @@
           "mainEntity": [
             {
               "@type": "Question",
-              "name": "What is PlantDoc AI?",
+              "name": "How does PlantDoc AI achieve spatial lesion localization?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "PlantDoc AI is an open-source botanical diagnostics web application that utilizes artificial intelligence and computer vision to identify foliar plant diseases, localize individual leaf lesion spots with sub-pixel bounding boxes, and generate clinical remediation plans."
+                "text": "PlantDoc AI analyzes a foliage photo to identify the plant and disease pattern, then returns localized lesion coordinates that help you inspect affected areas."
               }
             },
             {
               "@type": "Question",
-              "name": "How does PlantDoc AI diagnose plant diseases from a photo?",
+              "name": "Does PlantDoc AI use synthetic or mock placeholder data?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "When you photograph or upload an affected leaf, PlantDoc AI compresses the specimen client-side via HTML5 Canvas and dispatches it through dual AI models: one generates deep pathology classifications with retail treatment matrices, while a spatial vision model pinpoints individual necrotic spots, chlorotic halos, and spore pustules."
+                "text": "Plant recommendations use botanical summaries and photography retrieved from Wikimedia APIs rather than fabricated placeholder media."
               }
             },
             {
               "@type": "Question",
-              "name": "Does PlantDoc AI store my uploaded plant photos?",
+              "name": "What remediation guidelines are provided after diagnosis?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "No. PlantDoc AI is engineered with a strict privacy-first architecture. All image downsampling is performed locally in the user's browser, and photos are processed ephemerally with zero permanent server-side storage or tracking."
+                "text": "Reports organize practical next steps such as isolation, cultural care, organic options, targeted product guidance, and soil or nutrition considerations."
               }
             },
             {
               "@type": "Question",
-              "name": "What plant diseases can PlantDoc AI identify?",
+              "name": "Which plant species and crops are supported?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "PlantDoc AI can diagnose hundreds of foliar diseases across vegetable crops, fruit trees, ornamentals, and herbs, including early and late blight, powdery mildew, Cercospora leaf spot, bacterial scorch, rust pustules, viral mosaics, and nutrient deficiencies."
+                "text": "PlantDoc AI is designed for common vegetables, fruit crops, herbs, ornamentals, and household plants. Results depend on the photo quality and the condition shown."
               }
             },
             {
               "@type": "Question",
-              "name": "How does PlantDoc AI provide climate-matched plant recommendations?",
+              "name": "How does the climate-matched plant recommendation engine work?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "PlantDoc AI incorporates an agronomic recommendation engine powered by Gemma 4. By analyzing local temperature, annual rainfall, humidity, soil pH, and growing seasons (Spring, Summer, Autumn, Winter), it suggests resilient companion plants with live taxonomy and photography from the Wikimedia Foundation."
+                "text": "The recommendation flow uses region, temperature, rainfall, soil, pH, sunlight, and season inputs to suggest plants suited to the selected growing conditions."
               }
             }
           ]

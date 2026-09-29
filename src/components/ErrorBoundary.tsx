@@ -1,22 +1,17 @@
-import React, { Component, ErrorInfo, ReactNode, useState, useEffect } from 'react';
-import { 
-  AlertTriangle, 
-  RefreshCw, 
-  Home, 
-  Scan, 
-  Leaf, 
-  Sparkles, 
-  Compass, 
-  Droplet, 
-  Flower2, 
-  Layers, 
-  Code2, 
-  Copy, 
-  Check, 
-  ChevronDown, 
+import React, { Component, ErrorInfo, ReactNode, useState } from 'react';
+import {
+  AlertTriangle,
+  ArrowRight,
+  Check,
+  ChevronDown,
   ChevronUp,
+  Code2,
+  Copy,
+  Home,
+  Leaf,
+  RefreshCw,
+  Scan,
   ShieldAlert,
-  ArrowRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DoodleLostPlant } from '@/components/ui/BotanicalDoodles';
@@ -32,14 +27,6 @@ interface State {
   errorInfo: ErrorInfo | null;
 }
 
-const BOTANICAL_REMEDIES = [
-  "Even healthy plants face occasional storms. A quick rinse and reboot restores photosynthesis! 🌿",
-  "Patience is the gardener's greatest tool. Your botanical data has been safeguarded in local storage. 🌱",
-  "Roots grow strongest through resilience. Reloading the diagnostic canvas will re-calibrate all sensory reticles. ✨",
-  "Like pruning dead foliage, clearing the cache paves the way for fresh, vigorous blooms! 🌸"
-];
-
-// Rich 404-grade Botanical Error Fallback View
 const DiagnosticCanvasNoticeView: React.FC<{
   error: Error | null;
   errorInfo: ErrorInfo | null;
@@ -47,211 +34,121 @@ const DiagnosticCanvasNoticeView: React.FC<{
 }> = ({ error, errorInfo, onReset }) => {
   const [copied, setCopied] = useState(false);
   const [showTechDetails, setShowTechDetails] = useState(false);
-  const [waterCount, setWaterCount] = useState(0);
-  const [isBlooming, setIsBlooming] = useState(false);
-  const [remedyIdx, setRemedyIdx] = useState(0);
 
-  useEffect(() => {
-    setRemedyIdx(Math.floor(Math.random() * BOTANICAL_REMEDIES.length));
-  }, []);
+  const handleCopyError = async () => {
+    const errorText = `PlantDoc Error: ${error?.message || 'Unknown error'}\n\nStack:\n${error?.stack || ''}\n\nComponent Stack:\n${errorInfo?.componentStack || ''}`;
 
-  const handleWaterSprout = () => {
-    const next = waterCount + 1;
-    setWaterCount(next);
-    if (next >= 3) {
-      setIsBlooming(true);
+    try {
+      await navigator.clipboard.writeText(errorText);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard access is optional; the diagnostics remain readable on screen.
     }
   };
 
-  const handleCopyError = () => {
-    const errorText = `PlantDoc Error: ${error?.message || 'Unknown error'}\n\nStack:\n${error?.stack || ''}\n\nComponent Stack:\n${errorInfo?.componentStack || ''}`;
-    navigator.clipboard.writeText(errorText);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   return (
-    <div className="min-h-screen w-full bg-[#060a08] text-white flex flex-col justify-between relative overflow-x-hidden selection:bg-[#2DD4BF]/30 selection:text-white">
-      {/* Background Volumetric Ambient Lighting */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#2DD4BF]/15 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-10 right-10 w-80 h-80 bg-[#10B981]/15 rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute top-10 left-10 w-72 h-72 bg-amber-500/10 rounded-full blur-[100px] pointer-events-none" />
+    <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-[#060a08] text-white selection:bg-[#2DD4BF]/30 selection:text-white">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-[radial-gradient(circle_at_50%_10%,rgba(45,212,191,0.14),transparent_64%)]" />
 
-      {/* Subtle Matrix Grid Texture */}
-      <div 
-        className="absolute inset-0 opacity-10 pointer-events-none"
-        style={{
-          backgroundImage: 'radial-gradient(rgba(45, 212, 191, 0.4) 1px, transparent 1px)',
-          backgroundSize: '24px 24px'
-        }}
-      />
-
-      {/* Top Header Bar */}
-      <header className="w-full px-6 py-4 border-b border-white/10 bg-black/40 backdrop-blur-xl relative z-20 flex items-center justify-between">
-        <a href="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#2DD4BF] to-[#10B981] flex items-center justify-center text-black font-bold shadow-[0_0_15px_rgba(45,212,191,0.4)]">
-            <Leaf className="h-4 w-4" />
-          </div>
-          <span className="font-extrabold text-base tracking-tight text-white group-hover:text-[#5EEAD4] transition-colors">
+      <header className="relative z-20 flex w-full items-center justify-between border-b border-white/10 bg-black/45 px-4 py-3 backdrop-blur-xl sm:px-8">
+        <a href="/" className="group flex items-center gap-2" aria-label="PlantDoc home">
+          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-[#2DD4BF] to-[#10B981] text-black shadow-[0_0_15px_rgba(45,212,191,0.4)]">
+            <Leaf className="h-4 w-4" aria-hidden="true" />
+          </span>
+          <span className="font-extrabold tracking-tight text-white group-hover:text-[#5EEAD4]">
             PlantDoc <span className="text-[#2DD4BF]">AI</span>
           </span>
         </a>
-
-        <div className="flex items-center gap-2">
-          <Button
-            onClick={() => { window.location.href = '/diagnose'; }}
-            size="sm"
-            className="bg-[#2DD4BF]/15 hover:bg-[#2DD4BF]/25 text-[#5EEAD4] border border-[#2DD4BF]/40 rounded-full text-xs h-8 px-3.5 gap-1.5"
-          >
-            <Scan className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Diagnose Leaf</span>
-          </Button>
-          <Button
-            onClick={() => { window.location.href = '/'; }}
-            variant="outline"
-            size="sm"
-            className="border-white/20 hover:bg-white/10 text-white rounded-full text-xs h-8 px-3 gap-1.5"
-          >
-            <Home className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Home</span>
-          </Button>
-        </div>
+        <a href="/diagnose" className="inline-flex items-center gap-1.5 rounded-full border border-[#2DD4BF]/35 bg-[#2DD4BF]/10 px-3 py-1.5 text-xs font-semibold text-[#5EEAD4] hover:bg-[#2DD4BF]/20">
+          <Scan className="h-3.5 w-3.5" aria-hidden="true" />
+          <span className="hidden sm:inline">Start a new scan</span>
+          <span className="sm:hidden">New scan</span>
+        </a>
       </header>
 
-      {/* Main Showcase Hero */}
-      <main className="container mx-auto px-4 py-8 sm:py-12 relative z-10 flex flex-col items-center justify-center max-w-4xl text-center space-y-7">
-        
-        {/* Status Pill */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-black/75 border border-amber-500/40 text-amber-300 text-xs font-mono backdrop-blur-xl shadow-[0_0_20px_rgba(245,158,11,0.2)]">
-          <ShieldAlert className="h-3.5 w-3.5 text-amber-400 animate-pulse" />
-          <span>Diagnostic Canvas Notice • Specimen Safeguard</span>
-          <span className="text-white/40">|</span>
-          <span className="text-white/80">Active Protection</span>
+      <main className="relative z-10 mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center px-4 py-12 text-center sm:py-16">
+        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-amber-500/35 bg-amber-500/10 px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-amber-300 sm:text-xs">
+          <ShieldAlert className="h-3.5 w-3.5" aria-hidden="true" />
+          Safe recovery mode
         </div>
 
-        {/* Hand-Drawn Doodle Showcase */}
-        <div className="relative flex flex-col items-center justify-center my-1">
-          <div className="relative">
-            <DoodleLostPlant className="w-44 h-44 sm:w-56 sm:h-56 mx-auto filter drop-shadow-[0_0_35px_rgba(45,212,191,0.35)]" />
-
-            {isBlooming && (
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-gradient-to-r from-emerald-500 to-[#2DD4BF] text-black text-xs font-black shadow-[0_0_25px_rgba(45,212,191,0.6)] flex items-center gap-1.5 border border-white/40 animate-bounce">
-                <Flower2 className="h-3.5 w-3.5 text-black" />
-                <span>Recovered & Re-calibrated! 🌿</span>
-              </div>
-            )}
-          </div>
-
-          {/* Interactive Sprout Revival */}
-          <div className="mt-2 flex items-center gap-2">
-            <button
-              onClick={handleWaterSprout}
-              className="group inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 hover:bg-[#2DD4BF]/20 border border-white/15 hover:border-[#2DD4BF]/50 text-xs font-medium text-white/90 hover:text-[#5EEAD4] transition-all duration-300 backdrop-blur-xl active:scale-95"
-              title="Click to nourish the recovery canvas"
-            >
-              <Droplet className="h-3.5 w-3.5 text-[#2DD4BF] group-hover:animate-bounce" />
-              <span>
-                {waterCount === 0 ? "Nourish the diagnostic canvas" : `Calibrated ${waterCount}x ${isBlooming ? "✨ (Active)" : ""}`}
-              </span>
-            </button>
+        <div className="mb-5 flex items-center gap-4 rounded-[2rem] border border-white/10 bg-black/35 px-5 py-4 shadow-[0_20px_60px_rgba(0,0,0,0.35)] sm:gap-6 sm:px-8 sm:py-5">
+          <DoodleLostPlant className="h-28 w-28 sm:h-36 sm:w-36" />
+          <div className="text-left">
+            <div className="font-mono text-3xl font-black tracking-tight text-amber-300 sm:text-5xl">Oops</div>
+            <div className="mt-1 text-[10px] font-bold uppercase tracking-[0.16em] text-white/45 sm:text-xs">Unexpected interruption</div>
           </div>
         </div>
 
-        {/* Headline & Explanation */}
-        <div className="space-y-3 max-w-xl mx-auto">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-white">
-            Diagnostic Canvas Notice
-          </h1>
-          <p className="text-sm sm:text-base text-foreground/80 leading-relaxed">
-            The neural diagnostic engine encountered a temporary rendering anomaly. Your session is safe—reloading or restarting the scan will restore full clinical telemetry.
-          </p>
-        </div>
+        <h1 className="text-3xl font-black tracking-tight text-white sm:text-5xl">
+          PlantDoc needs a quick reset.
+        </h1>
+        <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-foreground/75 sm:text-base">
+          The interface hit an unexpected error. Reload the workspace, or start a fresh diagnosis if you were in the middle of a scan.
+        </p>
 
-        {/* Action Controls */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 w-full max-w-md mx-auto pt-2">
+        <div className="mt-7 flex w-full max-w-md flex-col gap-3 sm:flex-row">
           <Button
             onClick={onReset}
-            className="w-full sm:w-auto flex-1 bg-gradient-to-r from-[#2DD4BF] via-[#10B981] to-[#059669] text-black font-extrabold hover:opacity-95 text-xs sm:text-sm h-11 px-6 rounded-2xl gap-2 shadow-[0_0_25px_rgba(45,212,191,0.4)]"
+            className="h-11 flex-1 rounded-2xl bg-gradient-to-r from-[#2DD4BF] via-[#10B981] to-[#059669] font-extrabold text-black shadow-[0_0_28px_rgba(45,212,191,0.35)]"
           >
-            <RefreshCw className="h-4 w-4" />
-            <span>Reload Diagnostic Canvas</span>
+            <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
+            Reload workspace
           </Button>
-
-          <Button
-            onClick={() => { window.location.href = '/diagnose'; }}
-            variant="outline"
-            className="w-full sm:w-auto flex-1 border-white/20 hover:border-[#2DD4BF]/60 bg-white/5 hover:bg-white/10 text-white text-xs sm:text-sm h-11 px-5 rounded-2xl gap-2 backdrop-blur-xl"
-          >
-            <Scan className="h-4 w-4 text-[#2DD4BF]" />
-            <span>Diagnose New Leaf</span>
+          <Button asChild variant="outline" className="h-11 flex-1 rounded-2xl border-white/20 bg-white/5 text-white hover:border-[#2DD4BF]/50 hover:bg-white/10 hover:text-[#5EEAD4]">
+            <a href="/">
+              <Home className="mr-2 h-4 w-4" aria-hidden="true" />
+              Go home
+              <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+            </a>
           </Button>
         </div>
 
-        {/* Botanical Blessing Card */}
-        <div className="p-5 rounded-3xl bg-gradient-to-r from-[#2DD4BF]/15 via-black/60 to-[#10B981]/15 border border-[#2DD4BF]/40 backdrop-blur-2xl max-w-lg mx-auto shadow-[0_0_35px_rgba(45,212,191,0.15)] text-left relative overflow-hidden">
-          <div className="flex items-start gap-3.5">
-            <div className="p-2.5 rounded-2xl bg-[#2DD4BF]/20 border border-[#2DD4BF]/40 text-[#5EEAD4] shrink-0 mt-0.5">
-              <Sparkles className="h-5 w-5 animate-pulse" />
-            </div>
-            <div className="space-y-1 flex-1">
-              <span className="text-[11px] font-mono font-bold text-[#5EEAD4] uppercase tracking-wider block">
-                Botanical Resilience Note
-              </span>
-              <p className="text-xs sm:text-sm text-white/90 font-medium leading-relaxed italic">
-                "{BOTANICAL_REMEDIES[remedyIdx]}"
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Collapsible Technical Diagnostics */}
-        <div className="w-full max-w-xl mx-auto pt-2">
+        <div className="mt-8 w-full max-w-xl border-t border-white/10 pt-5 text-left">
           <button
-            onClick={() => setShowTechDetails(!showTechDetails)}
-            className="inline-flex items-center gap-1.5 text-xs font-mono text-white/60 hover:text-[#5EEAD4] transition-colors py-1 px-3 rounded-lg hover:bg-white/5"
+            type="button"
+            onClick={() => setShowTechDetails((visible) => !visible)}
+            className="mx-auto flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-mono text-white/55 transition-colors hover:bg-white/5 hover:text-[#5EEAD4]"
+            aria-expanded={showTechDetails}
           >
-            <Code2 className="h-3.5 w-3.5" />
-            <span>{showTechDetails ? "Hide Technical Diagnostics" : "View Technical Diagnostics"}</span>
-            {showTechDetails ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+            <Code2 className="h-3.5 w-3.5" aria-hidden="true" />
+            {showTechDetails ? 'Hide technical details' : 'Show technical details'}
+            {showTechDetails ? <ChevronUp className="h-3.5 w-3.5" aria-hidden="true" /> : <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />}
           </button>
 
           {showTechDetails && (
-            <div className="mt-3 p-4 rounded-2xl bg-black/85 border border-white/15 text-left font-mono text-xs space-y-3 backdrop-blur-2xl animate-fade-in shadow-2xl">
-              <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                <span className="text-red-400 font-bold flex items-center gap-1.5">
-                  <AlertTriangle className="h-3.5 w-3.5" />
-                  <span>{error?.name || 'Error'}: {error?.message || 'Unknown Exception'}</span>
+            <div className="mt-3 space-y-3 rounded-2xl border border-white/10 bg-black/60 p-4 font-mono text-xs shadow-xl">
+              <div className="flex items-start justify-between gap-3 border-b border-white/10 pb-3">
+                <span className="flex min-w-0 items-start gap-1.5 text-rose-300">
+                  <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  <span className="break-words">{error?.name || 'Error'}: {error?.message || 'Unknown exception'}</span>
                 </span>
                 <button
+                  type="button"
                   onClick={handleCopyError}
-                  className="flex items-center gap-1 text-[11px] text-white/70 hover:text-white bg-white/10 hover:bg-white/15 px-2.5 py-1 rounded-md transition-colors"
+                  className="inline-flex shrink-0 items-center gap-1 rounded-md bg-white/10 px-2.5 py-1 text-[11px] text-white/70 hover:bg-white/15 hover:text-white"
                 >
-                  {copied ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
-                  <span>{copied ? "Copied" : "Copy Log"}</span>
+                  {copied ? <Check className="h-3 w-3 text-emerald-400" aria-hidden="true" /> : <Copy className="h-3 w-3" aria-hidden="true" />}
+                  {copied ? 'Copied' : 'Copy log'}
                 </button>
               </div>
-
               {error?.stack && (
-                <div className="max-h-40 overflow-y-auto text-[11px] text-white/60 bg-black/60 p-2.5 rounded-lg border border-white/10 leading-relaxed select-text">
-                  <pre className="whitespace-pre-wrap">{error.stack}</pre>
-                </div>
+                <pre className="max-h-40 overflow-y-auto whitespace-pre-wrap break-words rounded-lg border border-white/10 bg-black/55 p-2.5 text-[11px] leading-relaxed text-white/60 select-text">{error.stack}</pre>
               )}
-
               {errorInfo?.componentStack && (
-                <div className="max-h-32 overflow-y-auto text-[10px] text-white/50 bg-black/60 p-2.5 rounded-lg border border-white/10 leading-relaxed select-text">
-                  <span className="text-white/70 font-semibold block mb-1">Component Stack:</span>
-                  <pre className="whitespace-pre-wrap">{errorInfo.componentStack}</pre>
+                <div className="max-h-32 overflow-y-auto rounded-lg border border-white/10 bg-black/55 p-2.5 text-[10px] leading-relaxed text-white/50 select-text">
+                  <span className="mb-1 block font-semibold text-white/70">Component stack</span>
+                  <pre className="whitespace-pre-wrap break-words">{errorInfo.componentStack}</pre>
                 </div>
               )}
             </div>
           )}
         </div>
-
       </main>
 
-      {/* Footer */}
-      <footer className="w-full py-4 text-center text-xs text-white/50 border-t border-white/10 bg-black/40 backdrop-blur-xl relative z-20">
-        <span>PlantDoc AI • Clinical Botanical Vision Safeguard</span>
+      <footer className="relative z-10 border-t border-white/10 bg-black/35 py-4 text-center text-xs text-white/45">
+        PlantDoc AI · Your plant-care workspace is ready when you are.
       </footer>
     </div>
   );
@@ -261,7 +158,7 @@ export class ErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
     error: null,
-    errorInfo: null
+    errorInfo: null,
   };
 
   public static getDerivedStateFromError(error: Error): Partial<State> {

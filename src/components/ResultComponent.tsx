@@ -262,6 +262,9 @@ PRESCRIPTION TREATMENT:
 
   const categoryConf = getCategoryConfig(suspect.category);
   const CategoryIcon = categoryConf.icon;
+  const confidenceScore = Math.max(0, Math.min(100, result.disease.confidence || result.accuracy || 92));
+  const healthScore = Math.max(0, Math.min(100, result.disease.health_score ?? (100 - confidenceScore * 0.65)));
+  const recoveryScore = Math.max(0, Math.min(100, result.disease.recovery_prognosis ?? 88));
 
   const itemVariants = {
     hidden: { opacity: 0, y: 8 },
@@ -326,6 +329,25 @@ PRESCRIPTION TREATMENT:
                 <EnhancedCardTitle className="text-2xl md:text-3xl font-black bg-gradient-to-r from-white via-emerald-100 to-[#2DD4BF] bg-clip-text text-transparent flex items-center gap-2 flex-wrap">
                   <span>{result.disease.name || 'Diagnosis: Foliar Pathology Identified'}</span>
                 </EnhancedCardTitle>
+
+                {/* At-a-glance readout: a compact visual summary before the longer protocol. */}
+                <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3" aria-label="Diagnosis summary metrics">
+                  {[
+                    { label: 'Confidence', value: confidenceScore, accent: '#2DD4BF' },
+                    { label: 'Leaf health', value: healthScore, accent: '#34D399' },
+                    { label: 'Recovery outlook', value: recoveryScore, accent: '#FBBF24' },
+                  ].map((metric) => (
+                    <div key={metric.label} className="rounded-2xl border border-white/10 bg-white/[0.04] px-2.5 py-2.5 sm:px-3.5">
+                      <div className="mb-1 flex items-center justify-between gap-2 text-[9px] font-mono uppercase tracking-wider text-white/55 sm:text-[10px]">
+                        <span>{metric.label}</span>
+                        <strong className="text-white">{Math.round(metric.value)}%</strong>
+                      </div>
+                      <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+                        <div className="h-full rounded-full transition-[width] duration-700" style={{ width: `${metric.value}%`, backgroundColor: metric.accent, boxShadow: `0 0 12px ${metric.accent}` }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
 
                 <div className="mt-2.5 flex items-center gap-2 flex-wrap text-sm text-foreground/85">
                   <span className="text-white/60 font-mono text-xs uppercase tracking-wider">Host Specimen:</span>

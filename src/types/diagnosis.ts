@@ -93,6 +93,9 @@ export interface DiagnosisResult {
     transmission_pathways: string[]; // e.g. ["Splashing rain droplets", "Contaminated pruning shears", "Airborne spore drafts"]
     favorable_microclimate: string; // e.g. "Extended leaf wetness >6h with temps between 18-24°C"
     soil_survival_duration?: string; // e.g. "12-24 months in uncomposted leaf mulch"
+    dispersal_mechanism?: string;
+    overwintering_mode?: string;
+    environmental_triggers?: string[];
   };
   fertilizer_recommendation: {
     type: string;
