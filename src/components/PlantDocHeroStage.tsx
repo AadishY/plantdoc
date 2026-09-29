@@ -380,10 +380,15 @@ export const PlantDocHeroStage: React.FC = () => {
           // data URL on every frame (a particularly expensive Android path).
           if (useCssReveal && topLayerRef.current && smoothX !== -9999) {
             const radiusPx = Math.max(28, headRadius * (layerWidth / maskCanvas.width));
+            // Keep the Android-friendly CSS path light, but give the reveal a
+            // gentle breathing ellipse so it feels fluid instead of like a
+            // perfectly rigid spotlight. Both layers use the same live shape.
+            const radiusX = radiusPx * (1 + Math.sin(time * 1.7 + 0.8) * 0.035);
+            const radiusY = radiusPx * (1 + Math.cos(time * 1.35 - 0.3) * 0.045);
             const x = `${(smoothX / maskCanvas.width) * 100}%`;
             const y = `${(smoothY / maskCanvas.height) * 100}%`;
-            const cssMask = `radial-gradient(circle ${radiusPx}px at ${x} ${y}, #fff 0%, #fff 62%, transparent 100%)`;
-            const inverseCssMask = `radial-gradient(circle ${radiusPx}px at ${x} ${y}, transparent 0%, transparent 62%, #fff 100%)`;
+            const cssMask = `radial-gradient(ellipse ${radiusX}px ${radiusY}px at ${x} ${y}, #fff 0%, #fff 62%, transparent 100%)`;
+            const inverseCssMask = `radial-gradient(ellipse ${radiusX}px ${radiusY}px at ${x} ${y}, transparent 0%, transparent 62%, #fff 100%)`;
             topLayerRef.current.style.maskImage = cssMask;
             topLayerRef.current.style.webkitMaskImage = cssMask;
             topLayerRef.current.style.maskSize = '100% 100%';
