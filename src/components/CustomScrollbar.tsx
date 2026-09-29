@@ -178,6 +178,8 @@ export const CustomScrollbar: React.FC = () => {
 
       window.removeEventListener('mousemove', onMouseMove, { capture: true });
       window.removeEventListener('mouseup', onMouseUp, { capture: true });
+      window.removeEventListener('pointerup', onMouseUp, { capture: true });
+      window.removeEventListener('pointercancel', onMouseUp, { capture: true });
       window.removeEventListener('blur', finishDragging);
       document.removeEventListener('visibilitychange', finishDragging);
       document.removeEventListener('contextmenu', finishDragging, true);
@@ -196,6 +198,8 @@ export const CustomScrollbar: React.FC = () => {
     // Always release the global lock through one shared cleanup path.
     window.addEventListener('mousemove', onMouseMove, { capture: true, passive: false });
     window.addEventListener('mouseup', onMouseUp, { capture: true });
+    window.addEventListener('pointerup', onMouseUp, { capture: true });
+    window.addEventListener('pointercancel', onMouseUp, { capture: true });
     window.addEventListener('blur', finishDragging);
     document.addEventListener('visibilitychange', finishDragging);
     document.addEventListener('contextmenu', finishDragging, true);

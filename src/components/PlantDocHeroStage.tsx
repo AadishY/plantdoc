@@ -36,11 +36,13 @@ export const PlantDocHeroStage: React.FC = () => {
     if (!ctx) return;
 
     const isMobileDevice = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768;
-    const useCssReveal = isMobileDevice || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const useCssReveal = isMobileDevice || prefersReducedMotion;
     let lastMaskUpload = 0;
     const points: TrailPoint[] = [];
     let headRadius = 0;
     let time = 0;
+    let previousFrameTime = performance.now();
     let animFrameId: number;
     let hovering = false;
     let lastX = -9999;
@@ -352,8 +354,11 @@ export const PlantDocHeroStage: React.FC = () => {
         return;
       }
 
-      time += 0.016;
       const now = performance.now();
+      // Drive the fluid edge from elapsed time rather than a fixed frame step,
+      // so it stays consistent on 30fps Android devices and 60/120fps desktop.
+      time += Math.min(0.05, Math.max(0, (now - previousFrameTime) / 1000));
+      previousFrameTime = now;
       const holdingRelease = !hovering && releaseScheduled && now < releaseAt;
       const targetR = hovering ? scaledHeadR : holdingRelease ? headRadius : 0;
       headRadius += (targetR - headRadius) * (hovering ? 0.32 : 0.12);
@@ -444,8 +449,8 @@ export const PlantDocHeroStage: React.FC = () => {
             // Keep the Android-friendly CSS path light, but give the reveal a
             // gentle breathing ellipse so it feels fluid instead of like a
             // perfectly rigid spotlight. Both layers use the same live shape.
-            const radiusX = radiusPx * (1 + Math.sin(time * 1.7 + 0.8) * 0.035);
-            const radiusY = radiusPx * (1 + Math.cos(time * 1.35 - 0.3) * 0.045);
+            const radiusX = radiusPx * (prefersReducedMotion ? 1 : 1 + Math.sin(time * 1.7 + 0.8) * 0.035);
+            const radiusY = radiusPx * (prefersReducedMotion ? 1 : 1 + Math.cos(time * 1.35 - 0.3) * 0.045);
             const x = `${(smoothX / maskCanvas.width) * 100}%`;
             const y = `${(smoothY / maskCanvas.height) * 100}%`;
             const cssMask = `radial-gradient(ellipse ${radiusX}px ${radiusY}px at ${x} ${y}, #fff 0%, #fff 62%, transparent 100%)`;
