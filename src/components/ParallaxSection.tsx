@@ -13,7 +13,7 @@ import SpotlightCard from './SpotlightCard';
 
 export const ParallaxSection: React.FC = () => {
   return (
-    <section className="relative py-6 sm:py-8 md:py-12 overflow-hidden z-10">
+    <section className="relative z-10 content-visibility-auto overflow-hidden py-6 sm:py-8 md:py-12">
       <div className="container mx-auto px-3 sm:px-4 relative max-w-6xl">
         
         {/* Section Header */}

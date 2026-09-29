@@ -18,6 +18,8 @@ const TRAIL_BLOB_PTS = 28; // High-precision smooth polygon
 const TRAIL_FADE_SPEED = 0.94; // Gentle trailing decay
 const TRAIL_SAMPLE_DIST = 4;
 const REVEAL_RELEASE_DELAY_MS = 180; // Let the last organic wake linger before it recedes
+const REVEAL_MASK_UPLOAD_INTERVAL_MS = 32; // Keep desktop mask work near 30fps without reducing pointer easing
+const REVEAL_CSS_UPDATE_INTERVAL_MS = 20;
 const FLOWER_ALPHA_THRESHOLD = 18;
 
 export const PlantDocHeroStage: React.FC = () => {
@@ -60,6 +62,9 @@ export const PlantDocHeroStage: React.FC = () => {
     let flowerAlphaData: Uint8ClampedArray | null = null;
     let flowerAlphaWidth = 0;
     let flowerAlphaHeight = 0;
+    let geometryDirty = true;
+    let cachedLayerRect: DOMRect | null = null;
+    let cachedImageRect: DOMRect | null = null;
 
     // Size internal canvas with adaptive downscale (3x on mobile, 2x on desktop) for 900% faster frame serialization
     const updateCanvasSize = () => {
@@ -104,6 +109,7 @@ export const PlantDocHeroStage: React.FC = () => {
 
     let resizeTimer: any;
     const debouncedResize = () => {
+      geometryDirty = true;
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(updateCanvasSize, 100);
     };
@@ -167,8 +173,13 @@ export const PlantDocHeroStage: React.FC = () => {
       const image = flowerImage;
       if (!layer || !image || !flowerAlphaData || !flowerAlphaWidth || !flowerAlphaHeight) return null;
 
-      const layerRect = layer.getBoundingClientRect();
-      const imageRect = image.getBoundingClientRect();
+      if (geometryDirty || !cachedLayerRect || !cachedImageRect) {
+        cachedLayerRect = layer.getBoundingClientRect();
+        cachedImageRect = image.getBoundingClientRect();
+        geometryDirty = false;
+      }
+      const layerRect = cachedLayerRect;
+      const imageRect = cachedImageRect;
       const boxX = clientX - imageRect.left;
       const boxY = clientY - imageRect.top;
       if (boxX < 0 || boxY < 0 || boxX > imageRect.width || boxY > imageRect.height) return null;
@@ -303,6 +314,10 @@ export const PlantDocHeroStage: React.FC = () => {
     };
 
     const handleWindowScroll = () => {
+      // Scroll changes the image's viewport rect, so refresh the hit-test
+      // geometry once on the next pointer event instead of reading layout on
+      // every mousemove.
+      geometryDirty = true;
       if (hovering) beginRelease();
     };
     window.addEventListener('scroll', handleWindowScroll, { passive: true });
@@ -369,13 +384,16 @@ export const PlantDocHeroStage: React.FC = () => {
       }
 
       const now = performance.now();
-      // Drive the fluid edge from elapsed time rather than a fixed frame step,
-      // so it stays consistent on 30fps Android devices and 60/120fps desktop.
-      time += Math.min(0.05, Math.max(0, (now - previousFrameTime) / 1000));
+      // Normalize animation work to elapsed time so the reveal has the same
+      // feel on 30fps Android, 60fps laptops, and 120fps desktop displays.
+      const elapsedSeconds = Math.min(0.05, Math.max(0, (now - previousFrameTime) / 1000));
+      const frameScale = Math.min(3, Math.max(0.5, elapsedSeconds * 60));
+      time += elapsedSeconds;
       previousFrameTime = now;
       const holdingRelease = !hovering && releaseScheduled && now < releaseAt;
       const targetR = hovering ? scaledHeadR : holdingRelease ? headRadius : 0;
-      headRadius += (targetR - headRadius) * (hovering ? 0.20 : 0.10);
+      const headEase = 1 - Math.pow(hovering ? 0.80 : 0.90, frameScale);
+      headRadius += (targetR - headRadius) * headEase;
 
       // Ultra-smooth spring cursor interpolation
       if (hovering && mousePos.x !== -9999) {
@@ -384,8 +402,9 @@ export const PlantDocHeroStage: React.FC = () => {
           smoothX = mousePos.x;
           smoothY = mousePos.y;
         } else {
-          smoothX += (mousePos.x - smoothX) * 0.36;
-          smoothY += (mousePos.y - smoothY) * 0.36;
+          const pointerEase = 1 - Math.pow(0.64, frameScale);
+          smoothX += (mousePos.x - smoothX) * pointerEase;
+          smoothY += (mousePos.y - smoothY) * pointerEase;
         }
 
         // Add trailing points with fluid spacing
@@ -408,15 +427,17 @@ export const PlantDocHeroStage: React.FC = () => {
         }
       }
 
-      // In-place decay: 0 garbage collection allocations per frame!
-      // Slightly extended linger wake on mobile touch for richer visibility; crisp decay on PC
+      // In-place decay: 0 garbage collection allocations per frame. Exponent
+      // scaling keeps the wake duration stable across different refresh rates.
       const fadeSpeed = isMobileDevice ? 0.972 : TRAIL_FADE_SPEED;
       const radiusDecay = isMobileDevice ? 0.996 : 0.994;
+      const frameFade = Math.pow(fadeSpeed, frameScale);
+      const frameRadiusDecay = Math.pow(radiusDecay, frameScale);
 
       for (let i = points.length - 1; i >= 0; i--) {
         const p = points[i];
-        p.alpha *= fadeSpeed;
-        p.r *= radiusDecay;
+        p.alpha *= frameFade;
+        p.r *= frameRadiusDecay;
         if (p.alpha <= 0.01 || p.r <= 1) {
           points.splice(i, 1);
         }
@@ -448,28 +469,10 @@ export const PlantDocHeroStage: React.FC = () => {
         } else {
           wasIdle = false;
 
-          // Fine pointers use the richer canvas trail. CSS reveal devices skip
-          // this work entirely and build their lightweight gradient trail below.
-          if (!useCssReveal) {
-            ctx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
-
-            // 1. Draw decaying trailing morph blobs with feathered transparency
-            for (let i = 0; i < points.length; i++) {
-              const p = points[i];
-              drawMorphBlob(ctx, p.x, p.y, p.r, time, p.seed, p.alpha);
-            }
-
-            // 2. Keep drawing the head while it releases so a pointer exit
-            // eases down from the last shape instead of dropping a frame.
-            if (headRadius > 1 && smoothX !== -9999) {
-              drawMorphBlob(ctx, smoothX, smoothY, headRadius, time, 42, 1.0);
-            }
-          }
-
           // Touch devices use a native CSS radial mask. It produces the same
           // healthy-to-diseased reveal without serializing a canvas to a new
           // data URL on every frame (a particularly expensive Android path).
-          if (useCssReveal && topLayerRef.current && smoothX !== -9999 && now - lastCssMaskUpdate >= 20) {
+          if (useCssReveal && topLayerRef.current && smoothX !== -9999 && now - lastCssMaskUpdate >= REVEAL_CSS_UPDATE_INTERVAL_MS) {
             lastCssMaskUpdate = now;
             // Let the reveal grow from the pointer instead of appearing as a
             // pre-sized circle on the first frame.
@@ -526,10 +529,24 @@ export const PlantDocHeroStage: React.FC = () => {
               baseLayerRef.current.style.maskRepeat = 'no-repeat';
               baseLayerRef.current.style.webkitMaskRepeat = 'no-repeat';
             }
-          } else if (!useCssReveal && performance.now() - lastMaskUpload >= (isMobileDevice ? 28 : 32)) {
-            // Desktop keeps the richer organic trail, but uploads the mask at
-            // 30fps instead of paying for two toDataURL calls at 60fps.
-            lastMaskUpload = performance.now();
+          } else if (!useCssReveal && now - lastMaskUpload >= REVEAL_MASK_UPLOAD_INTERVAL_MS) {
+            // Desktop keeps the richer organic trail, but redraws and uploads
+            // the mask at 30fps instead of doing the expensive work every RAF.
+            lastMaskUpload = now;
+            ctx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+
+            // 1. Draw decaying trailing morph blobs with feathered transparency.
+            for (let i = 0; i < points.length; i++) {
+              const p = points[i];
+              drawMorphBlob(ctx, p.x, p.y, p.r, time, p.seed, p.alpha);
+            }
+
+            // 2. Keep drawing the head while it releases so a pointer exit
+            // eases down from the last shape instead of dropping a frame.
+            if (headRadius > 1 && smoothX !== -9999) {
+              drawMorphBlob(ctx, smoothX, smoothY, headRadius, time, 42, 1.0);
+            }
+
             const dataUrl = maskCanvas.toDataURL();
 
             if (topLayerRef.current) {

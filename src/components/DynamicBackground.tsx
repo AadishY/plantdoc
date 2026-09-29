@@ -57,8 +57,10 @@ const DynamicBackground: React.FC = React.memo(() => {
     const qualityScale = constrainedDevice ? 0.62 : 1;
     const particleCount = isMobile
       ? Math.max(4, Math.min(8, Math.round((window.innerWidth / 72) * qualityScale)))
-      : Math.min(16, Math.max(8, Math.floor(window.innerWidth / 110)));
-    const frameInterval = isMobile ? (constrainedDevice ? 66 : 50) : 32; // 15–20fps mobile, 30fps desktop
+      : Math.min(16, Math.max(6, Math.floor((window.innerWidth / 110) * qualityScale)));
+    const frameInterval = isMobile
+      ? (constrainedDevice ? 66 : 50)
+      : (constrainedDevice ? 48 : 32); // 15–20fps mobile, 21–30fps desktop
     const particles: Particle[] = [];
 
     const resize = () => {
@@ -67,7 +69,7 @@ const DynamicBackground: React.FC = React.memo(() => {
       // Android keeps the animation but avoids a multi-megapixel backing store.
       dpr = isMobile
         ? Math.min(window.devicePixelRatio || 1, constrainedDevice ? 1 : 1.15)
-        : Math.min(window.devicePixelRatio || 1, 1.5);
+        : Math.min(window.devicePixelRatio || 1, constrainedDevice ? 1 : 1.5);
       canvas.width = Math.max(1, Math.round(width * dpr));
       canvas.height = Math.max(1, Math.round(height * dpr));
       canvas.style.width = `${width}px`;
@@ -217,7 +219,11 @@ const DynamicBackground: React.FC = React.memo(() => {
         className="ambient-glow absolute -bottom-[20%] left-[20%] w-[70vw] h-[60vw] rounded-full blur-[160px] opacity-25 pointer-events-none transform-gpu"
         style={{ background: 'radial-gradient(circle, rgba(16, 185, 129, 0.35) 0%, rgba(45, 212, 191, 0.15) 50%, transparent 75%)' }}
       />
-      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.8 }} />
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 h-full w-full pointer-events-none"
+        style={{ opacity: 0.8, contain: 'strict' }}
+      />
     </div>
   );
 });

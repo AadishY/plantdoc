@@ -38,7 +38,7 @@ const METRICS = [
 export const MetricsShowcase: React.FC = () => {
   return (
     <section
-      className="container relative z-10 mx-auto max-w-6xl px-3 py-8 sm:px-4 sm:py-10 md:py-12"
+      className="container relative z-10 mx-auto max-w-6xl content-visibility-auto px-3 py-8 sm:px-4 sm:py-10 md:py-12"
       aria-labelledby="precision-heading"
     >
       <div className="mx-auto mb-7 max-w-3xl text-center sm:mb-8">
