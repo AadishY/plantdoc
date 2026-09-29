@@ -181,8 +181,10 @@ export const CustomScrollbar: React.FC = () => {
       window.removeEventListener('pointerup', onMouseUp, { capture: true });
       window.removeEventListener('pointercancel', onMouseUp, { capture: true });
       window.removeEventListener('blur', finishDragging);
+      window.removeEventListener('mouseleave', finishDragging);
       document.removeEventListener('visibilitychange', finishDragging);
       document.removeEventListener('contextmenu', finishDragging, true);
+      document.removeEventListener('mousedown', onDocumentMouseDown, true);
       activeDragCleanupRef.current = null;
     };
 
@@ -193,6 +195,13 @@ export const CustomScrollbar: React.FC = () => {
     };
 
     const onMouseUp = () => finishDragging();
+    const onDocumentMouseDown = (event: MouseEvent) => {
+      // A fresh click outside the scrollbar is a definitive end to any stale
+      // drag, even if the previous pointerup was swallowed by the browser.
+      if (event.button !== 0 || !trackRef.current?.contains(event.target as Node)) {
+        finishDragging();
+      }
+    };
 
     // Blur, tab suspension, and context-menu transitions can skip mouseup.
     // Always release the global lock through one shared cleanup path.
@@ -201,8 +210,10 @@ export const CustomScrollbar: React.FC = () => {
     window.addEventListener('pointerup', onMouseUp, { capture: true });
     window.addEventListener('pointercancel', onMouseUp, { capture: true });
     window.addEventListener('blur', finishDragging);
+    window.addEventListener('mouseleave', finishDragging);
     document.addEventListener('visibilitychange', finishDragging);
     document.addEventListener('contextmenu', finishDragging, true);
+    document.addEventListener('mousedown', onDocumentMouseDown, true);
     activeDragCleanupRef.current = finishDragging;
   }, [handleDragMove]);
 
