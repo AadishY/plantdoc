@@ -1,0 +1,102 @@
+/* Performance and accessibility guardrails shared by every route. */
+@keyframes site-loader-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes loader-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* One compositor-friendly scan pass replaces several concurrent motion
+   timelines in the mobile upload surface. */
+@keyframes diagnostic-scan {
+  0%, 100% { top: 0%; }
+  50% { top: 100%; }
+}
+
+@keyframes diagnostic-scan-glow {
+  0%, 100% { top: -2%; }
+  50% { top: 96%; }
+}
+
+@keyframes diagnostic-reticle {
+  0%, 100% { transform: translate(-25px, -35px) scale(0.95); opacity: 0.6; }
+  50% { transform: translate(35px, 25px) scale(1.05); opacity: 1; }
+}
+
+.animate-diagnostic-scan {
+  animation: diagnostic-scan 2.2s ease-in-out infinite;
+}
+
+.animate-diagnostic-scan-glow {
+  animation: diagnostic-scan-glow 2.2s ease-in-out infinite;
+}
+
+.animate-diagnostic-reticle {
+  animation: diagnostic-reticle 3s ease-in-out infinite;
+}
+
+.animate-site-loader-in {
+  animation: site-loader-in 120ms ease-out both;
+}
+
+.animate-loader-progress {
+  animation: loader-progress 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (pointer: coarse), (max-width: 767px) {
+  /* Keep the interactive result canvas in its own paint boundary so image
+     filters and lesion overlays do not invalidate the page around it. */
+  .diagnostic-segmentation {
+    contain: layout paint;
+  }
+
+  /* Android GPUs pay a real cost for large backdrop-filter surfaces. Keep the
+     glass language, but use a smaller blur radius and let the background show. */
+  .backdrop-blur-3xl,
+  .backdrop-blur-2xl,
+  .backdrop-blur-xl {
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+  }
+
+  .ambient-glow {
+    opacity: 0.1 !important;
+    filter: blur(70px) !important;
+  }
+
+  /* Avoid promoting every decorative card to its own compositor layer. */
+  .will-change-transform {
+    will-change: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html,
+  html:not(.is-dragging-scrollbar) {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (max-width: 420px) {
+  /* Prevent long nav labels and cards from forcing horizontal overflow on
+     narrow Android phones. */
+  .container {
+    max-width: 100%;
+  }
+
+  .text-balance {
+    text-wrap: pretty;
+  }
+}

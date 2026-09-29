@@ -41,8 +41,10 @@ export function useDocumentTitle(
     const previousTitle = document.title;
     document.title = title;
 
-    // Update og:title and twitter:title
+    // Keep entity and social metadata aligned with the active route.
+    setOrCreateMeta('property', 'og:site_name', 'PlantDoc AI');
     setOrCreateMeta('property', 'og:title', title);
+    setOrCreateMeta('name', 'twitter:card', 'summary_large_image');
     setOrCreateMeta('name', 'twitter:title', title);
 
     if (description) {
@@ -65,7 +67,9 @@ export function useDocumentTitle(
 
     setOrCreateMeta('property', 'og:image', resolvedImage);
     setOrCreateMeta('property', 'og:image:secure_url', resolvedImage);
+    setOrCreateMeta('property', 'og:image:alt', 'PlantDoc AI plant disease identification and plant-care guidance');
     setOrCreateMeta('name', 'twitter:image', resolvedImage);
+    setOrCreateMeta('name', 'twitter:image:alt', 'PlantDoc AI plant disease identification and plant-care guidance');
 
     // Update Canonical and OpenGraph / Twitter URLs
     const currentUrl = canonicalPath 

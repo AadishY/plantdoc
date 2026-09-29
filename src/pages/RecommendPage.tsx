@@ -165,6 +165,7 @@ const PlantCard = React.memo(
                 alt={`${plant.name} (${plant.scientificName || 'Botanical specimen'}) — Wikimedia verified botanical photography`}
                 className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out will-change-transform"
                 loading="lazy"
+                decoding="async"
               />
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-b from-[#2DD4BF]/15 to-black/60 p-4 text-center">
@@ -498,6 +499,8 @@ const PlantCard = React.memo(
                   src={plant.imageUrl} 
                   alt={plant.name}
                   className="w-full h-full object-cover"
+                  loading="lazy"
+                  decoding="async"
                 />
                 <div className="absolute bottom-3 left-3">
                   <Badge className="bg-black/80 backdrop-blur-md text-[#5EEAD4] border border-[#2DD4BF]/50 text-xs px-3 py-1 font-bold rounded-full">
@@ -644,10 +647,10 @@ PlantCard.displayName = 'PlantCard';
 
 const RecommendPage = () => {
   useDocumentTitle(
-    "Climate Botanical Recommendations & Hardiness — PlantDoc AI",
-    "Discover climate-matched companion crops, trees, flowers, and herbs using verified Wikimedia Foundation botanical profiles and regional weather parameters.",
+    "Plant Recommendations by Climate, Soil & Sunlight | PlantDoc AI",
+    "Find plants suited to your climate, soil, sunlight, and growing season with AI-guided recommendations and verified botanical profiles.",
     "/recommend",
-    "botanical recommendations, climate matched gardening, companion planting, hardiness zone crops, organic gardening, seasonal planting guide, agricultural AI"
+    "Aadish PlantDoc, PlantDoc AI, plant recommendations by climate, climate matched gardening, companion planting, hardiness zone crops, soil and sunlight plant guide, seasonal planting guide, garden plant finder, crop planning, gardening AI"
   );
 
   const [recommendations, setRecommendations] = useState<PlantRecommendation[]>([]);

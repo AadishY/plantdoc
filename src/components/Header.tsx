@@ -8,7 +8,6 @@ import {
   Info 
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
 import { preloadRoute } from "@/utils/routePreloader";
 
 const NAV_ITEMS = [
@@ -28,15 +27,13 @@ const Header: React.FC<HeaderProps> = ({ sticky = true }) => {
 
   useEffect(() => {
     const handleScroll = () => {
-      const isScrolled = window.scrollY > 15;
-      if (isScrolled !== scrolled) {
-        setScrolled(isScrolled);
-      }
+      const nextScrolled = window.scrollY > 15;
+      setScrolled((current) => (current === nextScrolled ? current : nextScrolled));
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [scrolled]);
+  }, []);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -56,7 +53,7 @@ const Header: React.FC<HeaderProps> = ({ sticky = true }) => {
           
           {/* 🌐 Center Frosted Glass Capsule Navigation Bar */}
           <nav 
-            className="flex items-center p-1 sm:p-1.5 rounded-full bg-white/[0.07] backdrop-blur-2xl border border-white/15 shadow-[0_4px_24px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.15)] gap-0.5 sm:gap-1 md:gap-1.5 select-none"
+            className="flex max-w-full items-center overflow-x-auto scrollbar-none p-1 sm:p-1.5 rounded-full bg-white/[0.07] backdrop-blur-2xl border border-white/15 shadow-[0_4px_24px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.15)] gap-0.5 sm:gap-1 md:gap-1.5 select-none"
             aria-label="Main Navigation"
           >
             {NAV_ITEMS.map((item) => {
@@ -65,20 +62,20 @@ const Header: React.FC<HeaderProps> = ({ sticky = true }) => {
                 <Link
                   key={item.path}
                   to={item.path}
+                  aria-current={active ? "page" : undefined}
                   onMouseEnter={() => preloadRoute(item.path)}
                   onTouchStart={() => preloadRoute(item.path)}
                   className={cn(
-                    "relative px-2.5 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-2.5 text-[11px] sm:text-xs md:text-sm font-medium rounded-full transition-all duration-200 text-center flex items-center justify-center whitespace-nowrap z-10",
+                    "relative min-h-[44px] px-2.5 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-2.5 text-[11px] sm:text-xs md:text-sm font-medium rounded-full transition-all duration-200 text-center flex items-center justify-center whitespace-nowrap z-10",
                     active
                       ? "text-black font-extrabold"
                       : "text-white/75 hover:text-white hover:bg-white/10"
                   )}
                 >
                   {active && (
-                    <motion.div
-                      layoutId="headerPill"
+                    <span
+                      aria-hidden="true"
                       className="absolute inset-0 bg-gradient-to-r from-[#2DD4BF] to-[#10B981] rounded-full shadow-[0_0_18px_rgba(45,212,191,0.55)] -z-10"
-                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     />
                   )}
                   {/* Shows 'About' directly */}
