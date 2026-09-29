@@ -222,6 +222,12 @@ export const PlantDocHeroStage: React.FC = () => {
       if (topLayerRef.current) {
         topLayerRef.current.style.opacity = '0';
       }
+      // Never leave the healthy layer clipped after the diseased layer is
+      // hidden. That stale inverse mask is what creates a black circle on exit.
+      if (baseLayerRef.current) {
+        baseLayerRef.current.style.maskImage = 'none';
+        baseLayerRef.current.style.webkitMaskImage = 'none';
+      }
       startLoop();
     };
 
@@ -398,7 +404,7 @@ export const PlantDocHeroStage: React.FC = () => {
             alpha: useCssReveal ? 0.78 : 0.96,
             seed: Math.random() * 100
           });
-          const maxPoints = useCssReveal ? (isMobileDevice ? 7 : 12) : TRAIL_MAX_POINTS;
+          const maxPoints = useCssReveal ? 12 : TRAIL_MAX_POINTS;
           if (points.length > maxPoints) {
             points.shift();
           }
@@ -409,7 +415,7 @@ export const PlantDocHeroStage: React.FC = () => {
 
       // In-place decay: 0 garbage collection allocations per frame!
       // Slightly extended linger wake on mobile touch for richer visibility; crisp decay on PC
-      const fadeSpeed = isMobileDevice ? 0.962 : TRAIL_FADE_SPEED;
+      const fadeSpeed = isMobileDevice ? 0.972 : TRAIL_FADE_SPEED;
       const radiusDecay = isMobileDevice ? 0.996 : 0.994;
 
       for (let i = points.length - 1; i >= 0; i--) {
@@ -462,7 +468,7 @@ export const PlantDocHeroStage: React.FC = () => {
           // Touch devices use a native CSS radial mask. It produces the same
           // healthy-to-diseased reveal without serializing a canvas to a new
           // data URL on every frame (a particularly expensive Android path).
-          if (useCssReveal && topLayerRef.current && smoothX !== -9999 && now - lastCssMaskUpdate >= 32) {
+          if (useCssReveal && topLayerRef.current && smoothX !== -9999 && now - lastCssMaskUpdate >= 20) {
             lastCssMaskUpdate = now;
             // Let the reveal grow from the pointer instead of appearing as a
             // pre-sized circle on the first frame.
