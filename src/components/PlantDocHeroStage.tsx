@@ -37,7 +37,9 @@ export const PlantDocHeroStage: React.FC = () => {
 
     const isMobileDevice = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768;
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const useCssReveal = isMobileDevice || prefersReducedMotion;
+    // Prefer the same low-resolution canvas morph on touch devices so the
+    // head and trail share one mask. Reduced-motion remains CSS-only and static.
+    const useCssReveal = prefersReducedMotion;
     let lastMaskUpload = 0;
     const points: TrailPoint[] = [];
     let headRadius = 0;
@@ -395,7 +397,7 @@ export const PlantDocHeroStage: React.FC = () => {
 
         // Add trailing points with fluid spacing
         const dist = Math.hypot(smoothX - lastX, smoothY - lastY);
-        const trailSampleDistance = useCssReveal ? (isMobileDevice ? TRAIL_SAMPLE_DIST * 3 : 6) : 3.5;
+        const trailSampleDistance = useCssReveal ? 6 : (isMobileDevice ? TRAIL_SAMPLE_DIST * 2 : 3.5);
         if (dist >= trailSampleDistance && headRadius > 2) {
           points.push({
             x: smoothX,
@@ -404,7 +406,7 @@ export const PlantDocHeroStage: React.FC = () => {
             alpha: useCssReveal ? 0.78 : 0.96,
             seed: Math.random() * 100
           });
-          const maxPoints = useCssReveal ? 12 : TRAIL_MAX_POINTS;
+          const maxPoints = useCssReveal ? 12 : (isMobileDevice ? 14 : TRAIL_MAX_POINTS);
           if (points.length > maxPoints) {
             points.shift();
           }
@@ -518,14 +520,19 @@ export const PlantDocHeroStage: React.FC = () => {
             // the extra gradient lobes create a lightweight morph trail.
             const inverseCssMask = `radial-gradient(ellipse ${radiusX}px ${radiusY}px at ${x} ${y}, transparent 0%, transparent 62%, #fff 100%)`;
             if (baseLayerRef.current) {
-              baseLayerRef.current.style.maskImage = inverseCssMask;
-              baseLayerRef.current.style.webkitMaskImage = inverseCssMask;
-              baseLayerRef.current.style.maskSize = '100% 100%';
-              baseLayerRef.current.style.webkitMaskSize = '100% 100%';
-              baseLayerRef.current.style.maskRepeat = 'no-repeat';
-              baseLayerRef.current.style.webkitMaskRepeat = 'no-repeat';
+              if (hovering) {
+                baseLayerRef.current.style.maskImage = inverseCssMask;
+                baseLayerRef.current.style.webkitMaskImage = inverseCssMask;
+                baseLayerRef.current.style.maskSize = '100% 100%';
+                baseLayerRef.current.style.webkitMaskSize = '100% 100%';
+                baseLayerRef.current.style.maskRepeat = 'no-repeat';
+                baseLayerRef.current.style.webkitMaskRepeat = 'no-repeat';
+              } else {
+                baseLayerRef.current.style.maskImage = 'none';
+                baseLayerRef.current.style.webkitMaskImage = 'none';
+              }
             }
-          } else if (!useCssReveal && performance.now() - lastMaskUpload >= 32) {
+          } else if (!useCssReveal && performance.now() - lastMaskUpload >= (isMobileDevice ? 28 : 32)) {
             // Desktop keeps the richer organic trail, but uploads the mask at
             // 30fps instead of paying for two toDataURL calls at 60fps.
             lastMaskUpload = performance.now();
@@ -551,13 +558,18 @@ export const PlantDocHeroStage: React.FC = () => {
               invCtx.drawImage(maskCanvas, 0, 0);
               invCtx.globalCompositeOperation = 'source-over';
 
-              const invDataUrl = invCanvas.toDataURL();
-              baseLayerRef.current.style.maskImage = `url(${invDataUrl})`;
-              baseLayerRef.current.style.webkitMaskImage = `url(${invDataUrl})`;
-              baseLayerRef.current.style.maskSize = '100% 100%';
-              baseLayerRef.current.style.webkitMaskSize = '100% 100%';
-              baseLayerRef.current.style.maskRepeat = 'no-repeat';
-              baseLayerRef.current.style.webkitMaskRepeat = 'no-repeat';
+              if (hovering) {
+                const invDataUrl = invCanvas.toDataURL();
+                baseLayerRef.current.style.maskImage = `url(${invDataUrl})`;
+                baseLayerRef.current.style.webkitMaskImage = `url(${invDataUrl})`;
+                baseLayerRef.current.style.maskSize = '100% 100%';
+                baseLayerRef.current.style.webkitMaskSize = '100% 100%';
+                baseLayerRef.current.style.maskRepeat = 'no-repeat';
+                baseLayerRef.current.style.webkitMaskRepeat = 'no-repeat';
+              } else {
+                baseLayerRef.current.style.maskImage = 'none';
+                baseLayerRef.current.style.webkitMaskImage = 'none';
+              }
             }
           }
         }
