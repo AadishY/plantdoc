@@ -25,7 +25,6 @@ export const PlantDocHeroStage: React.FC = () => {
   const flowerContainerRef = useRef<HTMLDivElement>(null);
   const maskCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const baseLayerRef = useRef<HTMLDivElement>(null);
-  const cutoutLayerRef = useRef<HTMLDivElement>(null);
   const topLayerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -375,7 +374,7 @@ export const PlantDocHeroStage: React.FC = () => {
       previousFrameTime = now;
       const holdingRelease = !hovering && releaseScheduled && now < releaseAt;
       const targetR = hovering ? scaledHeadR : holdingRelease ? headRadius : 0;
-      headRadius += (targetR - headRadius) * (hovering ? 0.32 : 0.12);
+      headRadius += (targetR - headRadius) * (hovering ? 0.20 : 0.10);
 
       // Ultra-smooth spring cursor interpolation
       if (hovering && mousePos.x !== -9999) {
@@ -433,11 +432,6 @@ export const PlantDocHeroStage: React.FC = () => {
               topLayerRef.current.style.maskImage = 'none';
               topLayerRef.current.style.webkitMaskImage = 'none';
             }
-            if (cutoutLayerRef.current) {
-              cutoutLayerRef.current.style.opacity = '0';
-              cutoutLayerRef.current.style.maskImage = 'none';
-              cutoutLayerRef.current.style.webkitMaskImage = 'none';
-            }
             if (baseLayerRef.current) {
               baseLayerRef.current.style.maskImage = 'none';
               baseLayerRef.current.style.webkitMaskImage = 'none';
@@ -470,7 +464,9 @@ export const PlantDocHeroStage: React.FC = () => {
           // data URL on every frame (a particularly expensive Android path).
           if (useCssReveal && topLayerRef.current && smoothX !== -9999 && now - lastCssMaskUpdate >= 32) {
             lastCssMaskUpdate = now;
-            const radiusPx = Math.max(28, headRadius * (layerWidth / maskCanvas.width));
+            // Let the reveal grow from the pointer instead of appearing as a
+            // pre-sized circle on the first frame.
+            const radiusPx = Math.max(4, headRadius * (layerWidth / maskCanvas.width));
             // Keep the Android-friendly CSS path light while making the head
             // and its short trail share one stable, fluid mask.
             const radiusX = radiusPx * (prefersReducedMotion ? 1 : 1 + Math.sin(time * 1.7 + 0.8) * 0.025);
@@ -509,26 +505,19 @@ export const PlantDocHeroStage: React.FC = () => {
             topLayerRef.current.style.webkitMaskSize = '100% 100%';
             topLayerRef.current.style.maskRepeat = 'no-repeat';
             topLayerRef.current.style.webkitMaskRepeat = 'no-repeat';
-            topLayerRef.current.style.opacity = hovering ? '1' : '0';
+            topLayerRef.current.style.opacity = hovering && headRadius > 1 ? '1' : '0';
 
-            // A dark cutout sits between the healthy and diseased flowers.
-            // It hides the healthy layer under every head/trail lobe, so
-            // transparent disease holes reach the site background instead of
-            // revealing healthy petals underneath.
-            if (cutoutLayerRef.current) {
-              cutoutLayerRef.current.style.maskImage = cssMask;
-              cutoutLayerRef.current.style.webkitMaskImage = cssMask;
-              cutoutLayerRef.current.style.setProperty('mask-composite', 'add');
-              cutoutLayerRef.current.style.setProperty('-webkit-mask-composite', 'source-over');
-              cutoutLayerRef.current.style.maskSize = '100% 100%';
-              cutoutLayerRef.current.style.webkitMaskSize = '100% 100%';
-              cutoutLayerRef.current.style.maskRepeat = 'no-repeat';
-              cutoutLayerRef.current.style.webkitMaskRepeat = 'no-repeat';
-              cutoutLayerRef.current.style.opacity = '1';
-            }
+            // The healthy layer uses the inverse of the primary head mask.
+            // This keeps the transparent center of the main reveal clean while
+            // the extra gradient lobes create a lightweight morph trail.
+            const inverseCssMask = `radial-gradient(ellipse ${radiusX}px ${radiusY}px at ${x} ${y}, transparent 0%, transparent 62%, #fff 100%)`;
             if (baseLayerRef.current) {
-              baseLayerRef.current.style.maskImage = 'none';
-              baseLayerRef.current.style.webkitMaskImage = 'none';
+              baseLayerRef.current.style.maskImage = inverseCssMask;
+              baseLayerRef.current.style.webkitMaskImage = inverseCssMask;
+              baseLayerRef.current.style.maskSize = '100% 100%';
+              baseLayerRef.current.style.webkitMaskSize = '100% 100%';
+              baseLayerRef.current.style.maskRepeat = 'no-repeat';
+              baseLayerRef.current.style.webkitMaskRepeat = 'no-repeat';
             }
           } else if (!useCssReveal && performance.now() - lastMaskUpload >= 32) {
             // Desktop keeps the richer organic trail, but uploads the mask at
@@ -543,7 +532,7 @@ export const PlantDocHeroStage: React.FC = () => {
               topLayerRef.current.style.webkitMaskSize = '100% 100%';
               topLayerRef.current.style.maskRepeat = 'no-repeat';
               topLayerRef.current.style.webkitMaskRepeat = 'no-repeat';
-              topLayerRef.current.style.opacity = hovering ? '1' : '0';
+              topLayerRef.current.style.opacity = hovering && headRadius > 1 ? '1' : '0';
             }
 
             // The inverse mask keeps the healthy layer from doubling beneath
@@ -660,15 +649,6 @@ export const PlantDocHeroStage: React.FC = () => {
                 decoding="async"
               />
             </div>
-
-            {/* Mobile/reduced-motion cutout: masks the healthy flower beneath
-                the complete fluid head and trail without extra canvas uploads. */}
-            <div
-              ref={cutoutLayerRef}
-              aria-hidden="true"
-              className="absolute inset-0 pointer-events-none bg-[#020604]"
-              style={{ opacity: 0 }}
-            />
 
             {/* Reveal Top Layer: Diseased Foliage (main_disease.webp) Morph Masked (100% 1:1 Cursor Centered) */}
             <div 
