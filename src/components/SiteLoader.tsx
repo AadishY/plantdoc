@@ -15,7 +15,10 @@ const STATUS_MESSAGES = [
 export const SiteLoader: React.FC = () => {
   const [loading, setLoading] = useState(() => {
     try {
-      if (typeof window !== 'undefined' && sessionStorage.getItem('plantdoc_session_loaded')) {
+      const saveData = typeof navigator !== 'undefined' && (navigator as Navigator & {
+        connection?: { saveData?: boolean };
+      }).connection?.saveData === true;
+      if (saveData || (typeof window !== 'undefined' && sessionStorage.getItem('plantdoc_session_loaded'))) {
         return false;
       }
     } catch {
@@ -36,8 +39,10 @@ export const SiteLoader: React.FC = () => {
 
     const statusInterval = window.setInterval(() => {
       setStatusIdx((previous) => Math.min(previous + 1, STATUS_MESSAGES.length - 1));
-    }, 140);
-    const timer = window.setTimeout(() => setLoading(false), 560);
+    }, 100);
+    // Save-Data visitors are skipped by the initial state. Everyone else gets
+    // only a brief branded hand-off rather than an LCP-blocking splash.
+    const timer = window.setTimeout(() => setLoading(false), 220);
 
     return () => {
       window.clearInterval(statusInterval);

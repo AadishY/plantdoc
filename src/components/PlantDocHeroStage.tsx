@@ -1,693 +1,423 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Scan, Wand2, ChevronDown } from 'lucide-react';
+import { ChevronDown, Scan, Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface TrailPoint {
   x: number;
   y: number;
-  r: number;
+  radius: number;
   alpha: number;
-  seed: number;
 }
 
-const TRAIL_MAX_POINTS = 45;
-const TRAIL_HEAD_R = 64; // Ergonomic reveal radius
-const TRAIL_NOISE_AMP = 12; // Soft organic ripple
-const TRAIL_BLOB_PTS = 28; // High-precision smooth polygon
-const TRAIL_FADE_SPEED = 0.94; // Gentle trailing decay
-const TRAIL_SAMPLE_DIST = 4;
-const REVEAL_RELEASE_DELAY_MS = 180; // Let the last organic wake linger before it recedes
-const REVEAL_MASK_UPLOAD_INTERVAL_MS = 32; // Keep desktop mask work near 30fps without reducing pointer easing
-const REVEAL_CSS_UPDATE_INTERVAL_MS = 20;
 const FLOWER_ALPHA_THRESHOLD = 18;
+const MAX_TRAIL_POINTS = 12;
+const RELEASE_DELAY_MS = 160;
 
+/**
+ * The landing-stage reveal is entirely CSS-mask driven. Earlier iterations
+ * serialized two canvases to base64 several times a second; this version keeps
+ * the healthy and pathology layers synchronized with small native gradients.
+ * That removes large per-frame allocations and is especially kinder to mobile
+ * GPUs while retaining an organic, multi-lobed reveal.
+ */
 export const PlantDocHeroStage: React.FC = () => {
-  const stageRef = useRef<HTMLDivElement>(null);
-  const flowerContainerRef = useRef<HTMLDivElement>(null);
-  const maskCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const stageRef = useRef<HTMLElement>(null);
   const baseLayerRef = useRef<HTMLDivElement>(null);
   const topLayerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const maskCanvas = document.createElement('canvas');
-    const invCanvas = document.createElement('canvas');
-    maskCanvasRef.current = maskCanvas;
-    const ctx = maskCanvas.getContext('2d');
-    const invCtx = invCanvas.getContext('2d');
-    if (!ctx) return;
+    const stage = stageRef.current;
+    const baseLayer = baseLayerRef.current;
+    const topLayer = topLayerRef.current;
+    const flowerImage = baseLayer?.querySelector('img');
+    if (!stage || !baseLayer || !topLayer || !flowerImage) return;
 
-    const isMobileDevice = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768;
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    // Keep touch devices on the capped CSS mask path. It avoids per-frame
-    // canvas serialization on Android while still allowing the final wake to
-    // fade naturally after the pointer leaves the flower.
-    const useCssReveal = isMobileDevice || prefersReducedMotion;
-    let lastMaskUpload = 0;
-    const points: TrailPoint[] = [];
-    let headRadius = 0;
-    let time = 0;
-    let previousFrameTime = performance.now();
-    let animFrameId: number;
+    const isMobile = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const maskUpdateInterval = isMobile ? 32 : 16;
+    const trails: TrailPoint[] = [];
+
+    let animationFrame = 0;
+    let lastFrame = performance.now();
+    let lastMaskUpdate = -Infinity;
+    let isPageVisible = !document.hidden;
+    let isIntersecting = true;
     let hovering = false;
-    let lastX = -9999;
-    let lastY = -9999;
-    let mousePos = { x: -9999, y: -9999 };
-    let smoothX = -9999;
-    let smoothY = -9999;
-    let layerWidth = 1;
     let releaseAt = 0;
-    let releaseScheduled = false;
-    let lastCssMaskUpdate = -Infinity;
-    let flowerAlphaData: Uint8ClampedArray | null = null;
-    let flowerAlphaWidth = 0;
-    let flowerAlphaHeight = 0;
+    let pointerX = -1;
+    let pointerY = -1;
+    let smoothX = -1;
+    let smoothY = -1;
+    let lastTrailX = -1;
+    let lastTrailY = -1;
+    let headRadius = 0;
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let draggingReveal = false;
     let geometryDirty = true;
-    let cachedLayerRect: DOMRect | null = null;
-    let cachedImageRect: DOMRect | null = null;
+    let layerRect: DOMRect | null = null;
+    let imageRect: DOMRect | null = null;
+    let flowerAlpha: Uint8ClampedArray | null = null;
+    let flowerWidth = 0;
+    let flowerHeight = 0;
 
-    // Size internal canvas with adaptive downscale (3x on mobile, 2x on desktop) for 900% faster frame serialization
-    const updateCanvasSize = () => {
-      if (!topLayerRef.current) return;
-      const rect = topLayerRef.current.getBoundingClientRect();
-      layerWidth = Math.max(1, rect.width);
-      const scaleFactor = isMobileDevice ? 3 : 2;
-      const w = Math.max(50, Math.round(rect.width / scaleFactor));
-      const h = Math.max(50, Math.round(rect.height / scaleFactor));
-      maskCanvas.width = w;
-      maskCanvas.height = h;
-      invCanvas.width = w;
-      invCanvas.height = h;
-    };
-
-    updateCanvasSize();
-
-    // Use the healthy flower's alpha channel as a cheap hit test. The image
-    // has transparent padding, so bounding-box checks alone can start a red
-    // reveal while the pointer is over empty space around the flower.
     const alphaCanvas = document.createElement('canvas');
     const alphaContext = alphaCanvas.getContext('2d', { willReadFrequently: true });
-    const flowerImage = baseLayerRef.current?.querySelector('img');
+
+    const measure = () => {
+      layerRect = topLayer.getBoundingClientRect();
+      imageRect = flowerImage.getBoundingClientRect();
+      geometryDirty = false;
+    };
+
     const refreshFlowerAlpha = () => {
-      if (!alphaContext || !flowerImage?.complete || !flowerImage.naturalWidth || !flowerImage.naturalHeight) return;
+      if (!alphaContext || !flowerImage.complete || !flowerImage.naturalWidth || !flowerImage.naturalHeight) return;
       try {
         alphaCanvas.width = flowerImage.naturalWidth;
         alphaCanvas.height = flowerImage.naturalHeight;
         alphaContext.clearRect(0, 0, alphaCanvas.width, alphaCanvas.height);
         alphaContext.drawImage(flowerImage, 0, 0, alphaCanvas.width, alphaCanvas.height);
-        flowerAlphaData = alphaContext.getImageData(0, 0, alphaCanvas.width, alphaCanvas.height).data;
-        flowerAlphaWidth = alphaCanvas.width;
-        flowerAlphaHeight = alphaCanvas.height;
+        flowerAlpha = alphaContext.getImageData(0, 0, alphaCanvas.width, alphaCanvas.height).data;
+        flowerWidth = alphaCanvas.width;
+        flowerHeight = alphaCanvas.height;
       } catch {
-        // If a browser blocks pixel reads, fail closed rather than revealing
-        // the entire disease layer outside the visible flower.
-        flowerAlphaData = null;
-      }
-    };
-    refreshFlowerAlpha();
-    flowerImage?.addEventListener('load', refreshFlowerAlpha);
-
-    let resizeTimer: any;
-    const debouncedResize = () => {
-      geometryDirty = true;
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(updateCanvasSize, 100);
-    };
-    window.addEventListener('resize', debouncedResize, { passive: true });
-
-    const isMobile = window.innerWidth < 768;
-    const blobVertexCount = isMobile ? 10 : TRAIL_BLOB_PTS;
-    const polyPtsX = new Float32Array(32);
-    const polyPtsY = new Float32Array(32);
-
-    const drawMorphBlob = (
-      context: CanvasRenderingContext2D,
-      cx: number,
-      cy: number,
-      r: number,
-      t: number,
-      seed: number,
-      alpha: number = 1.0
-    ) => {
-      if (r < 1.5) return;
-      const count = blobVertexCount;
-
-      for (let i = 0; i < count; i++) {
-        const angle = (i / count) * Math.PI * 2;
-        const n1 = Math.sin(angle * 3 + t * 1.5 + seed) * 0.38;
-        const n2 = Math.sin(angle * 5 - t * 1.0 + seed * 2.3) * 0.24;
-        const noise = (n1 + n2) * (TRAIL_NOISE_AMP * 0.38) * (r / 32);
-        const currentR = Math.max(0, r + noise);
-        polyPtsX[i] = cx + Math.cos(angle) * currentR;
-        polyPtsY[i] = cy + Math.sin(angle) * currentR;
-      }
-
-      if (count > 2) {
-        context.beginPath();
-        const firstMidX = (polyPtsX[0] + polyPtsX[1]) / 2;
-        const firstMidY = (polyPtsY[0] + polyPtsY[1]) / 2;
-        context.moveTo(firstMidX, firstMidY);
-
-        for (let i = 1; i < count; i++) {
-          const nextIdx = (i + 1) % count;
-          const midX = (polyPtsX[i] + polyPtsX[nextIdx]) / 2;
-          const midY = (polyPtsY[i] + polyPtsY[nextIdx]) / 2;
-          context.quadraticCurveTo(polyPtsX[i], polyPtsY[i], midX, midY);
-        }
-        context.quadraticCurveTo(polyPtsX[0], polyPtsY[0], firstMidX, firstMidY);
-        context.closePath();
-
-        // Soft, feathered transparent perimeter falloff (only soft circle edges, full reveal clarity inside)
-        const grad = context.createRadialGradient(cx, cy, 0, cx, cy, Math.max(2, r * 1.10));
-        grad.addColorStop(0, `rgba(255, 255, 255, ${alpha})`);
-        grad.addColorStop(0.70, `rgba(255, 255, 255, ${alpha * 0.88})`);
-        grad.addColorStop(0.92, `rgba(255, 255, 255, ${alpha * 0.35})`);
-        grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-        context.fillStyle = grad;
-        context.fill();
+        // Pixel reads can be disabled by a browser privacy setting. The reveal
+        // still works safely within the image bounds in that case.
+        flowerAlpha = null;
       }
     };
 
     const getFlowerPoint = (clientX: number, clientY: number): { x: number; y: number } | null => {
-      const layer = topLayerRef.current;
-      const image = flowerImage;
-      if (!layer || !image || !flowerAlphaData || !flowerAlphaWidth || !flowerAlphaHeight) return null;
+      if (geometryDirty || !layerRect || !imageRect) measure();
+      if (!layerRect || !imageRect) return null;
 
-      if (geometryDirty || !cachedLayerRect || !cachedImageRect) {
-        cachedLayerRect = layer.getBoundingClientRect();
-        cachedImageRect = image.getBoundingClientRect();
-        geometryDirty = false;
-      }
-      const layerRect = cachedLayerRect;
-      const imageRect = cachedImageRect;
       const boxX = clientX - imageRect.left;
       const boxY = clientY - imageRect.top;
       if (boxX < 0 || boxY < 0 || boxX > imageRect.width || boxY > imageRect.height) return null;
 
-      // The image uses object-contain/object-top. Recreate that mapping before
-      // sampling the source alpha bitmap, including letterboxed side padding.
-      const scale = Math.min(imageRect.width / flowerAlphaWidth, imageRect.height / flowerAlphaHeight);
-      const drawnWidth = flowerAlphaWidth * scale;
-      const imageX = (imageRect.width - drawnWidth) / 2;
-      const imageY = 0;
-      const sourceX = Math.floor((boxX - imageX) / scale);
-      const sourceY = Math.floor((boxY - imageY) / scale);
-      if (sourceX < 0 || sourceY < 0 || sourceX >= flowerAlphaWidth || sourceY >= flowerAlphaHeight) return null;
+      // Before the alpha bitmap is decoded, image-bounds interaction gives the
+      // first touch a responsive result. Once decoded, transparent padding is
+      // precisely excluded so the reveal starts only on visible foliage.
+      if (flowerAlpha && flowerWidth && flowerHeight) {
+        const scale = Math.min(imageRect.width / flowerWidth, imageRect.height / flowerHeight);
+        const drawnWidth = flowerWidth * scale;
+        const imageX = (imageRect.width - drawnWidth) / 2;
+        const sourceX = Math.floor((boxX - imageX) / scale);
+        const sourceY = Math.floor(boxY / scale);
+        if (sourceX < 0 || sourceY < 0 || sourceX >= flowerWidth || sourceY >= flowerHeight) return null;
 
-      // Sample a tiny neighborhood to keep anti-aliased petal edges from
-      // toggling the reveal on/off and producing a visible shimmer.
-      let maxAlpha = 0;
-      for (let offsetY = -2; offsetY <= 2; offsetY++) {
-        for (let offsetX = -2; offsetX <= 2; offsetX++) {
-          const sampleX = Math.min(flowerAlphaWidth - 1, Math.max(0, sourceX + offsetX));
-          const sampleY = Math.min(flowerAlphaHeight - 1, Math.max(0, sourceY + offsetY));
-          maxAlpha = Math.max(maxAlpha, flowerAlphaData[(sampleY * flowerAlphaWidth + sampleX) * 4 + 3]);
+        let maxAlpha = 0;
+        for (let offsetY = -2; offsetY <= 2; offsetY += 1) {
+          for (let offsetX = -2; offsetX <= 2; offsetX += 1) {
+            const sampleX = Math.min(flowerWidth - 1, Math.max(0, sourceX + offsetX));
+            const sampleY = Math.min(flowerHeight - 1, Math.max(0, sourceY + offsetY));
+            maxAlpha = Math.max(maxAlpha, flowerAlpha[(sampleY * flowerWidth + sampleX) * 4 + 3]);
+          }
         }
+        if (maxAlpha < FLOWER_ALPHA_THRESHOLD) return null;
       }
-      if (maxAlpha < FLOWER_ALPHA_THRESHOLD) return null;
 
       return {
-        x: ((clientX - layerRect.left) / Math.max(1, layerRect.width)) * maskCanvas.width,
-        y: ((clientY - layerRect.top) / Math.max(1, layerRect.height)) * maskCanvas.height,
+        x: ((clientX - layerRect.left) / Math.max(1, layerRect.width)) * 100,
+        y: ((clientY - layerRect.top) / Math.max(1, layerRect.height)) * 100,
       };
     };
 
+    const startLoop = () => {
+      if (!animationFrame && isPageVisible && isIntersecting) {
+        animationFrame = window.requestAnimationFrame(renderLoop);
+      }
+    };
+
     const beginReveal = (point: { x: number; y: number }) => {
-      mousePos = point;
+      pointerX = point.x;
+      pointerY = point.y;
       hovering = true;
-      releaseScheduled = false;
       releaseAt = 0;
       startLoop();
     };
 
     const beginRelease = () => {
-      const isActive = hovering || headRadius > 0.5 || points.length > 0;
-      if (isActive && !releaseScheduled) {
-        releaseScheduled = true;
-        releaseAt = performance.now() + REVEAL_RELEASE_DELAY_MS;
-      }
+      if (!hovering && headRadius < 0.5 && trails.length === 0) return;
       hovering = false;
-      mousePos = { x: -9999, y: -9999 };
-      lastX = -9999;
-      lastY = -9999;
-      // Do not clear either layer here. The render loop keeps the last mask
-      // alive while the head eases down and the organic wake decays, so an
-      // exit feels like a soft release instead of an instant erase. The final
-      // idle frame clears both masks safely once no reveal pixels remain.
+      releaseAt = performance.now() + (reducedMotion ? 0 : RELEASE_DELAY_MS);
       startLoop();
     };
 
-    const updateMouseReveal = (clientX: number, clientY: number) => {
-      const point = getFlowerPoint(clientX, clientY);
-      if (point) {
-        beginReveal(point);
-      } else {
-        beginRelease();
-      }
+    const releaseMasks = () => {
+      topLayer.style.opacity = '0';
+      topLayer.style.maskImage = 'none';
+      topLayer.style.webkitMaskImage = 'none';
+      baseLayer.style.maskImage = 'none';
+      baseLayer.style.webkitMaskImage = 'none';
     };
 
-    const handleMouseMove = (e: MouseEvent) => updateMouseReveal(e.clientX, e.clientY);
-    const handleMouseEnter = (e: MouseEvent) => updateMouseReveal(e.clientX, e.clientY);
+    const updateFromPointer = (clientX: number, clientY: number) => {
+      const point = getFlowerPoint(clientX, clientY);
+      if (point) beginReveal(point);
+      else beginRelease();
+    };
+
+    const writeMasks = (time: number) => {
+      if (!layerRect || smoothX < 0 || smoothY < 0 || headRadius < 0.5) return;
+
+      const wobble = reducedMotion ? 0 : Math.sin(time * 0.0022) * 0.045;
+      const radiusX = headRadius * (1 + wobble);
+      const radiusY = headRadius * (1 - wobble * 0.72);
+      const core = `radial-gradient(ellipse ${radiusX.toFixed(1)}px ${radiusY.toFixed(1)}px at ${smoothX.toFixed(2)}% ${smoothY.toFixed(2)}%, #fff 0%, #fff 53%, rgba(255,255,255,0.92) 68%, rgba(255,255,255,0.36) 86%, transparent 100%)`;
+      const maskLayers = [core];
+
+      // Two offset lobes keep the reveal biologically irregular rather than a
+      // perfect inspection circle. The short, fading wake joins them smoothly.
+      if (!reducedMotion) {
+        const phase = time * 0.002;
+        const lobeOneX = smoothX + Math.sin(phase * 1.3) * 0.9;
+        const lobeOneY = smoothY + Math.cos(phase * 1.1) * 0.7;
+        const lobeTwoX = smoothX - Math.cos(phase * 0.9) * 0.7;
+        const lobeTwoY = smoothY + Math.sin(phase * 1.45) * 0.8;
+        maskLayers.push(
+          `radial-gradient(ellipse ${(radiusX * 0.62).toFixed(1)}px ${(radiusY * 0.48).toFixed(1)}px at ${lobeOneX.toFixed(2)}% ${lobeOneY.toFixed(2)}%, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.45) 58%, transparent 100%)`,
+          `radial-gradient(ellipse ${(radiusX * 0.38).toFixed(1)}px ${(radiusY * 0.58).toFixed(1)}px at ${lobeTwoX.toFixed(2)}% ${lobeTwoY.toFixed(2)}%, rgba(255,255,255,0.46) 0%, rgba(255,255,255,0.22) 56%, transparent 100%)`
+        );
+      }
+
+      for (let index = trails.length - 1; index >= 0; index -= 1) {
+        const trail = trails[index];
+        const alpha = Math.max(0.08, trail.alpha * 0.72);
+        maskLayers.push(
+          `radial-gradient(ellipse ${(trail.radius * 0.78).toFixed(1)}px ${(trail.radius * 0.62).toFixed(1)}px at ${trail.x.toFixed(2)}% ${trail.y.toFixed(2)}%, rgba(255,255,255,${alpha.toFixed(2)}) 0%, rgba(255,255,255,${(alpha * 0.64).toFixed(2)}) 58%, transparent 100%)`
+        );
+      }
+
+      const topMask = maskLayers.join(', ');
+      topLayer.style.maskImage = topMask;
+      topLayer.style.webkitMaskImage = topMask;
+      topLayer.style.maskSize = '100% 100%';
+      topLayer.style.webkitMaskSize = '100% 100%';
+      topLayer.style.maskRepeat = 'no-repeat';
+      topLayer.style.webkitMaskRepeat = 'no-repeat';
+      topLayer.style.opacity = '1';
+
+      // A synchronized inverse core prevents the healthy layer from bleeding
+      // through the main pathology window, including transparent eaten-away
+      // tissue. Trail edges intentionally feather into the healthy layer.
+      const inverseMask = `radial-gradient(ellipse ${radiusX.toFixed(1)}px ${radiusY.toFixed(1)}px at ${smoothX.toFixed(2)}% ${smoothY.toFixed(2)}%, transparent 0%, transparent 61%, #fff 100%)`;
+      baseLayer.style.maskImage = inverseMask;
+      baseLayer.style.webkitMaskImage = inverseMask;
+      baseLayer.style.maskSize = '100% 100%';
+      baseLayer.style.webkitMaskSize = '100% 100%';
+      baseLayer.style.maskRepeat = 'no-repeat';
+      baseLayer.style.webkitMaskRepeat = 'no-repeat';
+    };
+
+    const renderLoop = (time: number) => {
+      animationFrame = 0;
+      if (!isPageVisible || !isIntersecting) return;
+
+      const frameScale = Math.min(3, Math.max(0.5, (time - lastFrame) / 16.67));
+      lastFrame = time;
+      const holdingRelease = !hovering && releaseAt > time;
+      const targetRadius = hovering
+        ? Math.max(isMobile ? 38 : 60, Math.min(isMobile ? 64 : 106, Math.min(layerRect?.width || 0, layerRect?.height || 0) * (isMobile ? 0.105 : 0.12)))
+        : holdingRelease
+          ? headRadius
+          : 0;
+      const headEase = 1 - Math.pow(hovering ? 0.72 : 0.86, frameScale);
+      headRadius += (targetRadius - headRadius) * headEase;
+
+      if (hovering && pointerX >= 0 && pointerY >= 0) {
+        if (smoothX < 0 || smoothY < 0) {
+          smoothX = pointerX;
+          smoothY = pointerY;
+        } else {
+          const pointerEase = 1 - Math.pow(isMobile ? 0.57 : 0.51, frameScale);
+          smoothX += (pointerX - smoothX) * pointerEase;
+          smoothY += (pointerY - smoothY) * pointerEase;
+        }
+
+        const distance = Math.hypot(smoothX - lastTrailX, smoothY - lastTrailY);
+        const trailThreshold = isMobile ? 1.25 : 0.85;
+        if (distance >= trailThreshold && headRadius > 3 && !reducedMotion) {
+          trails.push({ x: smoothX, y: smoothY, radius: headRadius, alpha: 0.78 });
+          if (trails.length > (isMobile ? 7 : MAX_TRAIL_POINTS)) trails.shift();
+          lastTrailX = smoothX;
+          lastTrailY = smoothY;
+        }
+      }
+
+      const fade = Math.pow(isMobile ? 0.93 : 0.9, frameScale);
+      for (let index = trails.length - 1; index >= 0; index -= 1) {
+        const trail = trails[index];
+        trail.alpha *= fade;
+        trail.radius *= Math.pow(0.993, frameScale);
+        if (trail.alpha < 0.025 || trail.radius < 2) trails.splice(index, 1);
+      }
+
+      const hasReveal = hovering || holdingRelease || headRadius > 0.5 || trails.length > 0;
+      if (!hasReveal) {
+        releaseMasks();
+        return;
+      }
+
+      if (time - lastMaskUpdate >= maskUpdateInterval) {
+        lastMaskUpdate = time;
+        writeMasks(time);
+      }
+      animationFrame = window.requestAnimationFrame(renderLoop);
+    };
+
+    const handleMouseMove = (event: MouseEvent) => updateFromPointer(event.clientX, event.clientY);
     const handleMouseLeave = () => beginRelease();
-
-    let touchStartX = 0;
-    let touchStartY = 0;
-    let isVerticalSwipe = false;
-    let touchRevealActive = false;
-
-    const handleTouchStart = (e: TouchEvent) => {
-      if (e.touches.length === 0) return;
-      const touch = e.touches[0];
+    const handleTouchStart = (event: TouchEvent) => {
+      const touch = event.touches[0];
+      if (!touch) return;
       touchStartX = touch.clientX;
       touchStartY = touch.clientY;
-      isVerticalSwipe = false;
-      const point = getFlowerPoint(touch.clientX, touch.clientY);
-      touchRevealActive = Boolean(point);
-      if (!point) {
-        beginRelease();
-        return; // A touch outside the flower remains a native scroll gesture.
-      }
-      mousePos = point;
-      smoothX = point.x;
-      smoothY = point.y;
-      beginReveal(point);
+      draggingReveal = Boolean(getFlowerPoint(touch.clientX, touch.clientY));
+      if (draggingReveal) updateFromPointer(touch.clientX, touch.clientY);
+      else beginRelease();
     };
+    const handleTouchMove = (event: TouchEvent) => {
+      const touch = event.touches[0];
+      if (!touch || !draggingReveal) return;
 
-    const handleTouchMove = (e: TouchEvent) => {
-      if (!touchRevealActive || e.touches.length === 0) return;
-      const touch = e.touches[0];
-
-      // Yield to native scroll for clear vertical swipes.
       const deltaX = Math.abs(touch.clientX - touchStartX);
       const deltaY = Math.abs(touch.clientY - touchStartY);
-      if (deltaY > 22 && deltaY > deltaX * 1.8) {
-        isVerticalSwipe = true;
-        touchRevealActive = false;
+      // Native vertical scrolling always wins. A deliberate horizontal trace
+      // over the leaf stays interactive without fighting the browser.
+      if (deltaY > 18 && deltaY > deltaX * 1.45) {
+        draggingReveal = false;
         beginRelease();
         return;
       }
-      if (isVerticalSwipe) return;
-
-      const point = getFlowerPoint(touch.clientX, touch.clientY);
-      if (!point) {
-        touchRevealActive = false;
-        beginRelease();
-        return;
-      }
-
-      // Horizontal / reveal drag: prevent page scroll only after we know the
-      // gesture started on the flower and is not a vertical page swipe.
-      e.preventDefault();
-      mousePos = point;
-      if (smoothX === -9999 || smoothY === -9999) {
-        smoothX = point.x;
-        smoothY = point.y;
-      }
-      beginReveal(point);
+      event.preventDefault();
+      updateFromPointer(touch.clientX, touch.clientY);
     };
-
     const handleTouchEnd = () => {
-      touchRevealActive = false;
-      hovering = false;
-      isVerticalSwipe = false;
+      draggingReveal = false;
       beginRelease();
     };
-
-    const handleWindowScroll = () => {
-      // Scroll changes the image's viewport rect, so refresh the hit-test
-      // geometry once on the next pointer event instead of reading layout on
-      // every mousemove.
+    const handleScroll = () => {
       geometryDirty = true;
       if (hovering) beginRelease();
     };
-    window.addEventListener('scroll', handleWindowScroll, { passive: true });
-
-    const stage = stageRef.current;
-    if (stage) {
-      stage.addEventListener('mousemove', handleMouseMove, { passive: true });
-      stage.addEventListener('mouseenter', handleMouseEnter, { passive: true });
-      stage.addEventListener('mouseleave', handleMouseLeave, { passive: true });
-      stage.addEventListener('touchstart', handleTouchStart, { passive: true });
-      stage.addEventListener('touchmove', handleTouchMove, { passive: false });
-      stage.addEventListener('touchend', handleTouchEnd, { passive: true });
-      stage.addEventListener('touchcancel', handleTouchEnd, { passive: true });
-    }
-
-    let isPageVisible = true;
-    let isIntersecting = true;
-
-    const startLoop = () => {
-      if (!animFrameId && isPageVisible && isIntersecting) {
-        animFrameId = requestAnimationFrame(renderLoop);
-      }
+    const handleResize = () => {
+      geometryDirty = true;
     };
-
-    const stopLoop = () => {
-      if (animFrameId) {
-        cancelAnimationFrame(animFrameId);
-        animFrameId = 0;
-      }
-    };
-
     const handleVisibility = () => {
-      if (document.hidden) {
-        isPageVisible = false;
-        stopLoop();
-      } else {
-        isPageVisible = true;
+      isPageVisible = !document.hidden;
+      if (isPageVisible) {
+        lastFrame = performance.now();
         startLoop();
+      } else if (animationFrame) {
+        window.cancelAnimationFrame(animationFrame);
+        animationFrame = 0;
       }
     };
+
+    const resizeObserver = 'ResizeObserver' in window ? new ResizeObserver(handleResize) : null;
+    resizeObserver?.observe(topLayer);
+    resizeObserver?.observe(flowerImage);
+    const intersectionObserver = 'IntersectionObserver' in window
+      ? new IntersectionObserver(([entry]) => {
+          isIntersecting = entry.isIntersecting;
+          if (isIntersecting) {
+            lastFrame = performance.now();
+            startLoop();
+          } else if (animationFrame) {
+            window.cancelAnimationFrame(animationFrame);
+            animationFrame = 0;
+          }
+        }, { threshold: 0.05 })
+      : null;
+    intersectionObserver?.observe(stage);
+
+    refreshFlowerAlpha();
+    flowerImage.addEventListener('load', refreshFlowerAlpha, { once: true });
+    stage.addEventListener('mousemove', handleMouseMove, { passive: true });
+    stage.addEventListener('mouseleave', handleMouseLeave, { passive: true });
+    stage.addEventListener('touchstart', handleTouchStart, { passive: true });
+    stage.addEventListener('touchmove', handleTouchMove, { passive: false });
+    stage.addEventListener('touchend', handleTouchEnd, { passive: true });
+    stage.addEventListener('touchcancel', handleTouchEnd, { passive: true });
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleResize, { passive: true });
     document.addEventListener('visibilitychange', handleVisibility);
 
-    let observer: IntersectionObserver | null = null;
-    if ('IntersectionObserver' in window && stage) {
-      observer = new IntersectionObserver(([entry]) => {
-        isIntersecting = entry.isIntersecting;
-        if (isIntersecting) {
-          startLoop();
-        } else {
-          stopLoop();
-        }
-      }, { threshold: 0.05 });
-      observer.observe(stage);
-    }
-
-    const scaledHeadR = isMobileDevice ? TRAIL_HEAD_R * 0.55 : TRAIL_HEAD_R * 0.64;
-
-    let wasIdle = false;
-
-    const renderLoop = () => {
-      if (!isPageVisible || !isIntersecting) {
-        animFrameId = 0;
-        return;
-      }
-
-      const now = performance.now();
-      // Normalize animation work to elapsed time so the reveal has the same
-      // feel on 30fps Android, 60fps laptops, and 120fps desktop displays.
-      const elapsedSeconds = Math.min(0.05, Math.max(0, (now - previousFrameTime) / 1000));
-      const frameScale = Math.min(3, Math.max(0.5, elapsedSeconds * 60));
-      time += elapsedSeconds;
-      previousFrameTime = now;
-      const holdingRelease = !hovering && releaseScheduled && now < releaseAt;
-      const targetR = hovering ? scaledHeadR : holdingRelease ? headRadius : 0;
-      const headEase = 1 - Math.pow(hovering ? 0.80 : 0.90, frameScale);
-      headRadius += (targetR - headRadius) * headEase;
-
-      // Ultra-smooth spring cursor interpolation
-      if (hovering && mousePos.x !== -9999) {
-        wasIdle = false;
-        if (smoothX === -9999) {
-          smoothX = mousePos.x;
-          smoothY = mousePos.y;
-        } else {
-          const pointerEase = 1 - Math.pow(0.64, frameScale);
-          smoothX += (mousePos.x - smoothX) * pointerEase;
-          smoothY += (mousePos.y - smoothY) * pointerEase;
-        }
-
-        // Add trailing points with fluid spacing
-        const dist = Math.hypot(smoothX - lastX, smoothY - lastY);
-        const trailSampleDistance = useCssReveal ? 6 : (isMobileDevice ? TRAIL_SAMPLE_DIST * 2 : 3.5);
-        if (dist >= trailSampleDistance && headRadius > 2) {
-          points.push({
-            x: smoothX,
-            y: smoothY,
-            r: headRadius * (useCssReveal ? 0.78 : 0.90),
-            alpha: useCssReveal ? 0.78 : 0.96,
-            seed: Math.random() * 100
-          });
-          const maxPoints = useCssReveal ? 12 : (isMobileDevice ? 14 : TRAIL_MAX_POINTS);
-          if (points.length > maxPoints) {
-            points.shift();
-          }
-          lastX = smoothX;
-          lastY = smoothY;
-        }
-      }
-
-      // In-place decay: 0 garbage collection allocations per frame. Exponent
-      // scaling keeps the wake duration stable across different refresh rates.
-      const fadeSpeed = isMobileDevice ? 0.972 : TRAIL_FADE_SPEED;
-      const radiusDecay = isMobileDevice ? 0.996 : 0.994;
-      const frameFade = Math.pow(fadeSpeed, frameScale);
-      const frameRadiusDecay = Math.pow(radiusDecay, frameScale);
-
-      for (let i = points.length - 1; i >= 0; i--) {
-        const p = points[i];
-        p.alpha *= frameFade;
-        p.r *= frameRadiusDecay;
-        if (p.alpha <= 0.01 || p.r <= 1) {
-          points.splice(i, 1);
-        }
-      }
-
-      // Keep the layer visible for the complete release animation. Opacity is
-      // only cleared by the idle branch below, after both head and trail have
-      // naturally faded away.
-      const hasReveal = hovering || headRadius > 0.5 || points.length > 0;
-
-      if (maskCanvas.width > 0 && maskCanvas.height > 0) {
-        if (points.length === 0 && !hovering && headRadius < 0.5) {
-          if (!wasIdle) {
-            wasIdle = true;
-            releaseScheduled = false;
-            releaseAt = 0;
-            if (topLayerRef.current) {
-              topLayerRef.current.style.opacity = '0';
-              topLayerRef.current.style.maskImage = 'none';
-              topLayerRef.current.style.webkitMaskImage = 'none';
-            }
-            if (baseLayerRef.current) {
-              baseLayerRef.current.style.maskImage = 'none';
-              baseLayerRef.current.style.webkitMaskImage = 'none';
-            }
-          }
-          animFrameId = 0;
-          return;
-        } else {
-          wasIdle = false;
-
-          // Touch devices use a native CSS radial mask. It produces the same
-          // healthy-to-diseased reveal without serializing a canvas to a new
-          // data URL on every frame (a particularly expensive Android path).
-          if (useCssReveal && topLayerRef.current && smoothX !== -9999 && now - lastCssMaskUpdate >= REVEAL_CSS_UPDATE_INTERVAL_MS) {
-            lastCssMaskUpdate = now;
-            // Let the reveal grow from the pointer instead of appearing as a
-            // pre-sized circle on the first frame.
-            const radiusPx = Math.max(4, headRadius * (layerWidth / maskCanvas.width));
-            // Keep the Android-friendly CSS path light while making the head
-            // and its short trail share one stable, fluid mask.
-            const radiusX = radiusPx * (prefersReducedMotion ? 1 : 1 + Math.sin(time * 1.7 + 0.8) * 0.025);
-            const radiusY = radiusPx * (prefersReducedMotion ? 1 : 1 + Math.cos(time * 1.35 - 0.3) * 0.032);
-            const x = `${(smoothX / maskCanvas.width) * 100}%`;
-            const y = `${(smoothY / maskCanvas.height) * 100}%`;
-            const screenToCanvas = maskCanvas.width / Math.max(1, layerWidth);
-            const lobeOffsetX = prefersReducedMotion ? 0 : Math.sin(time * 1.25) * radiusPx * 0.08;
-            const lobeOffsetY = prefersReducedMotion ? 0 : Math.cos(time * 1.05) * radiusPx * 0.06;
-            const lobeX = `${((smoothX + lobeOffsetX * screenToCanvas) / maskCanvas.width) * 100}%`;
-            const lobeY = `${((smoothY + lobeOffsetY * screenToCanvas) / maskCanvas.height) * 100}%`;
-            const maskLayers = [
-              `radial-gradient(ellipse ${radiusX}px ${radiusY}px at ${x} ${y}, #fff 0%, #fff 62%, transparent 100%)`,
-              `radial-gradient(ellipse ${radiusX * 0.46}px ${radiusY * 0.58}px at ${lobeX} ${lobeY}, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0.42) 55%, transparent 100%)`
-            ];
-
-            // CSS gradients provide a low-cost mobile trail. It avoids canvas
-            // serialization while still letting the diseased layer follow the
-            // pointer with a soft, organic wake.
-            for (let i = points.length - 1; i >= 0; i--) {
-              const trail = points[i];
-              const trailRadius = Math.max(10, trail.r * (layerWidth / maskCanvas.width) * 0.68);
-              const trailX = `${(trail.x / maskCanvas.width) * 100}%`;
-              const trailY = `${(trail.y / maskCanvas.height) * 100}%`;
-              const trailAlpha = Math.max(0.12, Math.min(0.72, trail.alpha * 0.72));
-              maskLayers.push(
-                `radial-gradient(ellipse ${trailRadius}px ${trailRadius * 0.86}px at ${trailX} ${trailY}, rgba(255,255,255,${trailAlpha}) 0%, rgba(255,255,255,${trailAlpha * 0.68}) 58%, transparent 100%)`
-              );
-            }
-            const cssMask = maskLayers.join(', ');
-            topLayerRef.current.style.maskImage = cssMask;
-            topLayerRef.current.style.webkitMaskImage = cssMask;
-            topLayerRef.current.style.setProperty('mask-composite', 'add');
-            topLayerRef.current.style.setProperty('-webkit-mask-composite', 'source-over');
-            topLayerRef.current.style.maskSize = '100% 100%';
-            topLayerRef.current.style.webkitMaskSize = '100% 100%';
-            topLayerRef.current.style.maskRepeat = 'no-repeat';
-            topLayerRef.current.style.webkitMaskRepeat = 'no-repeat';
-            topLayerRef.current.style.opacity = hasReveal ? '1' : '0';
-
-            // The healthy layer uses the inverse of the primary head mask.
-            // This keeps the transparent center of the main reveal clean while
-            // the extra gradient lobes create a lightweight morph trail.
-            const inverseCssMask = `radial-gradient(ellipse ${radiusX}px ${radiusY}px at ${x} ${y}, transparent 0%, transparent 62%, #fff 100%)`;
-            if (baseLayerRef.current && hasReveal) {
-              baseLayerRef.current.style.maskImage = inverseCssMask;
-              baseLayerRef.current.style.webkitMaskImage = inverseCssMask;
-              baseLayerRef.current.style.maskSize = '100% 100%';
-              baseLayerRef.current.style.webkitMaskSize = '100% 100%';
-              baseLayerRef.current.style.maskRepeat = 'no-repeat';
-              baseLayerRef.current.style.webkitMaskRepeat = 'no-repeat';
-            }
-          } else if (!useCssReveal && now - lastMaskUpload >= REVEAL_MASK_UPLOAD_INTERVAL_MS) {
-            // Desktop keeps the richer organic trail, but redraws and uploads
-            // the mask at 30fps instead of doing the expensive work every RAF.
-            lastMaskUpload = now;
-            ctx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
-
-            // 1. Draw decaying trailing morph blobs with feathered transparency.
-            for (let i = 0; i < points.length; i++) {
-              const p = points[i];
-              drawMorphBlob(ctx, p.x, p.y, p.r, time, p.seed, p.alpha);
-            }
-
-            // 2. Keep drawing the head while it releases so a pointer exit
-            // eases down from the last shape instead of dropping a frame.
-            if (headRadius > 1 && smoothX !== -9999) {
-              drawMorphBlob(ctx, smoothX, smoothY, headRadius, time, 42, 1.0);
-            }
-
-            const dataUrl = maskCanvas.toDataURL();
-
-            if (topLayerRef.current) {
-              topLayerRef.current.style.maskImage = `url(${dataUrl})`;
-              topLayerRef.current.style.webkitMaskImage = `url(${dataUrl})`;
-              topLayerRef.current.style.maskSize = '100% 100%';
-              topLayerRef.current.style.webkitMaskSize = '100% 100%';
-              topLayerRef.current.style.maskRepeat = 'no-repeat';
-              topLayerRef.current.style.webkitMaskRepeat = 'no-repeat';
-              topLayerRef.current.style.opacity = hasReveal ? '1' : '0';
-            }
-
-            // The inverse mask keeps the healthy layer from doubling beneath
-            // the pathology layer on fine-pointer desktop displays.
-            if (invCtx && baseLayerRef.current) {
-              invCtx.clearRect(0, 0, invCanvas.width, invCanvas.height);
-              invCtx.fillStyle = '#ffffff';
-              invCtx.fillRect(0, 0, invCanvas.width, invCanvas.height);
-              invCtx.globalCompositeOperation = 'destination-out';
-              invCtx.drawImage(maskCanvas, 0, 0);
-              invCtx.globalCompositeOperation = 'source-over';
-
-              if (hasReveal) {
-                const invDataUrl = invCanvas.toDataURL();
-                baseLayerRef.current.style.maskImage = `url(${invDataUrl})`;
-                baseLayerRef.current.style.webkitMaskImage = `url(${invDataUrl})`;
-                baseLayerRef.current.style.maskSize = '100% 100%';
-                baseLayerRef.current.style.webkitMaskSize = '100% 100%';
-                baseLayerRef.current.style.maskRepeat = 'no-repeat';
-                baseLayerRef.current.style.webkitMaskRepeat = 'no-repeat';
-              }
-            }
-          }
-        }
-      }
-
-      animFrameId = requestAnimationFrame(renderLoop);
-    };
-
-    startLoop();
-
     return () => {
-      stopLoop();
-      window.removeEventListener('scroll', handleWindowScroll);
-      clearTimeout(resizeTimer);
-      window.removeEventListener('resize', debouncedResize);
-      flowerImage?.removeEventListener('load', refreshFlowerAlpha);
+      if (animationFrame) window.cancelAnimationFrame(animationFrame);
+      releaseMasks();
+      resizeObserver?.disconnect();
+      intersectionObserver?.disconnect();
+      flowerImage.removeEventListener('load', refreshFlowerAlpha);
+      stage.removeEventListener('mousemove', handleMouseMove);
+      stage.removeEventListener('mouseleave', handleMouseLeave);
+      stage.removeEventListener('touchstart', handleTouchStart);
+      stage.removeEventListener('touchmove', handleTouchMove);
+      stage.removeEventListener('touchend', handleTouchEnd);
+      stage.removeEventListener('touchcancel', handleTouchEnd);
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleResize);
       document.removeEventListener('visibilitychange', handleVisibility);
-      if (observer && stage) {
-        observer.unobserve(stage);
-        observer.disconnect();
-      }
-      if (stage) {
-        stage.removeEventListener('mousemove', handleMouseMove);
-        stage.removeEventListener('mouseenter', handleMouseEnter);
-        stage.removeEventListener('mouseleave', handleMouseLeave);
-        stage.removeEventListener('touchstart', handleTouchStart);
-        stage.removeEventListener('touchmove', handleTouchMove);
-        stage.removeEventListener('touchend', handleTouchEnd);
-        stage.removeEventListener('touchcancel', handleTouchEnd);
-      }
     };
   }, []);
 
   const scrollToNextSection = () => {
-    const target = document.getElementById('features-section');
-    if (!target) return;
-    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('features-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   return (
-    <section 
+    <section
       ref={stageRef}
-      className="relative w-full h-[calc(100dvh-4.5rem)] md:h-[calc(100dvh-5rem)] max-h-[calc(100dvh-4.5rem)] md:max-h-[calc(100dvh-5rem)] flex flex-col justify-between overflow-hidden select-none box-border px-4 sm:px-8 pb-3 sm:pb-4 transform-gpu touch-pan-y"
+      className="relative box-border flex h-[calc(100dvh-4.5rem)] max-h-[calc(100dvh-4.5rem)] w-full touch-pan-y select-none flex-col justify-between overflow-hidden px-4 pb-3 sm:px-8 sm:pb-4 md:h-[calc(100dvh-5rem)] md:max-h-[calc(100dvh-5rem)]"
+      aria-labelledby="plantdoc-title"
     >
-      {/* 1. Full-Stage Background Depth Wordmark + Lower Flower Border */}
-      <div className="absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none z-10">
-        
-        {/* ✨ CLEAN STEADY EDITORIAL WORDMARK: PLANTDOC (Positioned higher above flower) */}
-        <div className="absolute top-[12%] sm:top-[7%] md:top-[8%] left-0 w-full flex items-center justify-center select-none px-2">
-          <h1 
+      <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center overflow-hidden">
+        <div className="absolute left-0 top-[12%] flex w-full select-none items-center justify-center px-2 sm:top-[7%] md:top-[8%]">
+          <h1
             id="plantdoc-title"
             aria-label="PlantDoc"
-            className="text-[clamp(2.2rem,13.5vw,9.5rem)] font-normal tracking-[0.03em] sm:tracking-[0.06em] uppercase leading-none text-center flex items-center justify-center whitespace-nowrap drop-shadow-2xl max-w-full"
-            style={{ 
-              fontFamily: "'Instrument Serif', 'Playfair Display', Georgia, serif"
-            }}
+            className="flex max-w-full items-center justify-center whitespace-nowrap text-center text-[clamp(2.2rem,13.5vw,9.5rem)] font-normal uppercase leading-none tracking-[0.03em] drop-shadow-2xl sm:tracking-[0.06em]"
+            style={{ fontFamily: "'Instrument Serif', 'Playfair Display', Georgia, serif" }}
           >
-            <span 
-              className="inline-block text-white filter drop-shadow-[0_15px_35px_rgba(255,255,255,0.25)]" 
-              style={{ transform: 'scaleX(1.04)' }}
-            >
-              PLANT
-            </span>
-            <span 
-              className="inline-block bg-clip-text text-transparent ml-1.5 sm:ml-3 filter drop-shadow-[0_15px_40px_rgba(45,212,191,0.5)]"
-              style={{
-                backgroundImage: 'linear-gradient(180deg, #A7F3D0 0%, #34D399 28%, #2DD4BF 60%, #059669 100%)'
-              }}
+            <span className="inline-block text-white drop-shadow-[0_15px_35px_rgba(255,255,255,0.25)]" style={{ transform: 'scaleX(1.04)' }}>PLANT</span>
+            <span
+              className="ml-1.5 inline-block bg-clip-text text-transparent drop-shadow-[0_15px_40px_rgba(45,212,191,0.5)] sm:ml-3"
+              style={{ backgroundImage: 'linear-gradient(180deg, #A7F3D0 0%, #34D399 28%, #2DD4BF 60%, #059669 100%)' }}
             >
               DOC
             </span>
-            <span className="sr-only"> — Instant AI Plant Disease Diagnosis & Precision Foliar Pathology</span>
+            <span className="sr-only"> — Instant AI Plant Disease Diagnosis &amp; Precision Foliar Pathology</span>
           </h1>
         </div>
 
-        {/* FLOWER: PERFECTLY CENTERED ANCHORED AT BOTTOM OF 1ST SLIDE */}
-        <div 
-          ref={flowerContainerRef}
-          className="absolute bottom-0 inset-x-0 mx-auto z-20 w-[96vw] sm:w-[78vw] md:w-[66vw] lg:w-[54vw] max-w-[740px] h-[78vh] sm:h-[84vh] md:h-[88vh] max-h-[890px] overflow-hidden flex items-end justify-center pointer-events-auto cursor-crosshair touch-pan-y transform-gpu"
-          title="Move cursor or drag finger over the flower to reveal AI pathology layer"
+        <div
+          className="pointer-events-auto absolute inset-x-0 bottom-0 z-20 mx-auto flex h-[78vh] max-h-[890px] w-[96vw] cursor-crosshair touch-pan-y items-end justify-center overflow-hidden sm:h-[84vh] sm:w-[78vw] md:h-[88vh] md:w-[66vw] lg:w-[54vw] lg:max-w-[740px]"
+          title="Move over or trace the leaf to reveal the pathology layer"
         >
-          {/* Synchronized Transformed Image Layer Wrapper */}
-          <div className="relative w-full h-full flex items-start justify-center pointer-events-none transform scale-[1.18] translate-y-[22%] sm:scale-[1.08] sm:translate-y-[15%]">
-            {/* Base Layer: Front Healthy Foliage (main.webp) with dynamic inverse mask */}
-            <div 
-              ref={baseLayerRef}
-              className="w-full h-full flex items-start justify-center will-change-[mask-image]"
-            >
-              <img 
-                src="/main.webp" 
+          <div className="pointer-events-none relative flex h-full w-full translate-y-[22%] scale-[1.18] items-start justify-center sm:translate-y-[15%] sm:scale-[1.08]">
+            <div ref={baseLayerRef} className="flex h-full w-full items-start justify-center">
+              <img
+                src="/main.webp"
                 alt="Healthy botanical specimen with vibrant green chlorophyll leaf structure"
-                className="w-full h-full object-contain object-top filter drop-shadow-[0_25px_60px_rgba(0,0,0,0.9)] mx-auto block"
+                className="mx-auto block h-full w-full object-contain object-top drop-shadow-[0_25px_60px_rgba(0,0,0,0.9)]"
                 loading="eager"
-                fetchPriority="high"
                 decoding="async"
               />
             </div>
 
-            {/* Reveal Top Layer: Diseased Foliage (main_disease.webp) Morph Masked (100% 1:1 Cursor Centered) */}
-            <div 
+            <div
               ref={topLayerRef}
-              className="absolute inset-0 w-full h-full flex items-start justify-center pointer-events-none will-change-[mask-image,opacity]"
+              className="pointer-events-none absolute inset-0 flex h-full w-full items-start justify-center will-change-[opacity]"
               style={{ opacity: 0 }}
+              aria-hidden="true"
             >
-              <img 
-                src="/main_disease.webp" 
-                alt="Diseased botanical specimen displaying foliar lesions and chlorosis under AI vision inspection"
-                className="w-full h-full object-contain object-top filter brightness-[1.03] contrast-[1.08] saturate-[1.14] drop-shadow-[0_25px_60px_rgba(0,0,0,0.9)] mx-auto block"
-                loading="lazy"
-                fetchPriority="low"
+              <img
+                src="/main_disease.webp"
+                alt=""
+                className="mx-auto block h-full w-full object-contain object-top brightness-[1.03] contrast-[1.08] saturate-[1.14] drop-shadow-[0_25px_60px_rgba(0,0,0,0.9)]"
+                loading="eager"
                 decoding="async"
               />
             </div>
@@ -695,66 +425,51 @@ export const PlantDocHeroStage: React.FC = () => {
         </div>
       </div>
 
-      {/* Spacer to push foreground controls to the bottom */}
       <div className="flex-1" />
 
-      {/* A compact, readable promise for narrow screens where the corner copy is hidden. */}
       <div className="relative z-30 mx-auto mb-2 flex items-center gap-2 rounded-full border border-white/15 bg-black/50 px-3 py-1.5 text-[10px] font-medium tracking-wide text-white/75 backdrop-blur-md sm:hidden">
         <span className="h-1.5 w-1.5 rounded-full bg-[#2DD4BF] shadow-[0_0_10px_#2DD4BF]" aria-hidden="true" />
-        AI leaf disease diagnosis · photo-first guidance
+        <span>Trace the leaf to reveal pathology</span>
       </div>
 
-      {/* Two Elevated Action Buttons (Pushed to left & right with wide central gap) */}
-      <div className="relative z-30 flex flex-row items-center justify-between w-full max-w-[320px] sm:max-w-[500px] md:max-w-[560px] mx-auto mb-2 sm:mb-3 pb-0.5 px-1 pointer-events-auto">
-        {/* Button 1: Diagnose Plant Photo (Turquoise-Emerald Beacon) */}
-        <Button 
-          asChild 
-          className="relative group overflow-hidden bg-gradient-to-r from-[#2DD4BF] via-[#10B981] to-[#059669] hover:from-[#5EEAD4] hover:via-[#34D399] hover:to-[#10B981] text-black font-extrabold px-3.5 sm:px-7 md:px-8 py-2.5 sm:py-4 md:py-5 rounded-full shadow-[0_0_30px_rgba(45,212,191,0.55)] transition-all duration-300 hover:scale-105 hover:shadow-[0_0_50px_rgba(45,212,191,0.9)] text-[11px] sm:text-sm md:text-base border border-[#5EEAD4]/60 cursor-pointer shrink-0"
-        >
-          <Link to="/diagnose" className="flex items-center justify-center gap-1.5 sm:gap-2 whitespace-nowrap">
-            <Scan className="h-3.5 sm:h-4.5 md:h-5 w-3.5 sm:w-4.5 md:w-5 transition-transform duration-300 group-hover:rotate-90 group-hover:scale-110" />
-            <span className="tracking-tight sm:tracking-wide font-bold">Diagnose Plant</span>
+      <div className="pointer-events-auto relative z-30 mx-auto mb-2 flex w-full max-w-[320px] flex-row items-center justify-between px-1 pb-0.5 sm:mb-3 sm:max-w-[500px] md:max-w-[560px]">
+        <Button asChild className="group relative shrink-0 overflow-hidden rounded-full border border-[#5EEAD4]/60 bg-gradient-to-r from-[#2DD4BF] via-[#10B981] to-[#059669] px-3.5 py-2.5 text-[11px] font-extrabold text-black shadow-[0_0_30px_rgba(45,212,191,0.55)] transition-all duration-300 hover:scale-105 hover:from-[#5EEAD4] hover:via-[#34D399] hover:to-[#10B981] hover:shadow-[0_0_50px_rgba(45,212,191,0.9)] sm:px-7 sm:py-4 sm:text-sm md:px-8 md:py-5 md:text-base">
+          <Link to="/diagnose" className="flex items-center justify-center gap-1.5 whitespace-nowrap sm:gap-2">
+            <Scan className="h-3.5 w-3.5 transition-transform duration-300 group-hover:rotate-90 group-hover:scale-110 sm:h-4.5 sm:w-4.5 md:h-5 md:w-5" />
+            <span className="font-bold tracking-tight sm:tracking-wide">Diagnose Plant</span>
           </Link>
         </Button>
 
-        {/* Button 2: Plant Recommendations (Flower Accent Glassmorphism) */}
-        <Button 
-          asChild 
-          variant="outline" 
-          className="relative group overflow-hidden bg-black/60 hover:bg-black/85 text-white font-semibold px-3.5 sm:px-7 md:px-8 py-2.5 sm:py-4 md:py-5 rounded-full backdrop-blur-2xl transition-all duration-300 hover:scale-105 text-[11px] sm:text-sm md:text-base border border-white/20 hover:border-[#2DD4BF]/60 hover:text-[#5EEAD4] shadow-[0_4px_20px_rgba(0,0,0,0.5)] hover:shadow-[0_0_30px_rgba(45,212,191,0.4)] cursor-pointer shrink-0"
-        >
-          <Link to="/recommend" className="flex items-center justify-center gap-1.5 sm:gap-2 whitespace-nowrap">
-            <Wand2 className="h-3.5 sm:h-4.5 md:h-5 w-3.5 sm:w-4.5 md:w-5 text-[#2DD4BF] transition-transform duration-300 group-hover:scale-125 group-hover:rotate-12" />
-            <span className="tracking-tight sm:tracking-wide group-hover:text-[#5EEAD4] transition-colors">Recommendations</span>
+        <Button asChild variant="outline" className="group relative shrink-0 overflow-hidden rounded-full border border-white/20 bg-black/60 px-3.5 py-2.5 text-[11px] font-semibold text-white shadow-[0_4px_20px_rgba(0,0,0,0.5)] backdrop-blur-2xl transition-all duration-300 hover:scale-105 hover:border-[#2DD4BF]/60 hover:bg-black/85 hover:text-[#5EEAD4] hover:shadow-[0_0_30px_rgba(45,212,191,0.4)] sm:px-7 sm:py-4 sm:text-sm md:px-8 md:py-5 md:text-base">
+          <Link to="/recommend" className="flex items-center justify-center gap-1.5 whitespace-nowrap sm:gap-2">
+            <Wand2 className="h-3.5 w-3.5 text-[#2DD4BF] transition-transform duration-300 group-hover:rotate-12 group-hover:scale-125 sm:h-4.5 sm:w-4.5 md:h-5 md:w-5" />
+            <span className="tracking-tight transition-colors group-hover:text-[#5EEAD4] sm:tracking-wide">Recommendations</span>
           </Link>
         </Button>
       </div>
 
-      {/* Bottom Row: Left/Right Copy & Luxury Liquid Glassmorphism Scroll Prompt */}
-      <div className="relative z-30 w-full flex items-center justify-between text-xs text-foreground/80 font-mono pointer-events-none shrink-0">
-        {/* Left Corner Copy */}
-        <div className="text-left leading-relaxed hidden sm:block">
+      <div className="pointer-events-none relative z-30 flex w-full shrink-0 items-center justify-between font-mono text-xs text-foreground/80">
+        <div className="hidden text-left leading-relaxed sm:block">
           <div>Foliar pathology,</div>
-          <div className="text-white font-medium">intelligently localized.</div>
+          <div className="font-medium text-white">intelligently localized.</div>
         </div>
 
-        {/* Center Scroll Prompt (Luxury Liquid Glassmorphism Pill - Enhanced on PC) */}
-        <button 
+        <button
+          type="button"
           onClick={scrollToNextSection}
-          className="pointer-events-auto mx-auto h-7 sm:h-8 md:h-9 px-4 sm:px-5 md:px-6 flex items-center gap-1.5 sm:gap-2 text-white/90 hover:text-[#5EEAD4] transition-all duration-300 bg-gradient-to-r from-black/60 via-black/40 to-black/60 hover:from-black/80 hover:to-black/80 backdrop-blur-2xl rounded-full border border-white/20 hover:border-[#2DD4BF]/60 shadow-[0_4px_20px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.25)] group cursor-pointer"
+          className="pointer-events-auto group mx-auto flex h-7 items-center gap-1.5 rounded-full border border-white/20 bg-gradient-to-r from-black/60 via-black/40 to-black/60 px-4 text-white/90 shadow-[0_4px_20px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.25)] backdrop-blur-2xl transition-all duration-300 hover:border-[#2DD4BF]/60 hover:from-black/80 hover:to-black/80 hover:text-[#5EEAD4] sm:h-8 sm:gap-2 sm:px-5 md:h-9 md:px-6"
         >
-          <span className="relative flex h-1.5 sm:h-2 w-1.5 sm:w-2 shrink-0">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#2DD4BF] opacity-75" />
-            <span className="relative inline-flex rounded-full h-1.5 sm:h-2 w-1.5 sm:w-2 bg-[#2DD4BF]" />
+          <span className="relative flex h-1.5 w-1.5 shrink-0 sm:h-2 sm:w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#2DD4BF] opacity-75" />
+            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#2DD4BF] sm:h-2 sm:w-2" />
           </span>
-          <span className="font-sans font-medium text-[10px] sm:text-xs md:text-sm tracking-wide">Explore Platform</span>
-          <ChevronDown className="h-3 sm:h-4 w-3 sm:w-4 text-[#2DD4BF] animate-bounce group-hover:translate-y-0.5 transition-transform shrink-0" />
+          <span className="font-sans text-[10px] font-medium tracking-wide sm:text-xs md:text-sm">Explore Platform</span>
+          <ChevronDown className="h-3 w-3 shrink-0 animate-bounce text-[#2DD4BF] transition-transform group-hover:translate-y-0.5 sm:h-4 sm:w-4" />
         </button>
 
-        {/* Right Corner Copy */}
-        <div className="text-right leading-relaxed hidden sm:block">
+        <div className="hidden text-right leading-relaxed sm:block">
           <div>Zero manual guesswork.</div>
-          <div className="text-white font-medium">Clinical botanical accuracy.</div>
+          <div className="font-medium text-white">Clinical botanical accuracy.</div>
         </div>
       </div>
     </section>

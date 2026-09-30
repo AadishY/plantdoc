@@ -107,10 +107,10 @@ Selects top botanical species matching your regional climate (temperature, rainf
 | **Infection Stage & Severity Horizon** | Dynamic progression timeline with phase details | Interactive 4-phase progression tracker revealing symptoms and intervention windows per stage. |
 | **5-Tier Clinical Treatment Matrix** | Validated retail formulations (*Daconil*, *Bonide*, *Monterey*) | Exact commercial chemical, bio-fungicidal, and organic mixing ratios and application cycles. |
 | **Client-Side WebP Downsampling** | Offscreen HTML5 Canvas downsampler | **99% network payload reduction** (~80KB transfers, 5x–10x API latency speedup). |
-| **Interactive Dual-Mask Hero Stage** | Synchronized `topLayerRef` + `baseLayerRef` masks | Necrotic holes reveal background; zero dark shapes rendered over typography in empty air. |
+| **Interactive Dual-Mask Hero Stage** | Synchronized native CSS masks with alpha-aware foliage hit testing | Organic healthy-to-pathology reveal with no per-frame canvas/base64 serialization. |
 | **Verified Botanical Taxonomy** | Live Wikimedia Foundation REST APIs | **Zero synthetic mock images**; authentic high-res botanical taxonomy and care guides. |
 | **120Hz Kinetic Inertia Scroll** | Lenis smooth scroll + GSAP RAF ticker sync | Buttery-smooth, jitter-free kinetic scroll pacing across desktop and mobile. |
-| **Zero-Allocation Animation Loops** | In-place reverse mutation & `Float32Array` buffers | **0 bytes per frame allocations**; completely eliminates garbage-collection frame drops. |
+| **Low-Allocation Hero Masking** | Capped CSS-mask updates & in-place trail decay | Avoids per-frame bitmap serialization for smoother touch interaction and lower memory pressure. |
 
 ---
 
@@ -174,7 +174,8 @@ Failovers: 3.7-flash -> 3.6-flash          - Macro disease zones + micro spot gr
 - **Production Bundle Size**: Optimized Rollup manual chunks (`vendor-react`, `vendor-animation`, `vendor-radix`, `vendor-charts`, `vendor-icons`).
 - **Gemma Recommendation Latency**: Fast ~3s–5s response via `gemma-4-26b-a4b-it`.
 - **CSS Paint Optimization**: `content-visibility: auto` skips offscreen paint passes.
-- **Idle Power Draw**: **0% CPU/GPU overhead** when canvas stages scroll out of viewport.
+- **Connectivity resilience**: Offline-aware UI, real request deadlines, model failover, and conservative retry for safe public Wikimedia requests; no client-side request rate limiter.
+- **Idle Power Draw**: background animation loops stop when their stages scroll out of viewport or the page is hidden.
 
 ---
 

@@ -89,7 +89,7 @@ plantdoc/
 │   │   ├── SpotlightCard.tsx               # GPU-accelerated mouse spotlight border effect
 │   │   └── UploadComponent.tsx             # Drag-and-drop foliar photo uploader
 │   ├── config/
-│   │   └── api.config.ts                   # Gemini API endpoints, models & rate limit config
+│   │   └── api.config.ts                   # Gemini, Groq, and OpenRouter endpoint/model config
 │   ├── hooks/
 │   │   ├── use-mobile.tsx                  # Responsive viewport detection hook
 │   │   ├── use-scroll-animation.tsx        # Optimized parallax & active section observers
@@ -108,7 +108,7 @@ plantdoc/
 │   │   ├── diagnosis.ts                    # Diagnosis result & lesion coordinate interfaces
 │   │   └── recommendation.ts               # Botanical recommendation & climate interfaces
 │   ├── utils/
-│   │   ├── rateLimiter.ts                  # Client-side 3 req/min sliding window rate limiter
+│   │   ├── network.ts                      # Offline checks, request deadlines & public GET retry helper
 │   │   └── routePreloader.ts               # Proactive route chunk prefetcher
 │   ├── App.tsx                             # React Router configuration & root providers
 │   ├── index.css                           # Custom Tailwind layers, glassmorphism & font tokens
@@ -222,24 +222,25 @@ const iou = unionArea > 0 ? interArea / unionArea : 0;
 
 ## 6. Hero Stage Dual-Masking Mechanics
 
-The hero stage ([PlantDocHeroStage.tsx](file:///src/components/PlantDocHeroStage.tsx)) displays an interactive foliar reveal where hovering or dragging reveals the diseased foliage layer (`main_disease.webp`).
+The hero stage ([PlantDocHeroStage.tsx](file:///src/components/PlantDocHeroStage.tsx)) creates an interactive healthy-to-pathology reveal using the two synchronized foliage layers (`main.webp` and `main_disease.webp`).
 
-### The Dual-Mask Algorithm:
-1. **Top Pathology Layer (`topLayerRef`)**:
-   - Holds `main_disease.webp` (transparent in empty space).
-   - Driven by `maskCanvas`, drawing smooth organic multi-vertex morph blobs with a multi-stop radial gradient:
-     - `0% - 70%`: `rgba(255, 255, 255, alpha)` (100% pathology clarity inside the spotlight).
-     - `70% - 100%`: Soft feathered falloff to `rgba(255, 255, 255, 0)` (eliminates any visible hard circle ring).
-2. **Base Healthy Layer (`baseLayerRef`)**:
-   - Holds `main.webp` wrapped in `ref={baseLayerRef}`.
-   - Driven by `invCanvas` (`invCtx.globalCompositeOperation = 'destination-out'`), cutting a hole in the healthy leaf directly beneath the spotlight.
-3. **The Visual Outcome**:
-   - **On the Leaf**: Necrotic holes and eaten-away leaf tissue reveal the dark background directly through the leaf with zero healthy foliage bleeding through.
-   - **In Empty Space**: Because both images are transparent in empty air, no dark shapes or blobs are rendered over the white "PLANTDOC" lettermark.
+### CSS-Mask Reveal Architecture
+1. **Pathology layer (`topLayerRef`)**:
+   - Receives a compact stack of native CSS radial gradients: a feathered inspection core, two subtle live lobes, and a short fading trail.
+   - It is updated at a capped `~60fps` desktop / `~30fps` touch cadence, avoiding canvas bitmap serialization and base64 URL churn.
+2. **Healthy layer (`baseLayerRef`)**:
+   - Receives the synchronized inverse of the inspection core, so healthy tissue does not show beneath pathology or through transparent, eaten-away regions.
+3. **Foliage hit testing**:
+   - A one-time local alpha bitmap is read from the healthy PNG/WebP asset. The reveal ignores transparent image padding once decoded, while image-bounds fallback keeps the first touch responsive.
+4. **Gesture and lifecycle behavior**:
+   - Vertical touch swipes yield immediately to native page scroll; intentional horizontal traces operate the reveal.
+   - `ResizeObserver`, `IntersectionObserver`, and `visibilitychange` stop rendering when the stage is offscreen, resized, or backgrounded.
+   - The final wake has a short release decay rather than popping out when a pointer leaves.
 
-### Device-Specific Spotlight Radii:
-- **Mobile Touch**: `0.32` factor (`TRAIL_HEAD_R * 0.32`) for compact touch precision under the fingertip.
-- **Desktop Cursor**: `0.64` factor (`TRAIL_HEAD_R * 0.64`) for an expansive desktop pathology inspection window.
+### Device-Specific Behavior
+- **Touch / mobile**: smaller inspection window, fewer wake layers, capped 32ms mask updates, and no competing scroll handler work.
+- **Desktop**: larger window and smoothly animated organic lobes at a capped 16ms mask update cadence.
+- **Reduced motion**: a static, clear mask with no lobe or wake animation.
 
 ---
 
@@ -271,14 +272,13 @@ The recommendation system matches plants against regional environmental paramete
 
 PlantDoc AI is engineered for sustained 120Hz display refresh rates on both desktop and mobile devices:
 
-1. **Zero-Allocation Mutation Loops**:
-   - Point arrays in `PlantDocHeroStage.tsx` use in-place reverse mutation (`for (let i = points.length - 1; i >= 0; i--)`) and preallocated `Float32Array(32)` polygon vertex buffers.
-   - **0 bytes of Garbage Collection (GC) allocations per frame**, eliminating GC frame drops.
+1. **Low-Allocation Hero Masking**:
+   - `PlantDocHeroStage.tsx` mutates its short trail in place and uses compact CSS mask gradients rather than serializing large canvas bitmaps to data URLs.
+   - Mask writes are capped to 16ms desktop / 32ms touch intervals, dramatically reducing main-thread and memory pressure during reveal.
 2. **Scroll-Paused Particles (`DynamicBackground.tsx`)**:
    - Automatically pauses background spore canvas redraws during active touch scrolling to dedicate 100% of GPU resources to kinetic scrolling.
-3. **Synchronized Smooth Scroll (`SmoothScroll.tsx`)**:
-   - Lenis smooth scroll engine configured with `duration: 1.2s`, `wheelMultiplier: 1.0`, and `touchMultiplier: 1.15`.
-   - Connected directly to GSAP's internal RAF ticker with `gsap.ticker.lagSmoothing(500, 33)` to prevent jumpy frame interpolation.
+3. **Native Scroll Preservation (`SmoothScroll.tsx`)**:
+   - The wrapper intentionally leaves browser scrolling native, removing inertial-library delay from touch scroll, pull-to-refresh, and accessibility navigation.
 4. **Hook Closure Optimization (`use-scroll-animation.tsx`)**:
    - `useParallaxScroll` and `useActiveSection` use functional state updaters (`prev => ...`), preventing stale listener teardowns and unnecessary listener re-registrations.
 5. **Component Memoization**:
@@ -286,7 +286,7 @@ PlantDoc AI is engineered for sustained 120Hz display refresh rates on both desk
 6. **Mobile Touch & Inertial Panning Architecture**:
    - Explicitly enforces `touch-action: pan-y;` on `html`, `body`, root page wrappers, and `PlantDocHeroStage`.
    - Eliminates restrictive `height: -webkit-fill-available` on `html` and `overscroll-behavior-y: none` to prevent mobile Safari/Chromium gesture deadlocks.
-   - Intelligent Touch Yield: In `PlantDocHeroStage`, if a vertical swipe is detected (`deltaY > 8 && deltaY > deltaX`), canvas mutation loops yield immediately so the mobile OS compositor maintains buttery 120fps touch scrolling.
+   - Intelligent Touch Yield: In `PlantDocHeroStage`, a clear vertical swipe immediately releases the CSS mask so the mobile OS compositor retains native scroll priority.
 
 ---
 
@@ -318,7 +318,7 @@ Raw API errors, HTTP codes, and quota notices must **never** leak to the user in
 
 | Technical Cause | HTTP Code | User-Facing Message |
 | :--- | :--- | :--- |
-| Rate Limit / Quota | `429` / `RESOURCE_EXHAUSTED` | *"Our diagnostic AI servers are currently experiencing high request volume. Please wait a few seconds and try again."* |
+| Upstream Provider Quota | `429` / `RESOURCE_EXHAUSTED` | *"Our diagnostic AI servers are currently experiencing high request volume. Please try again shortly."* The app applies no client-side request rate limit. |
 | Network Stalled / Dropped | `AbortError` / `TypeError: Failed to fetch` | *"Network connection issue detected. Please check your internet connection and try again."* |
 | Upstream Server Issue | `500` / `502` / `503` / `504` | *"AI diagnostic servers are momentarily busy. Please try again in a few moments."* |
 | Unusable Photo Format | `400` / Invalid base64 | *"Unable to process the foliage image. Please upload a clear, well-lit photo of the plant."* |
@@ -358,6 +358,6 @@ When modifying or extending the PlantDoc AI codebase, you **must** adhere to the
 2. **Scientific Veracity & Anti-Hallucination Mandate**: NEVER invent synthetic fallback bounding boxes or fake diseases. Giving no information is strictly preferred over giving false information.
 3. **Image Attributes**: Never add non-standard `fetchpriority` attributes directly on standard HTML `<img>` elements; use standard React 18 attributes (`loading="eager"` / `loading="lazy"` and `decoding="async"`).
 4. **No Synthetic Placeholders**: Never insert placeholder images. Use `fetchPlantWikimediaData` for real botanical media.
-5. **Preserve Dual-Masking Integrity**: When modifying `PlantDocHeroStage.tsx`, ensure `topLayerRef` and `baseLayerRef` masks remain synchronized and zero garbage-collection allocations occur inside `renderLoop`.
+5. **Preserve Dual-Masking Integrity**: When modifying `PlantDocHeroStage.tsx`, ensure `topLayerRef` and `baseLayerRef` masks remain synchronized. Do not reintroduce per-frame canvas serialization or let touch gestures block vertical scrolling.
 6. **User-Friendly Error Handling**: Always pass API catch errors through `formatUserFriendlyError` before setting error states or displaying toasts.
 7. **Documentation Integrity**: Preserve existing architectural comments and keep `README.md` and `AGENTS.md` in sync whenever platform capabilities are refined.
