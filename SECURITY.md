@@ -47,8 +47,10 @@ If you believe you have found a security vulnerability or sensitive information 
 * **Ephemeral In-Memory Processing**: Uploaded foliage photographs are processed client-side via HTML5 Canvas compression (`prepareImageForAPI`) and transmitted via TLS/HTTPS directly to Google AI Studio endpoints.
 * **Zero Persistent User Image Storage**: PlantDoc AI does not retain, database, or monetize user photographic data on external proprietary servers.
 
-### 3. Rate Limiting & Denial of Service Protection
-* PlantDoc AI includes client-side rate limiters (`src/utils/rateLimiter.ts`) enforcing sliding-window request caps (e.g., 3 requests per minute per IP/client) to prevent runaway billing and API exhaustion.
+### 3. Service Availability & Abuse Protection
+* PlantDoc AI intentionally does **not** enforce a client-side request rate limiter. A browser-only counter is not a reliable security boundary and can be bypassed by clients.
+* The app detects offline state, uses finite request deadlines, and relies on model-provider failover for a responsive user experience.
+* For production billing or abuse controls, deploy AI calls behind a server-side or edge proxy and enforce authentication, provider-key restrictions, and rate limits there. Provider quotas and policies may still apply independently of the app.
 
 ---
 

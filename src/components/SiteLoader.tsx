@@ -37,15 +37,12 @@ export const SiteLoader: React.FC = () => {
       // Non-blocking: do not prevent the app from loading.
     }
 
-    const saveData = (navigator as Navigator & {
-      connection?: { saveData?: boolean };
-    }).connection?.saveData === true;
     const statusInterval = window.setInterval(() => {
       setStatusIdx((previous) => Math.min(previous + 1, STATUS_MESSAGES.length - 1));
     }, 100);
-    // Keep the branded hand-off, but never hold the LCP hero behind a long
-    // artificial splash on a phone or data-saving connection.
-    const timer = window.setTimeout(() => setLoading(false), saveData ? 0 : 220);
+    // Save-Data visitors are skipped by the initial state. Everyone else gets
+    // only a brief branded hand-off rather than an LCP-blocking splash.
+    const timer = window.setTimeout(() => setLoading(false), 220);
 
     return () => {
       window.clearInterval(statusInterval);

@@ -413,6 +413,7 @@ Return ONLY a valid JSON object strictly adhering to this schema:
     ].filter(Boolean);
 
     for (const modelName of segmentationCandidates) {
+      if (signal?.aborted) return { lesions: [] };
       try {
         const payload = {
           contents: [
@@ -567,6 +568,7 @@ Return ONLY a valid JSON object strictly adhering to this schema:
           };
         }
       } catch (segErr) {
+        if (signal?.aborted) return { lesions: [] };
         console.warn('[PlantDoc AI] Spatial lesion detection encountered non-fatal error:', segErr);
       }
     }

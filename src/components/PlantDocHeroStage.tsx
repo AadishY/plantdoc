@@ -8,7 +8,6 @@ interface TrailPoint {
   y: number;
   radius: number;
   alpha: number;
-  age: number;
 }
 
 const FLOWER_ALPHA_THRESHOLD = 18;
@@ -240,7 +239,7 @@ export const PlantDocHeroStage: React.FC = () => {
         const distance = Math.hypot(smoothX - lastTrailX, smoothY - lastTrailY);
         const trailThreshold = isMobile ? 1.25 : 0.85;
         if (distance >= trailThreshold && headRadius > 3 && !reducedMotion) {
-          trails.push({ x: smoothX, y: smoothY, radius: headRadius, alpha: 0.78, age: 0 });
+          trails.push({ x: smoothX, y: smoothY, radius: headRadius, alpha: 0.78 });
           if (trails.length > (isMobile ? 7 : MAX_TRAIL_POINTS)) trails.shift();
           lastTrailX = smoothX;
           lastTrailY = smoothY;
@@ -252,7 +251,6 @@ export const PlantDocHeroStage: React.FC = () => {
         const trail = trails[index];
         trail.alpha *= fade;
         trail.radius *= Math.pow(0.993, frameScale);
-        trail.age += frameScale;
         if (trail.alpha < 0.025 || trail.radius < 2) trails.splice(index, 1);
       }
 
@@ -411,7 +409,7 @@ export const PlantDocHeroStage: React.FC = () => {
 
             <div
               ref={topLayerRef}
-              className="pointer-events-none absolute inset-0 flex h-full w-full items-start justify-center will-change-opacity"
+              className="pointer-events-none absolute inset-0 flex h-full w-full items-start justify-center will-change-[opacity]"
               style={{ opacity: 0 }}
               aria-hidden="true"
             >
