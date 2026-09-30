@@ -31,12 +31,6 @@ export const API_CONFIG = {
   BASE_URL: "https://generativelanguage.googleapis.com/v1beta",
   WIKIMEDIA_USER_AGENT: "PlantDoc/1.0 (https://plantdoc.app; contact@plantdoc.app)",
   
-  // Rate limiting policy: max 3 requests per minute
-  RATE_LIMIT: {
-    MAX_REQUESTS_PER_MINUTE: 3,
-    WINDOW_MS: 60 * 1000 // 60 seconds
-  },
-  
   // Environment API key getters (safe for browser import.meta and Node.js process.env)
   getApiKey: (): string => {
     try {

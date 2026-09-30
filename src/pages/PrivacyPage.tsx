@@ -30,7 +30,7 @@ const PrivacyPage: React.FC = () => {
     "Aadish PlantDoc privacy policy, PlantDoc AI data handling, client side privacy, local image processing, botanical data security, image retention, plant disease app privacy"
   );
 
-  const lastUpdated = "September 11, 2026";
+  const lastUpdated = "September 30, 2026";
 
   const PRINCIPLES = [
     {
@@ -144,7 +144,7 @@ const PrivacyPage: React.FC = () => {
               <ul className="list-disc list-inside space-y-1 text-foreground/70">
                 <li>Uploaded foliage photos for real-time pathology classification</li>
                 <li>Regional climate selections (temperature, rainfall, soil type, pH) to match suitable crops</li>
-                <li>Temporary client-side rate limit counters to ensure fair API access</li>
+                <li>A small on-device cache of public botanical summaries to reduce repeat network requests</li>
               </ul>
             </div>
           </section>
@@ -194,7 +194,7 @@ const PrivacyPage: React.FC = () => {
             <ul className="list-disc list-inside space-y-1 text-xs sm:text-sm text-foreground/70">
               <li>Saving your recent specimen diagnosis history locally on your device for convenient review</li>
               <li>Maintaining your UI theme and audio preferences</li>
-              <li>Tracking the 3-request-per-minute rate limit window</li>
+              <li>Caching public Wikimedia botanical summaries to avoid repeat downloads</li>
             </ul>
             <p className="text-foreground/70 text-xs sm:text-sm">
               You can clear your local storage at any time via your browser settings or using the button below.
@@ -206,7 +206,11 @@ const PrivacyPage: React.FC = () => {
                 onClick={() => {
                   try {
                     localStorage.removeItem('plantdoc_recent_diagnoses');
-                    localStorage.removeItem('plantdoc_api_req_timestamps');
+                    [localStorage, sessionStorage].forEach((storage) => {
+                      Object.keys(storage)
+                        .filter((key) => key.startsWith('wiki_'))
+                        .forEach((key) => storage.removeItem(key));
+                    });
                     alert('Local PlantDoc storage cache cleared successfully.');
                   } catch {}
                 }}

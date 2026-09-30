@@ -1,10 +1,9 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PlantDocHeroStage from "@/components/PlantDocHeroStage";
-import ParallaxSection from "@/components/ParallaxSection";
-import MetricsShowcase from "@/components/MetricsShowcase";
+import DeferredSection from "@/components/DeferredSection";
 import SpotlightCard from "@/components/SpotlightCard";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { 
@@ -21,6 +20,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+
+const ParallaxSection = lazy(() => import("@/components/ParallaxSection"));
+const MetricsShowcase = lazy(() => import("@/components/MetricsShowcase"));
 
 const faqs = [
   {
@@ -63,11 +65,18 @@ const Index = () => {
       {/* 💎 2. Dynamic Main Content Below Hero */}
       <main id="features-section" className="flex-grow relative z-10 space-y-6 md:space-y-10">
         
-        {/* Section 2: Core Vision & Agronomic Intelligence (Spotlight Cards) */}
-        <ParallaxSection />
+        {/* Render non-critical showcase code only as it approaches the viewport. */}
+        <DeferredSection minHeight="720px">
+          <Suspense fallback={null}>
+            <ParallaxSection />
+          </Suspense>
+        </DeferredSection>
 
-        {/* Section 3: Clinical Benchmarks */}
-        <MetricsShowcase />
+        <DeferredSection minHeight="460px">
+          <Suspense fallback={null}>
+            <MetricsShowcase />
+          </Suspense>
+        </DeferredSection>
 
         {/* Section 4: 3-Step Clinical Workflow */}
         <section className="py-8 md:py-12 container mx-auto px-4 relative z-10 max-w-6xl content-visibility-auto">

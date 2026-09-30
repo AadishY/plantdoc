@@ -15,7 +15,10 @@ const STATUS_MESSAGES = [
 export const SiteLoader: React.FC = () => {
   const [loading, setLoading] = useState(() => {
     try {
-      if (typeof window !== 'undefined' && sessionStorage.getItem('plantdoc_session_loaded')) {
+      const saveData = typeof navigator !== 'undefined' && (navigator as Navigator & {
+        connection?: { saveData?: boolean };
+      }).connection?.saveData === true;
+      if (saveData || (typeof window !== 'undefined' && sessionStorage.getItem('plantdoc_session_loaded'))) {
         return false;
       }
     } catch {
@@ -34,10 +37,15 @@ export const SiteLoader: React.FC = () => {
       // Non-blocking: do not prevent the app from loading.
     }
 
+    const saveData = (navigator as Navigator & {
+      connection?: { saveData?: boolean };
+    }).connection?.saveData === true;
     const statusInterval = window.setInterval(() => {
       setStatusIdx((previous) => Math.min(previous + 1, STATUS_MESSAGES.length - 1));
-    }, 140);
-    const timer = window.setTimeout(() => setLoading(false), 560);
+    }, 100);
+    // Keep the branded hand-off, but never hold the LCP hero behind a long
+    // artificial splash on a phone or data-saving connection.
+    const timer = window.setTimeout(() => setLoading(false), saveData ? 0 : 220);
 
     return () => {
       window.clearInterval(statusInterval);

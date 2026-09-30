@@ -10,6 +10,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import ScrollToTop from '@/components/ScrollToTop';
 import PageLoadingFallback from '@/components/PageLoadingFallback';
 import CustomScrollbar from '@/components/CustomScrollbar';
+import NetworkStatus from '@/components/NetworkStatus';
 // Lazily load components for better performance
 const TextHighlighter = lazy(() => import('@/components/TextHighlighter'));
 const canUseDesktopEffects = typeof window !== 'undefined'
@@ -32,6 +33,7 @@ function App() {
         {/* Smooth Lenis Inertia Scroll & Scroll Restoration */}
         <SmoothScroll>
           <ScrollToTop />
+          <NetworkStatus />
           
           {/* Initial load splash */}
           <SiteLoader />

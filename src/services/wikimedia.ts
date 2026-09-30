@@ -1,4 +1,5 @@
 import { API_CONFIG } from '@/config/api.config';
+import { fetchPublicWithRetry } from '@/utils/network';
 
 export interface WikimediaPlantData {
   imageUrl: string | null;
@@ -86,12 +87,11 @@ export async function fetchPlantWikimediaData(
       const sanitized = encodeURIComponent(term.replace(/ /g, '_'));
       const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${sanitized}`;
       
-      const res = await fetch(url, {
+      const res = await fetchPublicWithRetry(url, {
         headers: {
           'Api-User-Agent': API_CONFIG.WIKIMEDIA_USER_AGENT,
           'Accept': 'application/json'
-        },
-        signal: AbortSignal.timeout ? AbortSignal.timeout(3000) : undefined
+        }
       });
 
       if (res.ok) {
@@ -126,11 +126,10 @@ export async function fetchPlantWikimediaData(
         term + ' plant'
       )}&gsrlimit=1&prop=pageimages|extracts&exintro&explaintext&exchars=250&pithumbsize=600&format=json&origin=*`;
 
-      const res = await fetch(url, {
+      const res = await fetchPublicWithRetry(url, {
         headers: {
           'Api-User-Agent': API_CONFIG.WIKIMEDIA_USER_AGENT
-        },
-        signal: AbortSignal.timeout ? AbortSignal.timeout(3000) : undefined
+        }
       });
 
       if (res.ok) {

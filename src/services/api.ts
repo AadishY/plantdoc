@@ -3,7 +3,7 @@ import { PlantRecommendation, GrowingConditions, PlantCategory } from '@/types/r
 import { toast } from 'sonner';
 import { fetchPlantWikimediaData } from './wikimedia';
 import { API_CONFIG } from '@/config/api.config';
-import { enforceRateLimit } from '@/utils/rateLimiter';
+import { assertBrowserOnline, fetchWithDeadline } from '@/utils/network';
 
 // Helper to downsample and convert image File to ultra-lightweight WebP base64 (99% payload reduction)
 const prepareImageForAPI = async (file: File): Promise<{ mimeType: string, base64Data: string }> => {
@@ -22,17 +22,28 @@ const prepareImageForAPI = async (file: File): Promise<{ mimeType: string, base6
 
     img.onload = () => {
       try {
-        const MAX_DIMENSION = 1280;
+        const connection = (navigator as Navigator & {
+          connection?: { saveData?: boolean; effectiveType?: string };
+        }).connection;
+        const deviceMemory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
+        const isMobile = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768;
+        const constrainedConnection = connection?.saveData === true || connection?.effectiveType === 'slow-2g' || connection?.effectiveType === '2g';
+        const lowMemory = typeof deviceMemory === 'number' && deviceMemory <= 2;
+
+        // Preserve diagnosis detail while reducing the peak canvas allocation,
+        // encode work, and upload time on constrained phones.
+        const maxDimension = constrainedConnection || lowMemory ? 960 : isMobile ? 1152 : 1280;
+        const imageQuality = constrainedConnection || lowMemory ? 0.78 : isMobile ? 0.82 : 0.85;
         let width = img.naturalWidth || img.width;
         let height = img.naturalHeight || img.height;
 
-        if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+        if (width > maxDimension || height > maxDimension) {
           if (width > height) {
-            height = Math.round((height * MAX_DIMENSION) / width);
-            width = MAX_DIMENSION;
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
           } else {
-            width = Math.round((width * MAX_DIMENSION) / height);
-            height = MAX_DIMENSION;
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
           }
         }
 
@@ -48,16 +59,19 @@ const prepareImageForAPI = async (file: File): Promise<{ mimeType: string, base6
         ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(img, 0, 0, width, height);
 
-        // Convert to high-efficiency WebP with JPEG fallback
-        let dataUrl = canvas.toDataURL('image/webp', 0.85);
+        // Convert to high-efficiency WebP with JPEG fallback. Clearing the
+        // backing store releases a sizeable mobile canvas allocation sooner.
+        let dataUrl = canvas.toDataURL('image/webp', imageQuality);
         let mimeType = 'image/webp';
 
         if (!dataUrl.startsWith('data:image/webp')) {
-          dataUrl = canvas.toDataURL('image/jpeg', 0.88);
+          dataUrl = canvas.toDataURL('image/jpeg', Math.min(0.88, imageQuality + 0.03));
           mimeType = 'image/jpeg';
         }
 
         const base64Data = dataUrl.substring(dataUrl.indexOf(',') + 1);
+        canvas.width = 1;
+        canvas.height = 1;
         resolve({ mimeType, base64Data });
       } catch (err) {
         // Fallback to direct file read if canvas downsampling fails
@@ -138,9 +152,10 @@ function extractJsonFromText(text: string): any {
   return null;
 }
 
-// Unrestricted native fetch without artificial timeout limits
-async function fetchWithTimeout(url: string, options: RequestInit, _timeoutMs?: number): Promise<Response> {
-  return await fetch(url, options);
+// Requests are never client-rate-limited. A deadline only prevents a stalled
+// radio/network connection from leaving the interface in a permanent loading state.
+async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = 45_000): Promise<Response> {
+  return fetchWithDeadline(url, options, timeoutMs);
 }
 
 // User-friendly error message formatter for plant recommendations (funny, cool, and botanical)
@@ -318,7 +333,8 @@ function calculateBoxIoU(boxA: [number, number, number, number], boxB: [number, 
 async function fetchSpatialSegmentation(
   base64Data: string,
   mimeType: string,
-  apiKey: string
+  apiKey: string,
+  signal?: AbortSignal
 ): Promise<{ 
   plant_box?: [number, number, number, number]; 
   lesions?: Array<{ 
@@ -423,8 +439,10 @@ Return ONLY a valid JSON object strictly adhering to this schema:
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          }
+            body: JSON.stringify(payload),
+            signal
+          },
+          18_000
         );
 
         if (!response.ok) continue;
@@ -1135,6 +1153,7 @@ export const diagnosePlant = async (
   mode: 'smart' | 'fast' = 'smart'
 ): Promise<DiagnosisResult> => {
   try {
+    assertBrowserOnline();
     const apiKey = API_CONFIG.getApiKey();
     const groqKey = API_CONFIG.getGroqApiKey();
     if (!apiKey && mode === 'smart') {
@@ -1326,10 +1345,40 @@ Return ONLY valid JSON.`;
       diagnosisPromise = fetchClinicalDiagnosis(base64Data, mimeType, apiKey, onModelShift);
     }
 
-    const [diagnosisRes, segmentationRes] = await Promise.all([
-      diagnosisPromise,
-      fetchSpatialSegmentation(base64Data, mimeType, apiKey)
-    ]);
+    // Keep the report responsive if the optional spatial service is slow. It
+    // gets a short grace period after the primary diagnosis completes, then is
+    // cancelled cleanly rather than holding the whole mobile flow hostage.
+    const segmentationController = new AbortController();
+    type SegmentationResult = Awaited<ReturnType<typeof fetchSpatialSegmentation>>;
+    const emptySegmentation: SegmentationResult = { lesions: [] };
+    const segmentationPromise: Promise<SegmentationResult> = apiKey
+      ? fetchSpatialSegmentation(base64Data, mimeType, apiKey, segmentationController.signal)
+      : Promise.resolve(emptySegmentation);
+
+    let diagnosisRes: any;
+    try {
+      diagnosisRes = await diagnosisPromise;
+    } catch (error) {
+      segmentationController.abort();
+      throw error;
+    }
+
+    const segmentationRes = await new Promise<SegmentationResult>((resolve) => {
+      const graceTimer = window.setTimeout(() => {
+        segmentationController.abort();
+        resolve(emptySegmentation);
+      }, 4_000);
+
+      segmentationPromise
+        .then((result) => {
+          window.clearTimeout(graceTimer);
+          resolve(result);
+        })
+        .catch(() => {
+          window.clearTimeout(graceTimer);
+          resolve(emptySegmentation);
+        });
+    });
 
     const parsed = diagnosisRes;
     const segData = segmentationRes;
@@ -1606,6 +1655,7 @@ export const getClimateDatabByLocation = async (
   state?: string,
   city?: string
 ): Promise<{ temperature: number, rainfall: number, humidity: number }> => {
+  assertBrowserOnline();
   const apiKey = API_CONFIG.getApiKey();
   if (!apiKey) {
     throw new Error("Missing VITE_GEMINI_API_KEY for climate intelligence.");
@@ -1687,6 +1737,7 @@ export const getPlantRecommendations = async (
   modeOverride?: 'smart' | 'fast'
 ): Promise<PlantRecommendation[]> => {
   try {
+    assertBrowserOnline();
     // Resolve AI Mode ('smart' vs 'fast')
     const recMode: 'smart' | 'fast' = modeOverride || 
       (typeof conditionsOrTemp === 'object' && (conditionsOrTemp as GrowingConditions).mode) || 
@@ -1860,31 +1911,29 @@ Return strictly raw JSON.`;
         try {
           console.log(`[PlantDoc OpenRouter] Attempting recommendation formulation via ${modelName}...`);
 
-          const controller = new AbortController();
-          const timeoutMs = 20000; // 20s per model attempt
-          const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
-          const response = await fetch(`${API_CONFIG.OPENROUTER_BASE_URL}/chat/completions`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${openRouterKey}`,
-              'HTTP-Referer': 'https://plantdoc.pages.dev',
-              'X-Title': 'PlantDoc AI'
+          const response = await fetchWithTimeout(
+            `${API_CONFIG.OPENROUTER_BASE_URL}/chat/completions`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${openRouterKey}`,
+                'HTTP-Referer': 'https://plantdoc.pages.dev',
+                'X-Title': 'PlantDoc AI'
+              },
+              body: JSON.stringify({
+                model: modelName,
+                messages: [
+                  {
+                    role: 'user',
+                    content: openRouterPrompt
+                  }
+                ],
+                temperature: 0.2
+              })
             },
-            body: JSON.stringify({
-              model: modelName,
-              messages: [
-                {
-                  role: 'user',
-                  content: openRouterPrompt
-                }
-              ],
-              temperature: 0.2
-            }),
-            signal: controller.signal
-          });
-          clearTimeout(timeoutId);
+            20_000
+          );
 
           if (!response.ok) {
             let errMsg = `HTTP ${response.status}`;
