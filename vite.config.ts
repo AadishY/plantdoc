@@ -10,6 +10,14 @@ export default defineConfig(({ mode }) => ({
     port: 3000,
     // Arena's live preview proxies requests through a generated host.
     allowedHosts: true,
+    // Transform the two interactive routes before first navigation. This keeps
+    // proxy-backed previews from racing the initial lazy-module request.
+    warmup: {
+      clientFiles: [
+        './src/pages/DiagnosePage.tsx',
+        './src/pages/RecommendPage.tsx',
+      ],
+    },
   },
   plugins: [
     react(),

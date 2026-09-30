@@ -52,8 +52,8 @@ interface NavItemProps {
 const NavItem: React.FC<NavItemProps> = ({ to, icon, label, isActive }) => (
   <Link 
     to={to} 
-    onMouseEnter={() => preloadRoute(to)}
-    onTouchStart={() => preloadRoute(to)}
+    onMouseEnter={() => { void preloadRoute(to); }}
+    onFocus={() => { void preloadRoute(to); }}
     className={cn(
       "relative flex flex-col items-center justify-center py-1.5 px-3 rounded-xl transition-all duration-200 min-w-[60px] min-h-[44px]",
       isActive 

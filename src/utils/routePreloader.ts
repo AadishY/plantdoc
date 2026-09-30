@@ -1,50 +1,63 @@
 /**
- * Proactive Route Preloading Engine
- * Silently warms Vite lazy-loaded module chunks during idle cycles
- * or on link hover/touch to guarantee instantaneous perceived page transitions.
+ * Proactive route preloading engine.
+ *
+ * A failed preview/proxy fetch must never poison the in-memory preload state:
+ * the route stays eligible for a later normal navigation attempt. Touch events
+ * deliberately do not invoke this helper—on mobile they fire before a gesture
+ * is known to be a tap and can create unnecessary competing module requests.
  */
 
 const preloadedRoutes = new Set<string>();
+const pendingRoutes = new Map<string, Promise<void>>();
 
-export const preloadRoute = (path: string): void => {
+type RouteImporter = () => Promise<unknown>;
+
+const routeImporters: Record<string, RouteImporter> = {
+  '/diagnose': () => import('@/pages/DiagnosePage'),
+  '/recommend': () => import('@/pages/RecommendPage'),
+  '/about': () => import('@/pages/AboutPage'),
+  '/privacy': () => import('@/pages/PrivacyPage'),
+};
+
+export const preloadRoute = (path: string): Promise<void> => {
   const cleanPath = path.split('?')[0].split('#')[0];
-  if (preloadedRoutes.has(cleanPath)) return;
+  if (cleanPath === '/' || preloadedRoutes.has(cleanPath)) return Promise.resolve();
 
-  try {
-    if (cleanPath === '/diagnose') {
+  const pending = pendingRoutes.get(cleanPath);
+  if (pending) return pending;
+
+  const importer = routeImporters[cleanPath];
+  if (!importer) return Promise.resolve();
+
+  const request = importer()
+    .then(() => {
       preloadedRoutes.add(cleanPath);
-      import('@/pages/DiagnosePage');
-    } else if (cleanPath === '/recommend') {
-      preloadedRoutes.add(cleanPath);
-      import('@/pages/RecommendPage');
-    } else if (cleanPath === '/about') {
-      preloadedRoutes.add(cleanPath);
-      import('@/pages/AboutPage');
-    } else if (cleanPath === '/privacy') {
-      preloadedRoutes.add(cleanPath);
-      import('@/pages/PrivacyPage');
-    } else if (cleanPath === '/') {
-      preloadedRoutes.add(cleanPath);
-      // Index is already eagerly loaded in initial entry bundle
-    }
-  } catch {
-    // Non-blocking prefetch failure
-  }
+    })
+    .catch(() => {
+      // Network/proxy failures are transient in development previews. Do not
+      // retain a rejected import or mark the route as preloaded.
+    })
+    .finally(() => {
+      pendingRoutes.delete(cleanPath);
+    });
+
+  pendingRoutes.set(cleanPath, request);
+  return request;
 };
 
 export const preloadAllRoutes = (): void => {
   if (typeof window === 'undefined') return;
 
   const runPreload = () => {
-    preloadRoute('/diagnose');
-    preloadRoute('/recommend');
-    preloadRoute('/about');
+    void preloadRoute('/diagnose');
+    void preloadRoute('/recommend');
+    void preloadRoute('/about');
   };
 
   if ('requestIdleCallback' in window) {
     (window as Window & { requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => void })
-      .requestIdleCallback(runPreload, { timeout: 1500 });
+      .requestIdleCallback(runPreload, { timeout: 1_500 });
   } else {
-    setTimeout(runPreload, 800);
+    window.setTimeout(runPreload, 800);
   }
 };

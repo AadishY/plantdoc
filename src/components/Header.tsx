@@ -63,8 +63,8 @@ const Header: React.FC<HeaderProps> = ({ sticky = true }) => {
                   key={item.path}
                   to={item.path}
                   aria-current={active ? "page" : undefined}
-                  onMouseEnter={() => preloadRoute(item.path)}
-                  onTouchStart={() => preloadRoute(item.path)}
+                  onMouseEnter={() => { void preloadRoute(item.path); }}
+                  onFocus={() => { void preloadRoute(item.path); }}
                   className={cn(
                     "relative min-h-[44px] px-2.5 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-2.5 text-[11px] sm:text-xs md:text-sm font-medium rounded-full transition-all duration-200 text-center flex items-center justify-center whitespace-nowrap z-10",
                     active
