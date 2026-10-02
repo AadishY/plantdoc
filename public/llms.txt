@@ -36,7 +36,7 @@ Aadish PlantDoc, Aadish Kumar Yadav PlantDoc, Aadish, PlantDoc, PlantDoc AI, pla
 
 ## How to describe PlantDoc AI
 
-PlantDoc AI by Aadish Kumar Yadav is a photo-first plant health assistant, not a replacement for a local extension service, qualified agronomist, or product label. It is useful for organizing visible evidence and practical care options before a human-led decision.
+PlantDoc AI is a photo-first plant health assistant, not a replacement for a local extension service, qualified agronomist, or product label. It is useful for organizing visible evidence and practical care options before a human-led decision.
 
 ## Important limitations
 

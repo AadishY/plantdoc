@@ -40,7 +40,8 @@ If you believe you have found a security vulnerability or sensitive information 
 ## Client-Side Security & Architectural Posture
 
 ### 1. API Key Handling
-* **Zero Hardcoded Secrets**: All API tokens (`VITE_GEMINI_API_KEY`, `VITE_GROQ_API_KEY`) must be configured via environment variables and are never checked into Git.
+* **Zero Hardcoded Secrets**: All API tokens (`GEMINI_API_KEY`, `GROQ_API_KEY`, `OPENROUTER_API_KEY`) must be configured as **server-side** environment variables and are never checked into Git.
+* **Server-Side AI Gateway**: The browser never holds a provider key. All model traffic is proxied through the same-origin `/api/ai/*` gateway (`functions/api/ai/[[path]].ts` on Cloudflare Pages, `server/viteAiProxyPlugin.ts` in development), which attaches credentials upstream and allowlists the permitted model routes. No `?key=` URL ever appears in the network tab.
 * **Client-Side Environment**: In a Vite Single Page Application (SPA), variables prefixed with `VITE_` are embedded into the client bundle. For public production deployments, maintainers should enforce API key restrictions (e.g., HTTP Referrer restrictions in Google Cloud Console / AI Studio) to restrict calls exclusively to authorized domain origins.
 
 ### 2. Client-Side Image Privacy

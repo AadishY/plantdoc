@@ -1,5 +1,10 @@
 # Cloudflare Pages caching and security headers
 
+# AI gateway responses are per-request and must never be cached or indexed.
+/api/ai/*
+  Cache-Control: no-store
+  X-Robots-Tag: noindex
+
 # Fingerprinted Vite assets can be cached indefinitely.
 /assets/*
   Cache-Control: public, max-age=31536000, immutable, stale-if-error=86400

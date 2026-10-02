@@ -1,7 +1,7 @@
 {
   "name": "PlantDoc AI — Plant Disease Identifier",
   "short_name": "PlantDoc AI",
-  "description": "PlantDoc AI by Aadish Kumar Yadav identifies plant diseases from leaf photos and provides practical plant care guidance.",
+  "description": "PlantDoc AI identifies plant diseases from leaf photos and provides practical plant care guidance.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

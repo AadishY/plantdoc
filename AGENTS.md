@@ -38,7 +38,7 @@ Welcome to the **PlantDoc AI** codebase architecture and agent engineering guide
     1. Primary: `gemini-3.8-flash` (via `v1beta`, with Thinking `thinkingBudget: 1024`)
     2. Secondary Failover: `gemini-3.7-flash` (via `v1beta`, with Thinking `thinkingBudget: 1024`, alerts user: *"Primary model (gemini-3.8-flash) seems offline or busy. Shifting to the 2nd model (gemini-3.7-flash)..."*)
     3. Tertiary Failover: `gemini-3.6-flash` (via `v1beta`, alerts user: *"Secondary model (gemini-3.7-flash) seems offline or busy. Shifting to the 3rd model (gemini-3.6-flash)..."*)
-  - Spatial Embodied Grounding & Lesion Segmentation: `gemini-robotics-er-2-preview` (via `v1beta`, with Thinking)
+  - Spatial Embodied Grounding & Lesion Segmentation: `gemini-3.7-flash` (via `v1beta`, with Thinking)
     - Comprehensive Affected Area Grounding: Detects both macro foliar disease zones (blight scorch, widespread chlorosis, marginal burns) and micro focal spots (fungal pustules, necrotic centers).
     - Up to 45+ distinct lesion detections with relaxed geometry thresholds and optimized NMS IoU deduplication (`IoU > 0.65`).
   - Regional Fast Climate Intelligence: `gemini-3.5-flash-lite` (via `v1beta`, with Thinking)
@@ -115,7 +115,10 @@ plantdoc/
 │   └── main.tsx                            # React DOM entrypoint
 ├── CODE_OF_CONDUCT.md                      # Contributor Covenant v2.1 code of conduct
 ├── LICENSE                                 # MIT Open Source License
-├── .env                                    # Environment variables (VITE_GEMINI_API_KEY)
+├── functions/api/ai/[[path]].ts            # Cloudflare Pages Function: same-origin AI gateway
+├── server/aiProxy.ts                       # Shared gateway logic (key injection + route allowlist)
+├── server/viteAiProxyPlugin.ts             # Dev/preview middleware mirroring the Pages Function
+├── .env                                    # Server-only secrets (GEMINI_API_KEY, GROQ_API_KEY, OPENROUTER_API_KEY)
 ├── tailwind.config.ts                      # Tailwind tokens, keyframes & animations
 ├── tsconfig.json                           # TypeScript compiler configuration
 └── vite.config.ts                          # Vite rollup code-splitting & esbuild rules
@@ -132,7 +135,7 @@ graph TD
     A[User Foliage Photo] --> B[prepareImageForAPI: Canvas WebP Compression]
     B --> C{Parallel Dual-Model Execution}
     C -->|60s Timeout| D[fetchClinicalDiagnosis: Gemini 3.8 Flash with Thinking]
-    C -->|45s Timeout| E[fetchSpatialSegmentation: gemini-robotics-er-2-preview with Thinking]
+    C -->|45s Timeout| E[fetchSpatialSegmentation: gemini-3.7-flash with Thinking]
     E --> F[calculateBoxIoU + NMS Deduplication Filter]
     D --> G[Anti-Hallucination & Scientific Veracity Check]
     F --> H[Merge Validated Telemetry & Real Products]
@@ -148,7 +151,7 @@ graph TD
    - Reduces multi-megabyte DSLR/smartphone uploads down to **~80KB–150KB** (99% network payload reduction), boosting API response latency by **5x–10x**.
 2. **Parallel Dual-Model Pipeline**:
    - **Model 1 (`fetchClinicalDiagnosis`)**: Generates botanical classification, disease name, confidence scores, real retail brand chemicals (e.g. *Daconil*, *Bonide*), organic recipes, infection stage horizons, and NPK fertilizer advice via `gemini-3.8-flash` with thinking enabled (`thinkingBudget: 1024`). Zero synthetic fallback models; errors format directly into human-friendly diagnostics.
-   - **Model 2 (`fetchSpatialSegmentation`)**: Computes ultra-high-precision 2D bounding boxes `[ymin, xmin, ymax, xmax]` tightly wrapping individual lesion spots, necrotic patches, insect perforations, and symptom halos via spatial embodied reasoning model `gemini-robotics-er-2-preview` with thinking enabled (`thinkingBudget: 1024`).
+   - **Model 2 (`fetchSpatialSegmentation`)**: Computes ultra-high-precision 2D bounding boxes `[ymin, xmin, ymax, xmax]` tightly wrapping individual lesion spots, necrotic patches, insect perforations, and symptom halos via spatial embodied reasoning model `gemini-3.7-flash` with thinking enabled (`thinkingBudget: 1024`).
 3. **Non-Blocking Architecture**:
    - If segmentation times out (45s) or returns empty, it falls back cleanly to `{ lesions: [] }` so the primary clinical report is **never blocked**.
 
@@ -360,4 +363,5 @@ When modifying or extending the PlantDoc AI codebase, you **must** adhere to the
 4. **No Synthetic Placeholders**: Never insert placeholder images. Use `fetchPlantWikimediaData` for real botanical media.
 5. **Preserve Dual-Masking Integrity**: When modifying `PlantDocHeroStage.tsx`, ensure `topLayerRef` and `baseLayerRef` masks remain synchronized. Do not reintroduce per-frame canvas serialization or let touch gestures block vertical scrolling.
 6. **User-Friendly Error Handling**: Always pass API catch errors through `formatUserFriendlyError` before setting error states or displaying toasts.
-7. **Documentation Integrity**: Preserve existing architectural comments and keep `README.md` and `AGENTS.md` in sync whenever platform capabilities are refined.
+7. **Never Expose Provider Keys**: Client code must call the same-origin gateway (`/api/ai/gemini/models/<model>:generateContent`, `/api/ai/groq/chat/completions`, `/api/ai/openrouter/chat/completions`). Never reintroduce `import.meta.env.VITE_*_API_KEY` reads, `?key=` query strings, or direct provider URLs in `src/`.
+8. **Documentation Integrity**: Preserve existing architectural comments and keep `README.md` and `AGENTS.md` in sync whenever platform capabilities are refined.

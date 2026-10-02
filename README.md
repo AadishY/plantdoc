@@ -100,7 +100,7 @@ Selects top botanical species matching your regional climate (temperature, rainf
 | Capability | Technical Implementation | Practical Clinical Benefit |
 | :--- | :--- | :--- |
 | **Scientific Veracity & Anti-Hallucination** | Dual-tier verification & specimen validation | **Zero fabricated diseases**: explicitly rejects non-botanical images or marks ambiguous foliage as inconclusive. |
-| **Multi-Scale Spatial Lesion Grounding** | `gemini-robotics-er-2-preview` + NMS IoU filtering | Pinpoints both **macro affected disease zones** (blight scorch, marginal burn) and **micro focal spots** (10 to 45+ detections, `IoU > 0.65`). |
+| **Multi-Scale Spatial Lesion Grounding** | `gemini-3.7-flash` + NMS IoU filtering | Pinpoints both **macro affected disease zones** (blight scorch, marginal burn) and **micro focal spots** (10 to 45+ detections, `IoU > 0.65`). |
 | **Gemma 4 Climate Recommendation Engine** | `gemma-4-26b-a4b-it` (Primary) & `gemma-4-31b-it` (Failover) | High-speed agronomic matching (~4s response) against regional temperature, precipitation, and soil profiles. |
 | **Interactive 5-Option Season Engine** | Real-time seasonal planting calendar sync | Curates species by seasonal window (**All Seasons**, **Spring**, **Summer**, **Autumn**, **Winter**) with timeline badges. |
 | **Spectral NDVI Chlorophyll Analysis** | Simulated multispectral foliar mapping | Visualizes photosynthetic vigor, chlorophyll breakdown, and sub-clinical symptom margins. |
@@ -127,7 +127,7 @@ PlantDoc AI operates on a rigorous, two-stage clinical verification pipeline des
          ├─────────────────────────────────────────┐
          ▼                                         ▼
 [ Clinical Pathology Engine ]             [ Spatial Lesion Grounding ]
-Primary: gemini-3.8-flash                 Model: gemini-robotics-er-2-preview
+Primary: gemini-3.8-flash                 Model: gemini-3.7-flash
 Failovers: 3.7-flash -> 3.6-flash          - Macro disease zones + micro spot grounding
 - Botanical validity check                - Sub-pixel bounding boxes [ymin, xmin, ymax, xmax]
 - Species identification (>80% cert)      - Coordinate normalization (0-1000 -> CSS %)
@@ -202,17 +202,23 @@ Failovers: 3.7-flash -> 3.6-flash          - Macro disease zones + micro spot gr
    Create a `.env` file in the root directory (see `.env.example`):
    ```env
    # Required: Google Gemini API Key (Gemini Vision & Gemma models)
-   VITE_GEMINI_API_KEY=your_gemini_api_key_here
+   # SERVER-ONLY — no VITE_ prefix, so it is never inlined into the browser bundle.
+   GEMINI_API_KEY=your_gemini_api_key_here
 
    # Optional: Groq API Key (for Fast Mode vision pathology diagnosis)
-   VITE_GROQ_API_KEY=your_groq_api_key_here
+   GROQ_API_KEY=your_groq_api_key_here
 
    # Optional: OpenRouter API Key (for Fast Mode botanical recommendations)
-   VITE_OPENROUTER_API_KEY=your_openrouter_api_key_here
+   OPENROUTER_API_KEY=your_openrouter_api_key_here
 
    # Recommended: Custom Wikimedia User-Agent for REST API compliance
    VITE_WIKIMEDIA_USER_AGENT=PlantDoc/1.0 (https://plantdoc.app; contact@plantdoc.app)
    ```
+
+   > 🔐 Model keys are consumed only by the same-origin AI gateway
+   > (`/api/ai/*`) — a Cloudflare Pages Function in production and Vite
+   > middleware in development. The browser never sees a provider URL or key.
+   > On Cloudflare Pages, set the same three variables as project secrets.
 
 4. **Launch Development Server:**
    ```bash

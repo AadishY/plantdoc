@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { Suspense, lazy, useState } from 'react';
 import { 
   Leaf, 
   ShieldCheck, 
@@ -22,7 +22,9 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import PlantSegmentationViewer from './PlantSegmentationViewer';
 import DiagnosisVisualizations from './DiagnosisVisualizations';
-import ClinicalTreatmentProtocol from './ClinicalTreatmentProtocol';
+// Recharts (~386 kB) is only needed once a report exists, so the treatment
+// protocol is code-split out of the diagnose route's critical path.
+const ClinicalTreatmentProtocol = lazy(() => import('./ClinicalTreatmentProtocol'));
 import InteractiveRecoveryTimeline from './InteractiveRecoveryTimeline';
 import DifferentialDiagnosisCard from './DifferentialDiagnosisCard';
 import { getSafeImageUrl } from '@/utils/sanitizeUrl';
@@ -396,7 +398,13 @@ PRESCRIPTION TREATMENT:
 
       {/* 3. Clinical Treatment Protocol */}
       <motion.div variants={itemVariants}>
-        <ClinicalTreatmentProtocol result={result} />
+        <Suspense
+          fallback={
+            <div className="h-48 rounded-2xl border border-white/10 bg-black/40 backdrop-blur-2xl animate-pulse" />
+          }
+        >
+          <ClinicalTreatmentProtocol result={result} />
+        </Suspense>
       </motion.div>
 
       {/* 4. Botanical Differential Diagnosis */}

@@ -333,7 +333,6 @@ function calculateBoxIoU(boxA: [number, number, number, number], boxB: [number, 
 async function fetchSpatialSegmentation(
   base64Data: string,
   mimeType: string,
-  apiKey: string,
   signal?: AbortSignal
 ): Promise<{ 
   plant_box?: [number, number, number, number]; 
@@ -404,13 +403,13 @@ Return ONLY a valid JSON object strictly adhering to this schema:
   ]
 };`
 
-    const queryKey = apiKey ? `?key=${apiKey}` : '';
-    // Priority: gemini-robotics-er-2-preview (embodied spatial reasoning) followed by high-precision flash failovers
-    const segmentationCandidates = [
-      API_CONFIG.SEGMENTATION_MODEL, // "gemini-robotics-er-2-preview"
-      "gemini-3.7-flash",
-      "gemini-3.8-flash"
-    ].filter(Boolean);
+    // Spatial reasoning cascade: every id below is a real, currently served
+    // Gemini vision model, so a bad model id can never silently kill lesion mapping.
+    const segmentationCandidates = Array.from(new Set([
+      API_CONFIG.SEGMENTATION_MODEL,
+      "gemini-3.8-flash",
+      "gemini-3.6-flash"
+    ].filter(Boolean)));
 
     for (const modelName of segmentationCandidates) {
       if (signal?.aborted) return { lesions: [] };
@@ -431,12 +430,15 @@ Return ONLY a valid JSON object strictly adhering to this schema:
           ],
           generationConfig: {
             temperature: 0.1,
-            maxOutputTokens: 8192
+            maxOutputTokens: 8192,
+            // Native structured output: Gemini guarantees a JSON body, which
+            // removes the markdown-fence failures that broke lesion parsing.
+            responseMimeType: 'application/json'
           }
         };
 
         const response = await fetchWithTimeout(
-          `${API_CONFIG.BASE_URL}/models/${modelName}:generateContent${queryKey}`,
+          `${API_CONFIG.BASE_URL}/models/${modelName}:generateContent`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -617,7 +619,6 @@ const DIAGNOSIS_MODEL_CASCADE: DiagnosisModelCandidate[] = [
 async function fetchClinicalDiagnosis(
   base64Data: string,
   mimeType: string,
-  apiKey: string,
   onModelShift?: (message: string) => void
 ): Promise<any> {
   // Unrestricted fast execution without waiting limit
@@ -883,7 +884,8 @@ Return ONLY the JSON. No markdown commentary.`;
 
     const generationConfig: any = {
       temperature: 0.1,
-      maxOutputTokens: 8192
+      maxOutputTokens: 8192,
+      responseMimeType: 'application/json'
     };
     if (candidate.supportsThinking) {
       generationConfig.thinkingConfig = {
@@ -909,9 +911,8 @@ Return ONLY the JSON. No markdown commentary.`;
     };
 
     try {
-      const queryKey = apiKey ? `?key=${apiKey}` : '';
       const res = await fetchWithTimeout(
-        `${API_CONFIG.BASE_URL}/models/${candidate.id}:generateContent${queryKey}`,
+        `${API_CONFIG.BASE_URL}/models/${candidate.id}:generateContent`,
         {
           method: 'POST',
           headers: {
@@ -928,49 +929,7 @@ Return ONLY the JSON. No markdown commentary.`;
 
         // Prevent "Unexpected token '<'" if server or proxy returned HTML document
         if (trimmed.startsWith('<') || trimmed.includes('<!doctype') || trimmed.includes('<html')) {
-          console.warn(`[PlantDoc Diagnosis] Diagnostic service returned non-JSON. Attempting direct connection...`);
-          if (apiKey && API_CONFIG.BASE_URL.includes('/api')) {
-            try {
-              const directUrl = `https://generativelanguage.googleapis.com/v1beta/models/${candidate.id}:generateContent?key=${apiKey}`;
-              const directRes = await fetchWithTimeout(
-                directUrl,
-                {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(payload)
-                },
-                50000
-              );
-              if (directRes.ok) {
-                const directRaw = await directRes.text();
-                if (!directRaw.trim().startsWith('<')) {
-                  const directData = JSON.parse(directRaw);
-                  const cand = directData.candidates?.[0];
-                  let fullDirectText = '';
-                  if (cand?.content?.parts) {
-                    for (const part of cand.content.parts) {
-                      if (!part.thought && part.text) fullDirectText += part.text + '\n';
-                    }
-                    if (!fullDirectText.trim()) {
-                      for (const part of cand.content.parts) {
-                        if (part.text) fullDirectText += part.text + '\n';
-                      }
-                    }
-                  }
-                  const directParsed = extractJsonFromText(fullDirectText);
-                  if (directParsed && (directParsed.plant || directParsed.disease)) {
-                    return {
-                      ...directParsed,
-                      diagnosedByModel: "PlantDoc AI",
-                      modelShiftNotice: activeShiftNotice
-                    };
-                  }
-                }
-              }
-            } catch (fallbackErr) {
-              console.warn(`[PlantDoc Diagnosis] Direct connection failed:`, fallbackErr);
-            }
-          }
+          console.warn(`[PlantDoc Diagnosis] Gateway returned a non-JSON response; failing over.`);
           lastErrorText = `PlantDoc AI diagnostic service is reconnecting.`;
         } else {
           let data: any = null;
@@ -1074,21 +1033,13 @@ async function fetchGroqClinicalDiagnosis(
 ): Promise<any> {
   console.log('[PlantDoc Groq] Sending vision diagnosis request to qwen/qwen3.8-27b...');
 
-  const groqKey = API_CONFIG.getGroqApiKey();
-  if (!groqKey) {
-    throw new Error("Fast Mode requires VITE_GROQ_API_KEY in your environment. Please add VITE_GROQ_API_KEY or use Smart Mode.");
-  }
-
   const dataUrl = `data:${mimeType};base64,${base64Data}`;
 
   const response = await fetchWithTimeout(
     `${API_CONFIG.GROQ_BASE_URL}/chat/completions`,
     {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${groqKey}`
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: API_CONFIG.GROQ_DIAGNOSIS_MODEL, // "qwen/qwen3.8-27b"
         messages: [
@@ -1126,7 +1077,7 @@ async function fetchGroqClinicalDiagnosis(
     } catch {}
 
     if (status === 401 || (status === 500 && errMsg.includes('API_KEY'))) {
-      throw new Error("Fast Mode requires a valid VITE_GROQ_API_KEY. Please verify your API key or switch to Smart Mode.");
+      throw new Error("Fast Mode is not available right now. Please switch to Smart Mode.");
     }
     throw new Error(errMsg);
   }
@@ -1156,13 +1107,14 @@ export const diagnosePlant = async (
 ): Promise<DiagnosisResult> => {
   try {
     assertBrowserOnline();
-    const apiKey = API_CONFIG.getApiKey();
-    const groqKey = API_CONFIG.getGroqApiKey();
-    if (!apiKey && mode === 'smart') {
-      throw new Error('Missing API key in environment.');
+    // Provider credentials live on the server. The gateway only reports
+    // whether each provider is configured, never the key itself.
+    const availability = await API_CONFIG.getProviderAvailability();
+    if (mode === 'smart' && !availability.gemini) {
+      throw new Error('PlantDoc AI diagnostics are not configured on the server right now.');
     }
-    if (!groqKey && mode === 'fast') {
-      throw new Error('Missing API key in environment.');
+    if (mode === 'fast' && !availability.groq) {
+      throw new Error('Fast Mode is not configured on the server right now. Please switch to Smart Mode.');
     }
 
     const { mimeType, base64Data } = await prepareImageForAPI(imageFile);
@@ -1170,10 +1122,10 @@ export const diagnosePlant = async (
     // Launch clinical diagnosis and spatial segmentation in parallel:
     // When mode === 'fast':
     //   - Clinical Diagnosis runs on Groq: qwen/qwen3.8-27b with reasoning_effort="high"
-    //   - Spatial Segmentation continues on Google gemini-robotics-er-2-preview (per specification)
+    //   - Spatial Segmentation continues on Google gemini-3.7-flash (per specification)
     // When mode === 'smart':
     //   - Clinical Diagnosis runs on Google 3-tier cascade: gemini-3.8-flash -> 3.7-flash -> 3.6-flash
-    //   - Spatial Segmentation runs on Google gemini-robotics-er-2-preview
+    //   - Spatial Segmentation runs on Google gemini-3.7-flash
     let diagnosisPromise: Promise<any>;
 
     if (mode === 'fast') {
@@ -1344,7 +1296,7 @@ Output ONLY a valid JSON object matching this schema:
 Return ONLY valid JSON.`;
       diagnosisPromise = fetchGroqClinicalDiagnosis(base64Data, mimeType, promptText);
     } else {
-      diagnosisPromise = fetchClinicalDiagnosis(base64Data, mimeType, apiKey, onModelShift);
+      diagnosisPromise = fetchClinicalDiagnosis(base64Data, mimeType, onModelShift);
     }
 
     // Keep the report responsive if the optional spatial service is slow. It
@@ -1353,8 +1305,8 @@ Return ONLY valid JSON.`;
     const segmentationController = new AbortController();
     type SegmentationResult = Awaited<ReturnType<typeof fetchSpatialSegmentation>>;
     const emptySegmentation: SegmentationResult = { lesions: [] };
-    const segmentationPromise: Promise<SegmentationResult> = apiKey
-      ? fetchSpatialSegmentation(base64Data, mimeType, apiKey, segmentationController.signal)
+    const segmentationPromise: Promise<SegmentationResult> = availability.gemini
+      ? fetchSpatialSegmentation(base64Data, mimeType, segmentationController.signal)
       : Promise.resolve(emptySegmentation);
 
     let diagnosisRes: any;
@@ -1658,10 +1610,6 @@ export const getClimateDatabByLocation = async (
   city?: string
 ): Promise<{ temperature: number, rainfall: number, humidity: number }> => {
   assertBrowserOnline();
-  const apiKey = API_CONFIG.getApiKey();
-  if (!apiKey) {
-    throw new Error("Missing VITE_GEMINI_API_KEY for climate intelligence.");
-  }
 
   const locationQuery = [city, state, country].map(s => s ? s.trim() : '').filter(Boolean).join(', ') || 'Global Temperate Zone';
   const promptText = `Provide the typical average annual climate data for:
@@ -1678,13 +1626,13 @@ Output ONLY a JSON object:
     contents: [{ parts: [{ text: promptText }] }],
     generationConfig: {
       temperature: 0.1,
-      maxOutputTokens: 2048
+      maxOutputTokens: 2048,
+      responseMimeType: 'application/json'
     }
   };
 
-  const queryKey = apiKey ? `?key=${apiKey}` : '';
   const response = await fetchWithTimeout(
-    `${API_CONFIG.BASE_URL}/models/${API_CONFIG.CLIMATE_MODEL}:generateContent${queryKey}`,
+    `${API_CONFIG.BASE_URL}/models/${API_CONFIG.CLIMATE_MODEL}:generateContent`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1745,13 +1693,13 @@ export const getPlantRecommendations = async (
       (typeof conditionsOrTemp === 'object' && (conditionsOrTemp as GrowingConditions).mode) || 
       'smart';
 
-    const apiKey = API_CONFIG.getApiKey();
-    const openRouterKey = API_CONFIG.getOpenRouterApiKey();
-    if (recMode === 'smart' && !apiKey) {
-      throw new Error('Missing API key in environment.');
+    const availability = await API_CONFIG.getProviderAvailability();
+    const geminiFallbackAvailable = availability.gemini;
+    if (recMode === 'smart' && !availability.gemini) {
+      throw new Error('PlantDoc AI recommendations are not configured on the server right now.');
     }
-    if (recMode === 'fast' && !openRouterKey) {
-      throw new Error('Fast Mode requires VITE_OPENROUTER_API_KEY in your environment. Please add VITE_OPENROUTER_API_KEY or use Smart Mode.');
+    if (recMode === 'fast' && !availability.openrouter) {
+      throw new Error('Fast Mode is not configured on the server right now. Please switch to Smart Mode.');
     }
 
     // Unrestricted fast execution without artificial waiting limit
@@ -1919,9 +1867,6 @@ Return strictly raw JSON.`;
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${openRouterKey}`,
-                'HTTP-Referer': 'https://plantdoc.pages.dev',
-                'X-Title': 'PlantDoc AI'
               },
               body: JSON.stringify({
                 model: modelName,
@@ -1972,7 +1917,7 @@ Return strictly raw JSON.`;
       }
 
       if (!Array.isArray(candidatePlants) || candidatePlants.length === 0) {
-        if (apiKey) {
+        if (geminiFallbackAvailable) {
           console.warn(`[PlantDoc OpenRouter] OpenRouter free tier limit reached (${lastErrorDetail}). Seamlessly falling back to Smart Mode (Gemma 4)...`);
         } else {
           throw new Error(lastErrorDetail || "No plant recommendations could be formulated for these exact parameters.");
@@ -1999,13 +1944,13 @@ Return strictly raw JSON.`;
       };
 
       // Priority: 26B Gemma 4 (faster, highly stable), followed by 31B Gemma 4
-      const gemmaModels = ["gemma-4-26b-a4b-it", "gemma-4-31b-it"];
+      const gemmaModels = [...API_CONFIG.RECOMMENDATION_MODELS];
 
       for (const targetModel of gemmaModels) {
         try {
-          const directUrl = `${API_CONFIG.GEMINI_BASE_URL}/models/${targetModel}:generateContent?key=${apiKey}`;
+          const gatewayUrl = `${API_CONFIG.GEMINI_BASE_URL}/models/${targetModel}:generateContent`;
           const res = await fetchWithTimeout(
-            directUrl,
+            gatewayUrl,
             {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
