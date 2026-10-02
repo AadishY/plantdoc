@@ -62,8 +62,10 @@ You can contribute in many ways:
    ```
    Populate your keys:
    ```env
-   VITE_GEMINI_API_KEY=your_gemini_api_key_here
-   VITE_GROQ_API_KEY=your_groq_api_key_here
+   # Server-only secrets (consumed by the /api/ai gateway, never bundled)
+   GEMINI_API_KEY=your_gemini_api_key_here
+   GROQ_API_KEY=your_groq_api_key_here
+   OPENROUTER_API_KEY=your_openrouter_api_key_here
    VITE_WIKIMEDIA_USER_AGENT=PlantDoc/1.0 (https://plantdoc.app; contact@plantdoc.app)
    ```
    > ⚠️ **CRITICAL SECURITY NOTE**: Never commit `.env` or real API keys to GitHub. `.env` is listed in `.gitignore`.

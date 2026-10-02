@@ -48,7 +48,7 @@ const Footer: React.FC = () => {
             </div>
             
             <p className="text-foreground/75 text-xs sm:text-sm max-w-md leading-relaxed hidden sm:block">
-              PlantDoc AI by Aadish Kumar Yadav helps gardeners and growers identify plant diseases from photos, inspect leaf lesions, and find climate-matched care guidance.
+              PlantDoc AI helps gardeners and growers identify plant diseases from photos, inspect leaf lesions, and find climate-matched care guidance.
             </p>
 
             {/* Live Operational Status Pill (Desktop Only) */}

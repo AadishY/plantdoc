@@ -22,7 +22,7 @@
 
 ### 🤖 Botanical & AI Model Impact
 <!-- If this PR modifies AI model configurations, prompts, coordinate parsers, or treatment matrices, please explain here: -->
-- **Affected Models**: (e.g. `gemini-3.8-flash`, `gemini-robotics-er-2-preview`, `gemma-4-26b-a4b-it`)
+- **Affected Models**: (e.g. `gemini-3.8-flash`, `gemini-3.7-flash`, `gemma-4-26b-a4b-it`)
 - **Veracity Verification**: (Confirm that non-plant rejection and zero ghost disease rules remain intact)
 
 ---

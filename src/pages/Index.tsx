@@ -49,8 +49,8 @@ const faqs = [
 
 const Index = () => {
   useDocumentTitle(
-    "PlantDoc AI by Aadish | AI Plant Disease Identifier",
-    "PlantDoc AI by Aadish Kumar Yadav identifies plant diseases from leaf photos with fast AI analysis, lesion mapping, practical treatment guidance, and climate-smart recommendations.",
+    "PlantDoc AI | AI Plant Disease Identifier",
+    "PlantDoc AI identifies plant diseases from leaf photos with fast AI analysis, lesion mapping, practical treatment guidance, and climate-smart recommendations.",
     "/",
     "Aadish PlantDoc, Aadish Kumar Yadav PlantDoc, Aadish, PlantDoc, PlantDoc AI, plantdisease, plant disease identifier, AI plant disease scanner, plant doctor from photo, leaf disease diagnosis, crop disease detection, plant pathology AI, leaf spot identifier, tomato disease detector, powdery mildew identifier, organic plant treatment, plant care recommendations"
   );
