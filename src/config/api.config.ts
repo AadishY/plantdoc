@@ -22,13 +22,13 @@ let availabilityPromise: Promise<AiProviderAvailability> | null = null;
 
 export const API_CONFIG = {
   DIAGNOSIS_MODELS: [
+    "gemini-3.6-flash",
     "gemini-3.7-flash",
-    "gemini-3.8-flash",
-    "gemini-3.6-flash"
+    "gemini-3.8-flash"
   ] as const,
-  DIAGNOSIS_MODEL: "gemini-3.7-flash", // Primary PlantDoc Vision Clinical Pathology Model (Thinking Enabled, Highly Available)
-  DIAGNOSIS_SECONDARY_MODEL: "gemini-3.8-flash", // 2nd Model Failover (Thinking Enabled)
-  DIAGNOSIS_TERTIARY_MODEL: "gemini-3.6-flash", // 3rd Model Failover
+  DIAGNOSIS_MODEL: "gemini-3.6-flash", // Primary PlantDoc Vision Clinical Pathology Model (Fast Response)
+  DIAGNOSIS_SECONDARY_MODEL: "gemini-3.7-flash", // 2nd Model Failover (Thinking Enabled)
+  DIAGNOSIS_TERTIARY_MODEL: "gemini-3.8-flash", // 3rd Model Failover (Thinking Enabled)
 
   // Groq Fast Mode Models (Vision Diagnosis)
   GROQ_DIAGNOSIS_MODEL: "qwen/qwen3.8-27b", // Groq Fast Vision Model with max reasoning effort
@@ -43,9 +43,14 @@ export const API_CONFIG = {
   OPENROUTER_RECOMMENDATION_MODEL: "inclusionai/ling-3.0-flash-sante:free",
   OPENROUTER_BASE_URL: AI_GATEWAY.OPENROUTER,
 
-  SEGMENTATION_MODEL: "gemini-3.7-flash", // PlantDoc Spatial Lesion Segmentation (vision + bounding boxes)
-  RECOMMENDATION_MODELS: ["gemma-4-26b-a4b-it", "gemma-4-31b-it"] as const,
-  RECOMMENDATION_MODEL: "gemma-4-26b-a4b-it", // Primary Gemma 4 Open Model (with gemma-4-31b-it failover)
+  SEGMENTATION_MODEL: "gemini-robotics-er-2-preview", // PlantDoc Spatial Lesion Segmentation (vision + bounding boxes)
+  RECOMMENDATION_MODELS: [
+    "gemma-4-26b-a4b-it",
+    "gemini-3.5-flash-lite",
+    "gemini-2.5-flash",
+    "gemma-4-31b-it"
+  ] as const,
+  RECOMMENDATION_MODEL: "gemma-4-26b-a4b-it", // Primary Gemma 4 Open Model (with Gemini 3.5 & 2.5 fast failover cascade)
   CLIMATE_MODEL: "gemini-3.5-flash-lite", // PlantDoc Fast Climate Model
 
   // Same-origin gateway endpoints (keys stay on the server)

@@ -33,7 +33,7 @@ export interface DiagnosisResult {
   scientific_name?: string;
   family?: string;
   accuracy?: number; // Plant identification accuracy %
-  diagnosedByModel?: string; // Model used for clinical formulation (e.g. gemini-3.8-flash, gemini-3.7-flash, gemini-3.6-flash, qwen/qwen3.8-27b)
+  diagnosedByModel?: string; // Model used for clinical formulation (e.g. gemini-3.6-flash, gemini-3.7-flash, gemini-3.8-flash, qwen/qwen3.8-27b)
   aiMode?: 'smart' | 'fast'; // Diagnostic processing mode (smart: Google AI, fast: Groq AI)
   modelShiftNotice?: string; // Notice if failover to secondary or tertiary model occurred
   disease: {

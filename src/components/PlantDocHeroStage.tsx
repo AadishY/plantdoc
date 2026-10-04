@@ -8,18 +8,25 @@ interface TrailPoint {
   y: number;
   radius: number;
   alpha: number;
+  angle: number;
+  stretch: number;
+  birthTime: number;
 }
 
-const FLOWER_ALPHA_THRESHOLD = 18;
-const MAX_TRAIL_POINTS = 12;
-const RELEASE_DELAY_MS = 160;
+const FLOWER_ALPHA_THRESHOLD = 16;
+const FLOWER_ALPHA_THRESHOLD_HYSTERESIS = 8;
+const MAX_TRAIL_POINTS_DESKTOP = 24;
+const MAX_TRAIL_POINTS_MOBILE = 16;
 
 /**
- * The landing-stage reveal is entirely CSS-mask driven. Earlier iterations
- * serialized two canvases to base64 several times a second; this version keeps
- * the healthy and pathology layers synchronized with small native gradients.
- * That removes large per-frame allocations and is especially kinder to mobile
- * GPUs while retaining an organic, multi-lobed reveal.
+ * The landing-stage reveal is an ultra-fluid, GPU-accelerated CSS-mask engine.
+ * It simulates an organic fluid droplet / living cellular membrane that morphs
+ * with multi-harmonic undulations, stretches dynamically along its velocity vector
+ * (conservation of area squash & stretch), and casts an undulating metaball morph
+ * trail with continuous sub-segment fluid bridging and viscous neck connectors.
+ *
+ * Mouse/touch leave immediately dissipates the droplet with smooth exponential
+ * decay and inertial drift — zero artificial freeze delay.
  */
 export const PlantDocHeroStage: React.FC = () => {
   const stageRef = useRef<HTMLElement>(null);
@@ -35,7 +42,7 @@ export const PlantDocHeroStage: React.FC = () => {
 
     const isMobile = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768;
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const maskUpdateInterval = isMobile ? 32 : 16;
+    const maskUpdateInterval = 16; // 60fps+ cadence for both desktop and mobile
     const trails: TrailPoint[] = [];
 
     let animationFrame = 0;
@@ -44,16 +51,24 @@ export const PlantDocHeroStage: React.FC = () => {
     let isPageVisible = !document.hidden;
     let isIntersecting = true;
     let hovering = false;
-    let releaseAt = 0;
     let pointerX = -1;
     let pointerY = -1;
     let smoothX = -1;
     let smoothY = -1;
+    let prevSmoothX = -1;
+    let prevSmoothY = -1;
+    let velocityX = 0;
+    let velocityY = 0;
+    let currentSpeed = 0;
+    let motionAngle = 0;
     let lastTrailX = -1;
     let lastTrailY = -1;
     let headRadius = 0;
+    let headAlpha = 0;
     let touchStartX = 0;
     let touchStartY = 0;
+    let touchStartTime = 0;
+    let touchLockDirection: 'none' | 'reveal' | 'scroll' = 'none';
     let draggingReveal = false;
     let geometryDirty = true;
     let layerRect: DOMRect | null = null;
@@ -98,7 +113,8 @@ export const PlantDocHeroStage: React.FC = () => {
 
       // Before the alpha bitmap is decoded, image-bounds interaction gives the
       // first touch a responsive result. Once decoded, transparent padding is
-      // precisely excluded so the reveal starts only on visible foliage.
+      // excluded so the reveal starts only on visible foliage.
+      // Hysteresis is applied when already active to eliminate border jitter.
       if (flowerAlpha && flowerWidth && flowerHeight) {
         const scale = Math.min(imageRect.width / flowerWidth, imageRect.height / flowerHeight);
         const drawnWidth = flowerWidth * scale;
@@ -107,15 +123,19 @@ export const PlantDocHeroStage: React.FC = () => {
         const sourceY = Math.floor(boxY / scale);
         if (sourceX < 0 || sourceY < 0 || sourceX >= flowerWidth || sourceY >= flowerHeight) return null;
 
+        const isInteracting = hovering || draggingReveal;
+        const threshold = isInteracting ? FLOWER_ALPHA_THRESHOLD_HYSTERESIS : (isMobile ? 12 : FLOWER_ALPHA_THRESHOLD);
+        const sampleRadius = isMobile ? 4 : 2;
+
         let maxAlpha = 0;
-        for (let offsetY = -2; offsetY <= 2; offsetY += 1) {
-          for (let offsetX = -2; offsetX <= 2; offsetX += 1) {
+        for (let offsetY = -sampleRadius; offsetY <= sampleRadius; offsetY += 1) {
+          for (let offsetX = -sampleRadius; offsetX <= sampleRadius; offsetX += 1) {
             const sampleX = Math.min(flowerWidth - 1, Math.max(0, sourceX + offsetX));
             const sampleY = Math.min(flowerHeight - 1, Math.max(0, sourceY + offsetY));
             maxAlpha = Math.max(maxAlpha, flowerAlpha[(sampleY * flowerWidth + sampleX) * 4 + 3]);
           }
         }
-        if (maxAlpha < FLOWER_ALPHA_THRESHOLD) return null;
+        if (maxAlpha < threshold) return null;
       }
 
       return {
@@ -134,14 +154,12 @@ export const PlantDocHeroStage: React.FC = () => {
       pointerX = point.x;
       pointerY = point.y;
       hovering = true;
-      releaseAt = 0;
       startLoop();
     };
 
+    // Instant smooth dissipation — never freeze the circle when pointer leaves
     const beginRelease = () => {
-      if (!hovering && headRadius < 0.5 && trails.length === 0) return;
       hovering = false;
-      releaseAt = performance.now() + (reducedMotion ? 0 : RELEASE_DELAY_MS);
       startLoop();
     };
 
@@ -151,6 +169,20 @@ export const PlantDocHeroStage: React.FC = () => {
       topLayer.style.webkitMaskImage = 'none';
       baseLayer.style.maskImage = 'none';
       baseLayer.style.webkitMaskImage = 'none';
+      smoothX = -1;
+      smoothY = -1;
+      prevSmoothX = -1;
+      prevSmoothY = -1;
+      pointerX = -1;
+      pointerY = -1;
+      lastTrailX = -1;
+      lastTrailY = -1;
+      headRadius = 0;
+      headAlpha = 0;
+      currentSpeed = 0;
+      velocityX = 0;
+      velocityY = 0;
+      trails.length = 0;
     };
 
     const updateFromPointer = (clientX: number, clientY: number) => {
@@ -160,33 +192,126 @@ export const PlantDocHeroStage: React.FC = () => {
     };
 
     const writeMasks = (time: number) => {
-      if (!layerRect || smoothX < 0 || smoothY < 0 || headRadius < 0.5) return;
+      if (!layerRect || smoothX < 0 || smoothY < 0 || headRadius < 0.5 || headAlpha < 0.02) return;
 
-      const wobble = reducedMotion ? 0 : Math.sin(time * 0.0022) * 0.045;
-      const radiusX = headRadius * (1 + wobble);
-      const radiusY = headRadius * (1 - wobble * 0.72);
-      const core = `radial-gradient(ellipse ${radiusX.toFixed(1)}px ${radiusY.toFixed(1)}px at ${smoothX.toFixed(2)}% ${smoothY.toFixed(2)}%, #fff 0%, #fff 53%, rgba(255,255,255,0.92) 68%, rgba(255,255,255,0.36) 86%, transparent 100%)`;
+      // 1. Dynamic Fluid Velocity Squash & Stretch (Physics conservation of area)
+      const maxStretch = isMobile ? 0.38 : 0.48;
+      const stretch = reducedMotion ? 0 : Math.min(maxStretch, currentSpeed * (isMobile ? 0.075 : 0.095));
+      const elongation = 1 + stretch;
+      const compression = 1 / Math.sqrt(elongation);
+
+      const cosA = Math.cos(motionAngle);
+      const sinA = Math.sin(motionAngle);
+      const stretchX = elongation * Math.abs(cosA) + compression * Math.abs(sinA);
+      const stretchY = elongation * Math.abs(sinA) + compression * Math.abs(cosA);
+
+      // 2. Multi-Harmonic Organic Fluid Membrane Wobble
+      const t = time * 0.0022;
+      const harmonic1 = Math.sin(t * 1.6) * 0.065;
+      const harmonic2 = Math.cos(t * 2.4 + 0.8) * 0.042;
+      const harmonic3 = Math.sin(t * 3.3 - 1.2) * 0.024;
+      const fluidWobble = reducedMotion ? 0 : (harmonic1 + harmonic2 + harmonic3);
+
+      const radiusX = headRadius * stretchX * (1 + fluidWobble);
+      const radiusY = headRadius * stretchY * (1 - fluidWobble * 0.84);
+
+      // 3. Ultra-Smooth Liquid Core with Feathered Cellular Corona (scaled by headAlpha)
+      const c1 = (headAlpha * 1.0).toFixed(2);
+      const c2 = (headAlpha * 0.96).toFixed(2);
+      const c3 = (headAlpha * 0.62).toFixed(2);
+      const c4 = (headAlpha * 0.18).toFixed(2);
+      const core = `radial-gradient(ellipse ${radiusX.toFixed(1)}px ${radiusY.toFixed(1)}px at ${smoothX.toFixed(2)}% ${smoothY.toFixed(2)}%, rgba(255,255,255,${c1}) 0%, rgba(255,255,255,${c1}) 48%, rgba(255,255,255,${c2}) 66%, rgba(255,255,255,${c3}) 83%, rgba(255,255,255,${c4}) 95%, transparent 100%)`;
       const maskLayers = [core];
 
-      // Two offset lobes keep the reveal biologically irregular rather than a
-      // perfect inspection circle. The short, fading wake joins them smoothly.
-      if (!reducedMotion) {
-        const phase = time * 0.002;
-        const lobeOneX = smoothX + Math.sin(phase * 1.3) * 0.9;
-        const lobeOneY = smoothY + Math.cos(phase * 1.1) * 0.7;
-        const lobeTwoX = smoothX - Math.cos(phase * 0.9) * 0.7;
-        const lobeTwoY = smoothY + Math.sin(phase * 1.45) * 0.8;
+      // 4. Fluid Metaball Neck Bridge (connecting head to trail wake seamlessly)
+      if (!reducedMotion && trails.length > 0 && currentSpeed > 0.08 && headRadius > 6) {
+        const latestTrail = trails[trails.length - 1];
+        const bridgeX = (smoothX + latestTrail.x) / 2;
+        const bridgeY = (smoothY + latestTrail.y) / 2;
+        const bridgeDist = Math.hypot(
+          ((smoothX - latestTrail.x) / 100) * (layerRect?.width || 1),
+          ((smoothY - latestTrail.y) / 100) * (layerRect?.height || 1)
+        );
+
+        // Fluid neck stretches along vector and thins based on velocity
+        const neckLength = Math.max(radiusX * 0.7, bridgeDist * 0.85);
+        const neckWidth = Math.max(radiusY * 0.45, headRadius * 0.52 * (1 - Math.min(0.4, currentSpeed * 0.08)));
+        const bridgeRx = neckLength * Math.abs(cosA) + neckWidth * Math.abs(sinA);
+        const bridgeRy = neckLength * Math.abs(sinA) + neckWidth * Math.abs(cosA);
+        const bridgeAlpha = Math.min(0.85, (headAlpha * 0.5 + latestTrail.alpha * 0.5) * 0.92);
+
         maskLayers.push(
-          `radial-gradient(ellipse ${(radiusX * 0.62).toFixed(1)}px ${(radiusY * 0.48).toFixed(1)}px at ${lobeOneX.toFixed(2)}% ${lobeOneY.toFixed(2)}%, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.45) 58%, transparent 100%)`,
-          `radial-gradient(ellipse ${(radiusX * 0.38).toFixed(1)}px ${(radiusY * 0.58).toFixed(1)}px at ${lobeTwoX.toFixed(2)}% ${lobeTwoY.toFixed(2)}%, rgba(255,255,255,0.46) 0%, rgba(255,255,255,0.22) 56%, transparent 100%)`
+          `radial-gradient(ellipse ${bridgeRx.toFixed(1)}px ${bridgeRy.toFixed(1)}px at ${bridgeX.toFixed(2)}% ${bridgeY.toFixed(2)}%, rgba(255,255,255,${bridgeAlpha.toFixed(2)}) 0%, rgba(255,255,255,${(bridgeAlpha * 0.72).toFixed(2)}) 45%, rgba(255,255,255,${(bridgeAlpha * 0.32).toFixed(2)}) 75%, transparent 100%)`
         );
       }
 
-      for (let index = trails.length - 1; index >= 0; index -= 1) {
-        const trail = trails[index];
-        const alpha = Math.max(0.08, trail.alpha * 0.72);
+      // 5. Dynamic Satellite Droplets / Organic Morph Lobes
+      if (!reducedMotion && headAlpha > 0.15) {
+        // Leading drop projection along velocity vector
+        if (currentSpeed > 0.12) {
+          const leadDist = Math.min(radiusX * 0.42, currentSpeed * 2.5);
+          const leadPctX = smoothX + ((cosA * leadDist) / Math.max(1, layerRect.width)) * 100;
+          const leadPctY = smoothY + ((sinA * leadDist) / Math.max(1, layerRect.height)) * 100;
+          const leadRx = radiusX * (0.42 + Math.min(0.2, currentSpeed * 0.05));
+          const leadRy = radiusY * (0.36 + Math.min(0.16, currentSpeed * 0.04));
+          const leadA = (0.85 * headAlpha).toFixed(2);
+          const leadA2 = (0.48 * headAlpha).toFixed(2);
+          maskLayers.push(
+            `radial-gradient(ellipse ${leadRx.toFixed(1)}px ${leadRy.toFixed(1)}px at ${leadPctX.toFixed(2)}% ${leadPctY.toFixed(2)}%, rgba(255,255,255,${leadA}) 0%, rgba(255,255,255,${leadA2}) 55%, transparent 100%)`
+          );
+        }
+
+        // Two lateral undulating breathing lobes
+        const lobePhase = t * 1.35;
+        const lobe1Angle = motionAngle + Math.PI * 0.52 + Math.sin(lobePhase * 0.9) * 0.4;
+        const lobe1Dist = headRadius * (0.34 + Math.sin(t * 2.1) * 0.09);
+        const lobe1X = smoothX + ((Math.cos(lobe1Angle) * lobe1Dist) / Math.max(1, layerRect.width)) * 100;
+        const lobe1Y = smoothY + ((Math.sin(lobe1Angle) * lobe1Dist) / Math.max(1, layerRect.height)) * 100;
+        const lobe1Rx = radiusX * (0.52 + Math.sin(t * 1.8) * 0.07);
+        const lobe1Ry = radiusY * (0.44 + Math.cos(t * 1.6) * 0.07);
+
+        const lobe2Angle = motionAngle - Math.PI * 0.52 + Math.cos(lobePhase * 0.85) * 0.4;
+        const lobe2Dist = headRadius * (0.32 + Math.cos(t * 1.9) * 0.08);
+        const lobe2X = smoothX + ((Math.cos(lobe2Angle) * lobe2Dist) / Math.max(1, layerRect.width)) * 100;
+        const lobe2Y = smoothY + ((Math.sin(lobe2Angle) * lobe2Dist) / Math.max(1, layerRect.height)) * 100;
+        const lobe2Rx = radiusX * (0.44 + Math.cos(t * 2.0) * 0.06);
+        const lobe2Ry = radiusY * (0.50 + Math.sin(t * 1.7) * 0.06);
+
+        const l1A = (0.72 * headAlpha).toFixed(2);
+        const l1A2 = (0.42 * headAlpha).toFixed(2);
+        const l2A = (0.58 * headAlpha).toFixed(2);
+        const l2A2 = (0.30 * headAlpha).toFixed(2);
+
         maskLayers.push(
-          `radial-gradient(ellipse ${(trail.radius * 0.78).toFixed(1)}px ${(trail.radius * 0.62).toFixed(1)}px at ${trail.x.toFixed(2)}% ${trail.y.toFixed(2)}%, rgba(255,255,255,${alpha.toFixed(2)}) 0%, rgba(255,255,255,${(alpha * 0.64).toFixed(2)}) 58%, transparent 100%)`
+          `radial-gradient(ellipse ${lobe1Rx.toFixed(1)}px ${lobe1Ry.toFixed(1)}px at ${lobe1X.toFixed(2)}% ${lobe1Y.toFixed(2)}%, rgba(255,255,255,${l1A}) 0%, rgba(255,255,255,${l1A2}) 58%, transparent 100%)`,
+          `radial-gradient(ellipse ${lobe2Rx.toFixed(1)}px ${lobe2Ry.toFixed(1)}px at ${lobe2X.toFixed(2)}% ${lobe2Y.toFixed(2)}%, rgba(255,255,255,${l2A}) 0%, rgba(255,255,255,${l2A2}) 56%, transparent 100%)`
+        );
+      }
+
+      // 6. Morphing Wake Ripple Trail with Hydrodynamic Taper
+      const trailCount = trails.length;
+      for (let index = trailCount - 1; index >= 0; index -= 1) {
+        const trail = trails[index];
+        const age = time - trail.birthTime;
+        const ripple = Math.sin(age * 0.009 + index * 0.48) * 0.12 + Math.cos(age * 0.016 + index * 0.3) * 0.06;
+        
+        // Dynamic taper: latest points near head retain width, older trailing points taper down gracefully
+        const taper = Math.pow((index + 1) / trailCount, 0.72);
+        const trailElongation = 1 + trail.stretch * 0.7;
+        const trailCompression = 1 / Math.sqrt(trailElongation);
+        const tCos = Math.cos(trail.angle);
+        const tSin = Math.sin(trail.angle);
+        const effectiveRadius = trail.radius * (0.7 + 0.3 * taper);
+        const trailRx = effectiveRadius * (trailElongation * Math.abs(tCos) + trailCompression * Math.abs(tSin)) * (1 + ripple);
+        const trailRy = effectiveRadius * (trailElongation * Math.abs(tSin) + trailCompression * Math.abs(tCos)) * (1 - ripple * 0.75);
+        const alpha = Math.max(0.04, trail.alpha * (0.45 + 0.55 * taper));
+
+        const a1 = alpha.toFixed(2);
+        const a2 = (alpha * 0.88).toFixed(2);
+        const a3 = (alpha * 0.42).toFixed(2);
+
+        maskLayers.push(
+          `radial-gradient(ellipse ${trailRx.toFixed(1)}px ${trailRy.toFixed(1)}px at ${trail.x.toFixed(2)}% ${trail.y.toFixed(2)}%, rgba(255,255,255,${a1}) 0%, rgba(255,255,255,${a2}) 38%, rgba(255,255,255,${a3}) 72%, transparent 100%)`
         );
       }
 
@@ -199,16 +324,23 @@ export const PlantDocHeroStage: React.FC = () => {
       topLayer.style.webkitMaskRepeat = 'no-repeat';
       topLayer.style.opacity = '1';
 
-      // A synchronized inverse core prevents the healthy layer from bleeding
-      // through the main pathology window, including transparent eaten-away
-      // tissue. Trail edges intentionally feather into the healthy layer.
-      const inverseMask = `radial-gradient(ellipse ${radiusX.toFixed(1)}px ${radiusY.toFixed(1)}px at ${smoothX.toFixed(2)}% ${smoothY.toFixed(2)}%, transparent 0%, transparent 61%, #fff 100%)`;
-      baseLayer.style.maskImage = inverseMask;
-      baseLayer.style.webkitMaskImage = inverseMask;
-      baseLayer.style.maskSize = '100% 100%';
-      baseLayer.style.webkitMaskSize = '100% 100%';
-      baseLayer.style.maskRepeat = 'no-repeat';
-      baseLayer.style.webkitMaskRepeat = 'no-repeat';
+      // Synchronized inverse core to prevent healthy tissue from bleeding
+      // through transparent eaten-away sections of the pathology specimen
+      if (headAlpha < 0.02) {
+        baseLayer.style.maskImage = 'none';
+        baseLayer.style.webkitMaskImage = 'none';
+      } else {
+        const invInner = (58 * headAlpha).toFixed(1);
+        const invOuter = (90 * headAlpha + 10 * (1 - headAlpha)).toFixed(1);
+        const invMidAlpha = (0.85 * headAlpha + (1 - headAlpha)).toFixed(2);
+        const inverseMask = `radial-gradient(ellipse ${radiusX.toFixed(1)}px ${radiusY.toFixed(1)}px at ${smoothX.toFixed(2)}% ${smoothY.toFixed(2)}%, transparent 0%, transparent ${invInner}%, rgba(255,255,255,${invMidAlpha}) ${invOuter}%, #fff 100%)`;
+        baseLayer.style.maskImage = inverseMask;
+        baseLayer.style.webkitMaskImage = inverseMask;
+        baseLayer.style.maskSize = '100% 100%';
+        baseLayer.style.webkitMaskSize = '100% 100%';
+        baseLayer.style.maskRepeat = 'no-repeat';
+        baseLayer.style.webkitMaskRepeat = 'no-repeat';
+      }
     };
 
     const renderLoop = (time: number) => {
@@ -217,44 +349,103 @@ export const PlantDocHeroStage: React.FC = () => {
 
       const frameScale = Math.min(3, Math.max(0.5, (time - lastFrame) / 16.67));
       lastFrame = time;
-      const holdingRelease = !hovering && releaseAt > time;
-      const targetRadius = hovering
-        ? Math.max(isMobile ? 38 : 60, Math.min(isMobile ? 64 : 106, Math.min(layerRect?.width || 0, layerRect?.height || 0) * (isMobile ? 0.105 : 0.12)))
-        : holdingRelease
-          ? headRadius
-          : 0;
-      const headEase = 1 - Math.pow(hovering ? 0.72 : 0.86, frameScale);
-      headRadius += (targetRadius - headRadius) * headEase;
 
-      if (hovering && pointerX >= 0 && pointerY >= 0) {
-        if (smoothX < 0 || smoothY < 0) {
-          smoothX = pointerX;
-          smoothY = pointerY;
-        } else {
-          const pointerEase = 1 - Math.pow(isMobile ? 0.57 : 0.51, frameScale);
-          smoothX += (pointerX - smoothX) * pointerEase;
-          smoothY += (pointerY - smoothY) * pointerEase;
+      // Generous, clear inspection radius across desktop and mobile screens
+      const minDimension = Math.min(layerRect?.width || 0, layerRect?.height || 0);
+      const normalRadius = isMobile
+        ? Math.max(54, Math.min(88, minDimension * 0.16))
+        : Math.max(68, Math.min(115, minDimension * 0.13));
+
+      if (hovering) {
+        // Active pointer tracking on the leaf
+        const headEase = 1 - Math.pow(0.72, frameScale);
+        headRadius += (normalRadius - headRadius) * headEase;
+        headAlpha += (1 - headAlpha) * (1 - Math.pow(0.65, frameScale));
+
+        if (pointerX >= 0 && pointerY >= 0) {
+          if (smoothX < 0 || smoothY < 0) {
+            smoothX = pointerX;
+            smoothY = pointerY;
+            prevSmoothX = pointerX;
+            prevSmoothY = pointerY;
+          } else {
+            prevSmoothX = smoothX;
+            prevSmoothY = smoothY;
+            const pointerEase = 1 - Math.pow(isMobile ? 0.44 : 0.48, frameScale);
+            smoothX += (pointerX - smoothX) * pointerEase;
+            smoothY += (pointerY - smoothY) * pointerEase;
+
+            // Track instantaneous directional velocity vector
+            const dx = smoothX - prevSmoothX;
+            const dy = smoothY - prevSmoothY;
+            velocityX = velocityX * 0.65 + dx * 0.35;
+            velocityY = velocityY * 0.65 + dy * 0.35;
+            currentSpeed = Math.hypot(velocityX, velocityY);
+            if (currentSpeed > 0.06) {
+              motionAngle = Math.atan2(velocityY, velocityX);
+            }
+          }
+
+          // Sub-segment densified fluid bridging for seamless continuous trails
+          const distance = Math.hypot(smoothX - lastTrailX, smoothY - lastTrailY);
+          const minStep = isMobile ? 0.75 : 0.55;
+          const maxStep = 2.4;
+
+          if (distance >= minStep && headRadius > 3 && !reducedMotion) {
+            const steps = Math.min(4, Math.max(1, Math.floor(distance / maxStep)));
+            const maxStretch = isMobile ? 0.38 : 0.48;
+            const stretch = Math.min(maxStretch, currentSpeed * (isMobile ? 0.075 : 0.095));
+
+            for (let s = 1; s <= steps; s++) {
+              const ratio = s / steps;
+              const interX = lastTrailX + (smoothX - lastTrailX) * ratio;
+              const interY = lastTrailY + (smoothY - lastTrailY) * ratio;
+              trails.push({
+                x: interX,
+                y: interY,
+                radius: headRadius * (0.94 - (1 - ratio) * 0.08),
+                alpha: 0.84,
+                angle: motionAngle,
+                stretch,
+                birthTime: time
+              });
+            }
+
+            const maxPoints = isMobile ? MAX_TRAIL_POINTS_MOBILE : MAX_TRAIL_POINTS_DESKTOP;
+            while (trails.length > maxPoints) trails.shift();
+            lastTrailX = smoothX;
+            lastTrailY = smoothY;
+          }
+        }
+      } else {
+        // Mouse left the plant: IMMEDIATE fluid evaporation with NO freeze!
+        headRadius *= Math.pow(0.79, frameScale);
+        headAlpha *= Math.pow(0.80, frameScale);
+
+        // Inertial fluid glide: let the dissolving droplet gently coast along motion vector
+        if (currentSpeed > 0.04 && layerRect) {
+          currentSpeed *= Math.pow(0.86, frameScale);
+          smoothX += ((Math.cos(motionAngle) * currentSpeed * 0.3) / Math.max(1, layerRect.width)) * 100;
+          smoothY += ((Math.sin(motionAngle) * currentSpeed * 0.3) / Math.max(1, layerRect.height)) * 100;
         }
 
-        const distance = Math.hypot(smoothX - lastTrailX, smoothY - lastTrailY);
-        const trailThreshold = isMobile ? 1.25 : 0.85;
-        if (distance >= trailThreshold && headRadius > 3 && !reducedMotion) {
-          trails.push({ x: smoothX, y: smoothY, radius: headRadius, alpha: 0.78 });
-          if (trails.length > (isMobile ? 7 : MAX_TRAIL_POINTS)) trails.shift();
-          lastTrailX = smoothX;
-          lastTrailY = smoothY;
+        if (headRadius < 0.8 || headAlpha < 0.02) {
+          headRadius = 0;
+          headAlpha = 0;
         }
       }
 
-      const fade = Math.pow(isMobile ? 0.93 : 0.9, frameScale);
+      // Smooth frame-scaled trail dissipation
+      const fade = Math.pow(isMobile ? 0.91 : 0.88, frameScale);
       for (let index = trails.length - 1; index >= 0; index -= 1) {
         const trail = trails[index];
         trail.alpha *= fade;
-        trail.radius *= Math.pow(0.993, frameScale);
-        if (trail.alpha < 0.025 || trail.radius < 2) trails.splice(index, 1);
+        trail.radius *= Math.pow(0.99, frameScale);
+        trail.stretch *= Math.pow(0.92, frameScale);
+        if (trail.alpha < 0.02 || trail.radius < 2) trails.splice(index, 1);
       }
 
-      const hasReveal = hovering || holdingRelease || headRadius > 0.5 || trails.length > 0;
+      const hasReveal = (headRadius > 0.5 && headAlpha > 0.02) || trails.length > 0;
       if (!hasReveal) {
         releaseMasks();
         return;
@@ -269,35 +460,62 @@ export const PlantDocHeroStage: React.FC = () => {
 
     const handleMouseMove = (event: MouseEvent) => updateFromPointer(event.clientX, event.clientY);
     const handleMouseLeave = () => beginRelease();
+
+    // High-precision, zero-jank mobile touch interaction
     const handleTouchStart = (event: TouchEvent) => {
       const touch = event.touches[0];
       if (!touch) return;
       touchStartX = touch.clientX;
       touchStartY = touch.clientY;
-      draggingReveal = Boolean(getFlowerPoint(touch.clientX, touch.clientY));
-      if (draggingReveal) updateFromPointer(touch.clientX, touch.clientY);
-      else beginRelease();
+      touchStartTime = performance.now();
+      touchLockDirection = 'none';
+
+      const point = getFlowerPoint(touch.clientX, touch.clientY);
+      if (point) {
+        draggingReveal = true;
+        touchLockDirection = 'reveal';
+        beginReveal(point);
+      } else {
+        draggingReveal = false;
+      }
     };
+
     const handleTouchMove = (event: TouchEvent) => {
       const touch = event.touches[0];
-      if (!touch || !draggingReveal) return;
+      if (!touch) return;
 
       const deltaX = Math.abs(touch.clientX - touchStartX);
       const deltaY = Math.abs(touch.clientY - touchStartY);
-      // Native vertical scrolling always wins. A deliberate horizontal trace
-      // over the leaf stays interactive without fighting the browser.
-      if (deltaY > 18 && deltaY > deltaX * 1.45) {
-        draggingReveal = false;
-        beginRelease();
-        return;
+
+      // Determine initial intent in early movement:
+      if (touchLockDirection === 'none') {
+        const elapsed = performance.now() - touchStartTime;
+        // Predominant quick vertical flick right at the start yields cleanly to page scroll
+        if (elapsed < 140 && deltaY > 24 && deltaY > deltaX * 2.0) {
+          touchLockDirection = 'scroll';
+          draggingReveal = false;
+          beginRelease();
+          return;
+        } else if (deltaX > 8 || deltaY > 8) {
+          touchLockDirection = 'reveal';
+        }
       }
-      event.preventDefault();
-      updateFromPointer(touch.clientX, touch.clientY);
+
+      if (touchLockDirection === 'scroll') return;
+
+      if (draggingReveal || touchLockDirection === 'reveal') {
+        // Prevent scroll fighting while tracing the botanical specimen
+        if (event.cancelable) event.preventDefault();
+        updateFromPointer(touch.clientX, touch.clientY);
+      }
     };
+
     const handleTouchEnd = () => {
       draggingReveal = false;
+      touchLockDirection = 'none';
       beginRelease();
     };
+
     const handleScroll = () => {
       geometryDirty = true;
       if (hovering) beginRelease();
@@ -427,8 +645,11 @@ export const PlantDocHeroStage: React.FC = () => {
 
       <div className="flex-1" />
 
-      <div className="relative z-30 mx-auto mb-2 flex items-center gap-2 rounded-full border border-white/15 bg-black/50 px-3 py-1.5 text-[10px] font-medium tracking-wide text-white/75 backdrop-blur-md sm:hidden">
-        <span className="h-1.5 w-1.5 rounded-full bg-[#2DD4BF] shadow-[0_0_10px_#2DD4BF]" aria-hidden="true" />
+      <div className="relative z-30 mx-auto mb-2 flex items-center gap-2 rounded-full border border-white/15 bg-black/60 px-3.5 py-1.5 text-[10px] font-medium tracking-wide text-white/80 shadow-[0_4px_16px_rgba(0,0,0,0.5)] backdrop-blur-md sm:hidden">
+        <span className="relative flex h-2 w-2">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#2DD4BF] opacity-75" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-[#2DD4BF] shadow-[0_0_8px_#2DD4BF]" />
+        </span>
         <span>Trace the leaf to reveal pathology</span>
       </div>
 

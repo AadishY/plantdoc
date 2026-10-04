@@ -35,17 +35,19 @@ Welcome to the **PlantDoc AI** codebase architecture and agent engineering guide
 - **UI Components & Icons**: Radix UI primitives, Lucide React icons, Sonner toast notifications
 - **AI Models**: Google Gemini Vision & Gemma Open Model Family (Thinking Enabled):
   - Clinical Pathology & Dossier Formulation: 3-Tier Model Failover Cascade:
-    1. Primary: `gemini-3.8-flash` (via `v1beta`, with Thinking `thinkingBudget: 1024`)
-    2. Secondary Failover: `gemini-3.7-flash` (via `v1beta`, with Thinking `thinkingBudget: 1024`, alerts user: *"Primary model (gemini-3.8-flash) seems offline or busy. Shifting to the 2nd model (gemini-3.7-flash)..."*)
-    3. Tertiary Failover: `gemini-3.6-flash` (via `v1beta`, alerts user: *"Secondary model (gemini-3.7-flash) seems offline or busy. Shifting to the 3rd model (gemini-3.6-flash)..."*)
+    1. Primary: `gemini-3.6-flash` (via `v1beta`)
+    2. Secondary Failover: `gemini-3.7-flash` (via `v1beta`, with Thinking `thinkingBudget: 1024`, alerts user: *"Primary model (gemini-3.6-flash) seems offline or busy. Shifting to the 2nd model (gemini-3.7-flash)..."*)
+    3. Tertiary Failover: `gemini-3.8-flash` (via `v1beta`, with Thinking `thinkingBudget: 1024`, alerts user: *"Secondary model (gemini-3.7-flash) seems offline or busy. Shifting to the 3rd model (gemini-3.8-flash)..."*)
   - Spatial Embodied Grounding & Lesion Segmentation: `gemini-3.7-flash` (via `v1beta`, with Thinking)
     - Comprehensive Affected Area Grounding: Detects both macro foliar disease zones (blight scorch, widespread chlorosis, marginal burns) and micro focal spots (fungal pustules, necrotic centers).
     - Up to 45+ distinct lesion detections with relaxed geometry thresholds and optimized NMS IoU deduplication (`IoU > 0.65`).
   - Regional Fast Climate Intelligence: `gemini-3.5-flash-lite` (via `v1beta`, with Thinking)
   - Agronomic Botanical Recommendation:
-    - Smart Mode (Gemma 4 Open Model Family):
-      - Primary: `gemma-4-26b-a4b-it` (26B Gemma open model with attention routing, fast ~4s response)
-      - Secondary Failover: `gemma-4-31b-it` (31B Gemma open model)
+    - Smart Mode (Gemma 4 Open Model Family with Fast Gemini Failover):
+      - Primary: `gemma-4-26b-a4b-it` (26B Gemma open model)
+      - Secondary Fast Failover: `gemini-3.5-flash-lite` (Blazing fast ~2-4s response)
+      - Tertiary Failover: `gemini-2.5-flash` (~10s response)
+      - Quaternary Failover: `gemma-4-31b-it` (31B Gemma open model)
     - Fast Mode (OpenRouter Free Models Cascade):
       - Primary: `inclusionai/ling-3.0-flash-sante:free` (Biological/botanical specialist, ~6-10s)
       - Secondary Failover: `nex-agi/nex-n2.5-mini:free` (Ultra-fast ~3s general LLM)
@@ -134,7 +136,7 @@ The vision diagnostics pipeline processes user photos through an optimized clien
 graph TD
     A[User Foliage Photo] --> B[prepareImageForAPI: Canvas WebP Compression]
     B --> C{Parallel Dual-Model Execution}
-    C -->|60s Timeout| D[fetchClinicalDiagnosis: Gemini 3.8 Flash with Thinking]
+    C -->|60s Timeout| D[fetchClinicalDiagnosis: Gemini 3.6 Flash / Failover Cascade]
     C -->|45s Timeout| E[fetchSpatialSegmentation: gemini-3.7-flash with Thinking]
     E --> F[calculateBoxIoU + NMS Deduplication Filter]
     D --> G[Anti-Hallucination & Scientific Veracity Check]
@@ -150,7 +152,7 @@ graph TD
    - Encodes as progressive WebP (`0.85` quality) with JPEG fallback.
    - Reduces multi-megabyte DSLR/smartphone uploads down to **~80KB–150KB** (99% network payload reduction), boosting API response latency by **5x–10x**.
 2. **Parallel Dual-Model Pipeline**:
-   - **Model 1 (`fetchClinicalDiagnosis`)**: Generates botanical classification, disease name, confidence scores, real retail brand chemicals (e.g. *Daconil*, *Bonide*), organic recipes, infection stage horizons, and NPK fertilizer advice via `gemini-3.8-flash` with thinking enabled (`thinkingBudget: 1024`). Zero synthetic fallback models; errors format directly into human-friendly diagnostics.
+   - **Model 1 (`fetchClinicalDiagnosis`)**: Generates botanical classification, disease name, confidence scores, real retail brand chemicals (e.g. *Daconil*, *Bonide*), organic recipes, infection stage horizons, and NPK fertilizer advice via 3-tier cascade (`gemini-3.6-flash` -> `gemini-3.7-flash` -> `gemini-3.8-flash`). Zero synthetic fallback models; errors format directly into human-friendly diagnostics.
    - **Model 2 (`fetchSpatialSegmentation`)**: Computes ultra-high-precision 2D bounding boxes `[ymin, xmin, ymax, xmax]` tightly wrapping individual lesion spots, necrotic patches, insect perforations, and symptom halos via spatial embodied reasoning model `gemini-3.7-flash` with thinking enabled (`thinkingBudget: 1024`).
 3. **Non-Blocking Architecture**:
    - If segmentation times out (45s) or returns empty, it falls back cleanly to `{ lesions: [] }` so the primary clinical report is **never blocked**.
@@ -227,23 +229,30 @@ const iou = unionArea > 0 ? interArea / unionArea : 0;
 
 The hero stage ([PlantDocHeroStage.tsx](file:///src/components/PlantDocHeroStage.tsx)) creates an interactive healthy-to-pathology reveal using the two synchronized foliage layers (`main.webp` and `main_disease.webp`).
 
-### CSS-Mask Reveal Architecture
-1. **Pathology layer (`topLayerRef`)**:
-   - Receives a compact stack of native CSS radial gradients: a feathered inspection core, two subtle live lobes, and a short fading trail.
-   - It is updated at a capped `~60fps` desktop / `~30fps` touch cadence, avoiding canvas bitmap serialization and base64 URL churn.
-2. **Healthy layer (`baseLayerRef`)**:
-   - Receives the synchronized inverse of the inspection core, so healthy tissue does not show beneath pathology or through transparent, eaten-away regions.
-3. **Foliage hit testing**:
-   - A one-time local alpha bitmap is read from the healthy PNG/WebP asset. The reveal ignores transparent image padding once decoded, while image-bounds fallback keeps the first touch responsive.
-4. **Gesture and lifecycle behavior**:
-   - Vertical touch swipes yield immediately to native page scroll; intentional horizontal traces operate the reveal.
-   - `ResizeObserver`, `IntersectionObserver`, and `visibilitychange` stop rendering when the stage is offscreen, resized, or backgrounded.
-   - The final wake has a short release decay rather than popping out when a pointer leaves.
+### Fluid Morph Reveal & CSS-Mask Architecture
+1. **Fluid Droplet & Membrane Morphing (`topLayerRef`)**:
+   - Simulates an organic liquid droplet with multi-harmonic undulations (`sin(t * 1.6) + cos(t * 2.4) + sin(t * 3.3)`).
+   - Incorporates dynamic **squash & stretch velocity physics** (conservation of area) that stretches the droplet along its travel vector during rapid cursor/touch drags and elastically snaps back on rest.
+   - Generates dynamic satellite fluid lobes: a velocity-projected leading droplet along the motion vector, plus two lateral undulating breathing lobes for a living metaball cellular contour.
+2. **Sub-Segment Morph Trail with Fluid Metaball Bridging**:
+   - Interpolates intermediate sub-droplets between high-speed pointer frames, eliminating gaps in fast traces.
+   - Generates an active **fluid neck bridge capsule** between the cursor head and the latest wake droplets during movement, simulating viscous liquid surface tension.
+   - Uses hydrodynamic tapering (`Math.pow((index + 1) / trailCount, 0.72)`) so the wake naturally tapers down into a slender teardrop tip.
+   - Each trail point morphs individually, rippling with age (`sin(age * 0.009 + index * 0.48)`) and decaying smoothly without abrupt step-jumps.
+3. **Instant Zero-Freeze Fluid Evaporation**:
+   - The instant pointer leaves the plant foliage or stage, the droplet immediately contracts and fades out (`headRadius *= 0.79`, `headAlpha *= 0.80` per frame) with subtle inertial drift along its motion vector.
+   - Eliminates artificial holding/freezing delays, producing a natural dew-drop evaporation into the foliage.
+4. **Healthy layer (`baseLayerRef`)**:
+   - Receives the synchronized inverse of the inspection core, dynamically scaled by `headAlpha`, so healthy tissue does not show beneath pathology or through transparent, eaten-away regions.
+5. **Mobile Touch Architecture**:
+   - Generous inspection radius (`54px` to `88px`), ensuring clear foliar visibility around thumb/finger contact points.
+   - Intent-locked gesture handling: early vertical flick yields cleanly to native page scroll; intentional leaf tracing prevents scroll fighting and maintains smooth 60fps/120fps hardware compositing.
+   - Boundary hysteresis (`threshold = 8` during active interaction) prevents edge flicker when tracing near serrated leaf margins.
 
 ### Device-Specific Behavior
-- **Touch / mobile**: smaller inspection window, fewer wake layers, capped 32ms mask updates, and no competing scroll handler work.
-- **Desktop**: larger window and smoothly animated organic lobes at a capped 16ms mask update cadence.
-- **Reduced motion**: a static, clear mask with no lobe or wake animation.
+- **Touch / Mobile**: Generous 54–88px fluid inspection window, 16-point densified morph trail, boundary hysteresis, and hardware-accelerated 16ms mask cadence.
+- **Desktop**: Full 68–115px fluid inspection window, 24-point densified morph trail, fluid neck bridge, and velocity-projected satellite metaball lobes.
+- **Reduced Motion**: Static feathered mask with no wave or lobe oscillation.
 
 ---
 
@@ -252,10 +261,10 @@ The hero stage ([PlantDocHeroStage.tsx](file:///src/components/PlantDocHeroStage
 The recommendation system matches plants against regional environmental parameters (temperature, annual rainfall, humidity, soil type, and pH).
 
 ### Architecture (`src/services/wikimedia.ts` & `api.ts`):
-1. **Gemma 4 Agronomic Intelligence Pipeline**:
-   - Uses Google's open weights **Gemma 4 model family** via Google AI Studio (`v1beta` endpoint).
-   - **Primary Model**: `gemma-4-26b-a4b-it` (26B Gemma open model with attention routing, achieving blazing fast ~3s–5s response times).
-   - **Secondary Failover**: `gemma-4-31b-it` (31B Gemma open model) if primary is busy.
+1. **Gemma 4 & Gemini Agronomic Intelligence Pipeline**:
+   - Uses Google's open weights **Gemma 4 model family** with fast **Gemini failover** via Google AI Studio (`v1beta` endpoint).
+   - **Primary Model**: `gemma-4-26b-a4b-it` (26B Gemma open model with direct JSON generation).
+   - **Fast Failover Cascade**: `gemini-3.5-flash-lite` (~2-4s response) -> `gemini-2.5-flash` -> `gemma-4-31b-it` for 100% resilient recommendations without timeout stalls.
    - **Fast Mode (OpenRouter Free Cascade)**: High-speed botanical formulation via primary model `inclusionai/ling-3.0-flash-sante:free` (~6-10s) with automatic failover to `nex-agi/nex-n2.5-mini:free`, `liquid/lfm-2.5-2.6b:free`, and `dots-studio/dots-3-note-preview:free`.
    - Strictly outputs pure JSON arrays adhering to `PlantRecommendation[]` schema with zero markdown preamble or conversational wrappers.
 2. **Zero Mock Synthetic Data via Wikimedia REST API**:

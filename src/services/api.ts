@@ -407,8 +407,9 @@ Return ONLY a valid JSON object strictly adhering to this schema:
     // Gemini vision model, so a bad model id can never silently kill lesion mapping.
     const segmentationCandidates = Array.from(new Set([
       API_CONFIG.SEGMENTATION_MODEL,
-      "gemini-3.8-flash",
-      "gemini-3.6-flash"
+      "gemini-3.6-flash",
+      "gemini-3.7-flash",
+      "gemini-3.8-flash"
     ].filter(Boolean)));
 
     for (const modelName of segmentationCandidates) {
@@ -584,9 +585,9 @@ Return ONLY a valid JSON object strictly adhering to this schema:
 
 // -------------------------------------------------------------
 // Main Clinical Diagnosis Fetcher with 3-Tier Model Failover Cascade
-// 1. Primary: gemini-3.8-flash
+// 1. Primary: gemini-3.6-flash
 // 2. Secondary failover: gemini-3.7-flash (if primary is offline, busy, or hit rate limits)
-// 3. Tertiary failover: gemini-3.6-flash (if secondary is offline, busy, or hit rate limits)
+// 3. Tertiary failover: gemini-3.8-flash (if secondary is offline, busy, or hit rate limits)
 // -------------------------------------------------------------
 interface DiagnosisModelCandidate {
   id: string;
@@ -597,22 +598,22 @@ interface DiagnosisModelCandidate {
 
 const DIAGNOSIS_MODEL_CASCADE: DiagnosisModelCandidate[] = [
   {
-    id: "gemini-3.7-flash",
+    id: API_CONFIG.DIAGNOSIS_MODEL,
     name: "PlantDoc AI",
     tierLabel: "PlantDoc AI Primary Engine",
-    supportsThinking: true
+    supportsThinking: false
   },
   {
-    id: "gemini-3.8-flash",
+    id: API_CONFIG.DIAGNOSIS_SECONDARY_MODEL,
     name: "PlantDoc AI",
     tierLabel: "PlantDoc AI Secondary Engine",
     supportsThinking: true
   },
   {
-    id: "gemini-3.6-flash",
+    id: API_CONFIG.DIAGNOSIS_TERTIARY_MODEL,
     name: "PlantDoc AI",
     tierLabel: "PlantDoc AI Alternate Engine",
-    supportsThinking: false
+    supportsThinking: true
   }
 ];
 
@@ -875,9 +876,9 @@ Return ONLY the JSON. No markdown commentary.`;
   let activeShiftNotice: string | undefined = undefined;
 
   // 3-Tier Model Failover Cascade:
-  // Step 1: Try gemini-3.8-flash (Primary)
+  // Step 1: Try gemini-3.6-flash (Primary)
   // Step 2: If offline/busy/limit -> show message and try gemini-3.7-flash (2nd)
-  // Step 3: If offline/busy/limit -> show message and try gemini-3.6-flash (3rd)
+  // Step 3: If offline/busy/limit -> show message and try gemini-3.8-flash (3rd)
   for (let i = 0; i < DIAGNOSIS_MODEL_CASCADE.length; i++) {
     const candidate = DIAGNOSIS_MODEL_CASCADE[i];
     const nextCandidate = DIAGNOSIS_MODEL_CASCADE[i + 1];
@@ -1124,7 +1125,7 @@ export const diagnosePlant = async (
     //   - Clinical Diagnosis runs on Groq: qwen/qwen3.8-27b with reasoning_effort="high"
     //   - Spatial Segmentation continues on Google gemini-3.7-flash (per specification)
     // When mode === 'smart':
-    //   - Clinical Diagnosis runs on Google 3-tier cascade: gemini-3.8-flash -> 3.7-flash -> 3.6-flash
+    //   - Clinical Diagnosis runs on Google 3-tier cascade: gemini-3.6-flash -> 3.7-flash -> 3.8-flash
     //   - Spatial Segmentation runs on Google gemini-3.7-flash
     let diagnosisPromise: Promise<any>;
 
@@ -1927,27 +1928,30 @@ Return strictly raw JSON.`;
 
     // SMART MODE (or seamless fallback from Fast Mode if OpenRouter quota is exhausted):
     if (!Array.isArray(candidatePlants) || candidatePlants.length === 0) {
-      // SMART MODE: Gemma Open Model Family (Primary 26B Gemma 4 as user requested, failover to 31B)
-      const gemmaPrompt = `${promptText}\n\nOutput ONLY the valid JSON array of objects. Think concisely and do not output conversational commentary.`;
+      // SMART MODE: Gemma Open Model Family with fast Gemini failover cascade
+      const smartPrompt = `${promptText}\n\nRespond directly and immediately with ONLY the raw JSON array of objects. Do not include reasoning, thoughts, or conversational preamble.`;
 
       const payload = {
         contents: [
           {
             role: "user",
-            parts: [{ text: gemmaPrompt }]
+            parts: [{ text: smartPrompt }]
           }
         ],
         generationConfig: {
           temperature: 0.1,
-          maxOutputTokens: 3500
+          maxOutputTokens: 2500,
+          responseMimeType: 'application/json'
         }
       };
 
-      // Priority: 26B Gemma 4 (faster, highly stable), followed by 31B Gemma 4
-      const gemmaModels = [...API_CONFIG.RECOMMENDATION_MODELS];
+      // Cascade: Primary 26B Gemma 4, followed by ultra-fast gemini-3.5-flash-lite, gemini-2.5-flash, and gemma-4-31b-it
+      const smartModels = [...API_CONFIG.RECOMMENDATION_MODELS];
 
-      for (const targetModel of gemmaModels) {
+      for (const targetModel of smartModels) {
         try {
+          const isGemma = targetModel.toLowerCase().includes('gemma');
+          const modelTimeoutMs = isGemma ? 18_000 : 35_000;
           const gatewayUrl = `${API_CONFIG.GEMINI_BASE_URL}/models/${targetModel}:generateContent`;
           const res = await fetchWithTimeout(
             gatewayUrl,
@@ -1955,7 +1959,8 @@ Return strictly raw JSON.`;
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(payload)
-            }
+            },
+            modelTimeoutMs
           );
 
           if (res && res.ok) {
@@ -1992,9 +1997,12 @@ Return strictly raw JSON.`;
                 }
               }
             }
+          } else if (res) {
+            const errBody = await res.text().catch(() => '');
+            console.warn(`[PlantDoc AI] Recommendation model ${targetModel} returned HTTP ${res.status}:`, errBody.slice(0, 200));
           }
         } catch (modelErr: any) {
-          console.warn(`[PlantDoc AI] Gemma model ${targetModel} issue, checking failover:`, modelErr?.message || modelErr);
+          console.warn(`[PlantDoc AI] Recommendation model ${targetModel} issue, checking failover:`, modelErr?.message || modelErr);
         }
 
         if (Array.isArray(candidatePlants) && candidatePlants.length > 0) {
